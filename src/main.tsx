@@ -17,7 +17,8 @@ import { ThemeProvider } from './context/theme-provider'
 import { routeTree } from './routeTree.gen'
 // Styles
 import './styles/index.css'
-
+import { Provider } from "react-redux";
+import { store } from './store'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -90,6 +91,7 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
+      <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <FontProvider>
@@ -99,6 +101,7 @@ if (!rootElement.innerHTML) {
           </FontProvider>
         </ThemeProvider>
       </QueryClientProvider>
+      </Provider>
     </StrictMode>
   )
 }
