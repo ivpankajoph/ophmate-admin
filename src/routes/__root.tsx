@@ -2,7 +2,6 @@ import { type QueryClient } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
   Outlet,
-  redirect,
   useRouterState,
 } from '@tanstack/react-router'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -21,7 +20,6 @@ export const Route = createRootRouteWithContext<{
     const routerState = useRouterState()
 
     useEffect(() => {
-      // ✅ Redirect if user not logged in and not already on sign-in
       const currentPath = routerState.location.pathname
       if (!token && currentPath !== '/sign-in') {
         navigate({ to: '/sign-in' })

@@ -1,4 +1,7 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { AppDispatch } from '@/store'
+import { logout } from '@/store/slices/authSlice'
+import { useDispatch } from 'react-redux'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -13,10 +16,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SignOutDialog } from '@/components/sign-out-dialog'
+import { useSelector } from 'react-redux'
 
 export function ProfileDropdown() {
   const [open, setOpen] = useDialogState()
+  const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
+  const user = useSelector((state: any) => state.auth.user)
 
+  const handleLogout = () => {
+    dispatch(logout())
+
+    localStorage.removeItem('persist:root') 
+    localStorage.removeItem('token') 
+
+    navigate({ to: '/sign-in' })
+  }
   return (
     <>
       <DropdownMenu modal={false}>
@@ -31,28 +46,28 @@ export function ProfileDropdown() {
         <DropdownMenuContent className='w-56' align='end' forceMount>
           <DropdownMenuLabel className='font-normal'>
             <div className='flex flex-col gap-1.5'>
-              <p className='text-sm leading-none font-medium'>satnaing</p>
+              <p className='text-sm leading-none font-medium'>{user?.name}</p>
               <p className='text-muted-foreground text-xs leading-none'>
-                satnaingdev@gmail.com
+                {user?.email}
               </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-              <Link to='/settings'>
+              <Link to='/'>
                 Profile
                 <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to='/settings'>
+              <Link to='/'>
                 Billing
                 <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to='/settings'>
+              <Link to='/'>
                 Settings
                 <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
               </Link>
@@ -60,7 +75,7 @@ export function ProfileDropdown() {
             <DropdownMenuItem>New Team</DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setOpen(true)}>
+          <DropdownMenuItem onClick={handleLogout}>
             Sign out
             <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
           </DropdownMenuItem>

@@ -76,6 +76,7 @@ export function UserAuthForm({
         throw new Error("Login failed");
       }
     } catch (error: any) {
+      console.log("Login error:", error);
       Swal.fire({
         title: "Login Failed 😞",
         text: error?.message || "Please check your credentials.",
@@ -92,7 +93,6 @@ export function UserAuthForm({
         className={cn("grid gap-3", className)}
         {...props}
       >
-        {/* Email Field */}
         <FormField
           control={form.control}
           name="email"
@@ -107,7 +107,6 @@ export function UserAuthForm({
           )}
         />
 
-        {/* Password Field */}
         <FormField
           control={form.control}
           name="password"
@@ -128,13 +127,11 @@ export function UserAuthForm({
           )}
         />
 
-        {/* Submit Button */}
         <Button className="mt-2" disabled={loading}>
           {loading ? <Loader2 className="animate-spin" /> : <LogIn />}
           Sign in
         </Button>
 
-        {/* Divider */}
         <div className="relative my-2">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -146,7 +143,6 @@ export function UserAuthForm({
           </div>
         </div>
 
-        {/* Social Logins */}
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" type="button" disabled={loading}>
             <IconGithub className="h-4 w-4" /> GitHub

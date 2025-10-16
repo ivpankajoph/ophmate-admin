@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   BadgeCheck,
   Bell,
@@ -25,19 +25,32 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { SignOutDialog } from '@/components/sign-out-dialog'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '@/store'
+import { logout } from '@/store/slices/authSlice'
+import { useSelector } from 'react-redux'
 
-type NavUserProps = {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}
 
-export function NavUser({ user }: NavUserProps) {
+
+
+export function NavUser() {
   const { isMobile } = useSidebar()
   const [open, setOpen] = useDialogState()
+  const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
+    const user = useSelector((state: any) => state.auth.user)
+  const handleLogout = () => {
+    // 1. Clear Redux auth state
+    dispatch(logout())
+  
 
+    // 2. Remove persisted token (optional if redux-persist is already doing this)
+    localStorage.removeItem('persist:root') // if using redux-persist
+    localStorage.removeItem('token') // if manually stored
+
+    // 3. Redirect to login page
+    navigate({ to: '/sign-in' })
+  }
   return (
     <>
       <SidebarMenu>
@@ -49,12 +62,12 @@ export function NavUser({ user }: NavUserProps) {
                 className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
               >
                 <Avatar className='h-8 w-8 rounded-lg'>
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user?.avatar} alt={user?.name} />
                   <AvatarFallback className='rounded-lg'>SN</AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-start text-sm leading-tight'>
-                  <span className='truncate font-semibold'>{user.name}</span>
-                  <span className='truncate text-xs'>{user.email}</span>
+                  <span className='truncate font-semibold'>{user?.name}</span>
+                  <span className='truncate text-xs'>{user?.email}</span>
                 </div>
                 <ChevronsUpDown className='ms-auto size-4' />
               </SidebarMenuButton>
@@ -68,12 +81,12 @@ export function NavUser({ user }: NavUserProps) {
               <DropdownMenuLabel className='p-0 font-normal'>
                 <div className='flex items-center gap-2 px-1 py-1.5 text-start text-sm'>
                   <Avatar className='h-8 w-8 rounded-lg'>
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
                     <AvatarFallback className='rounded-lg'>SN</AvatarFallback>
                   </Avatar>
                   <div className='grid flex-1 text-start text-sm leading-tight'>
-                    <span className='truncate font-semibold'>{user.name}</span>
-                    <span className='truncate text-xs'>{user.email}</span>
+                    <span className='truncate font-semibold'>{user?.name}</span>
+                    <span className='truncate text-xs'>{user?.email}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>
@@ -87,26 +100,26 @@ export function NavUser({ user }: NavUserProps) {
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings/account'>
+                  <Link to='/'>
                     <BadgeCheck />
                     Account
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings'>
+                  <Link to='/'>
                     <CreditCard />
                     Billing
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to='/settings/notifications'>
+                  <Link to='/'>
                     <Bell />
                     Notifications
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setOpen(true)}>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut />
                 Sign out
               </DropdownMenuItem>

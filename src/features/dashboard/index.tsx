@@ -78,7 +78,7 @@ export function Dashboard() {
                   </svg>
                 </CardHeader>
                 <CardContent>
-                  <div className='text-2xl font-bold'>$45,231.89</div>
+                  <div className='text-2xl font-bold'>₹45,231.89</div>
                   <p className='text-muted-foreground text-xs'>
                     +20.1% from last month
                   </p>

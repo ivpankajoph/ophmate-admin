@@ -1,8 +1,8 @@
-import api from "@/lib/axios";
+
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import axios from "axios";
 
 
-// 👇 Define the Auth State shape
 interface AuthState {
   token: string | null;
   user: any | null;
@@ -11,7 +11,7 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-// 👇 Initial state
+
 const initialState: AuthState = {
   token: null,
   user: null,
@@ -20,7 +20,6 @@ const initialState: AuthState = {
   isAuthenticated: false,
 };
 
-// 👇 Async thunk for login API
 export const loginAdmin = createAsyncThunk(
   "auth/loginAdmin",
   async (
@@ -28,10 +27,7 @@ export const loginAdmin = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await  api.post("/admin/login", credentials);
-
-      // Example expected API response:
-      // { token: "jwt_token", user: { id, name, email, ... } }
+      const response = await  axios.post("http://localhost:8000/api/admin/login", credentials);
       return response.data;
     } catch (err: any) {
       const message =
@@ -41,7 +37,6 @@ export const loginAdmin = createAsyncThunk(
   }
 );
 
-// 👇 Create slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -61,10 +56,10 @@ const authSlice = createSlice({
       })
       .addCase(
         loginAdmin.fulfilled,
-        (state, action: PayloadAction<{ token: string; user: any }>) => {
+        (state, action: PayloadAction<{ token: string; data: any }>) => {
           state.loading = false;
           state.token = action.payload.token;
-          state.user = action.payload.user;
+          state.user = action.payload.data;
           state.isAuthenticated = true;
         }
       )

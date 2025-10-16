@@ -17,7 +17,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
-        <TeamSwitcher teams={sidebarData.teams} />
+          <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
 
         {/* Replace <TeamSwitch /> with the following <AppTitle />
          /* if you want to use the normal app title instead of TeamSwitch dropdown */}
@@ -28,9 +30,7 @@ export function AppSidebar() {
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={sidebarData.user} />
-      </SidebarFooter>
+  
       <SidebarRail />
     </Sidebar>
   )
