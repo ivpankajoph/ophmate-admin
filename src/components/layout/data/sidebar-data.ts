@@ -57,7 +57,11 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: LayoutDashboard,
         },
-
+   {
+          title: 'Banners',
+          url: '/banners',
+          icon: LayoutDashboard,
+        },
         {
           title: 'Chats',
           url: '/chats',
@@ -107,8 +111,8 @@ export const sidebarData: SidebarData = {
               url: '/category',
             },
             {
-              title: 'Create Category',
-              url: '/create-category',
+              title: 'Sub Category',
+              url: '/subcategory',
             },
           ],
         },

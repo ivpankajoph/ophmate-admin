@@ -5,6 +5,7 @@ import productReducer from './slices/vendor/productSlice'
 import profileReducer from './slices/profileSlice'
 import vendorReducer from './slices/admin/vendorSlice'
 import subcategoryReducer from './slices/admin/subcategorySlice'
+import bannerReducer from './slices/admin/bannerSlice'
 
 const appReducer = combineReducers({
   auth: authReducer,
@@ -13,6 +14,7 @@ const appReducer = combineReducers({
   categories: categoryReducer,
   subcategories: subcategoryReducer,
    vendors: vendorReducer,
+   banners: bannerReducer,
 })
 
 const rootReducer = (state: any, action: any) => {

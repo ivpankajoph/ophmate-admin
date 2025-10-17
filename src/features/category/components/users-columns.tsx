@@ -1,10 +1,49 @@
+'use client'
+
 import { type ColumnDef } from '@tanstack/react-table'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
+import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { DataTableRowActions } from './data-table-row-actions'
+
+// Fallback Image component for environments without next/image
+const Image = ({
+  src,
+  alt,
+  width,
+  height,
+  className,
+}: {
+  src: string
+  alt?: string
+  width?: number
+  height?: number
+  className?: string
+}) => {
+  return (
+    <img
+      src={src}
+      alt={alt ?? ''}
+      width={width}
+      height={height}
+      className={className}
+    />
+  )
+}
+
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL_BANNERS
 
 // 🧩 Type definition for Category
 export type Category = {
@@ -17,8 +56,8 @@ export type Category = {
   meta_description: string | null
   meta_keywords: string | null
   display_order: number | null
-  parent_id: string | null
-  level: number | null
+  parent_id?: string | null
+  level?: number | null
   is_active: boolean
   createdAt: string
   updatedAt: string
@@ -26,7 +65,9 @@ export type Category = {
     id: string
     name: string
     slug: string
-    is_active: boolean
+    description?: string
+    image_url?: string
+    is_active?: boolean
   }[]
 }
 
@@ -57,7 +98,6 @@ export const categoryColumns: ColumnDef<Category>[] = [
     meta: { className: 'w-10' },
   },
 
-  // 🏷️ Category Name
   {
     accessorKey: 'name',
     header: ({ column }) => (
@@ -68,14 +108,13 @@ export const categoryColumns: ColumnDef<Category>[] = [
     ),
   },
 
-  // 🧾 Description
   {
     accessorKey: 'description',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Description' />
     ),
     cell: ({ row }) => (
-      <LongText className='max-w-56 text-muted-foreground'>
+      <LongText className='text-muted-foreground max-w-56'>
         {row.getValue('description') || '-'}
       </LongText>
     ),
@@ -87,10 +126,12 @@ export const categoryColumns: ColumnDef<Category>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Slug' />
     ),
-    cell: ({ row }) => <div className='text-muted-foreground'>{row.getValue('slug')}</div>,
+    cell: ({ row }) => (
+      <div className='text-muted-foreground'>{row.getValue('slug')}</div>
+    ),
   },
 
-  // 🧭 Subcategories
+
   {
     id: 'subcategories',
     header: ({ column }) => (
@@ -99,7 +140,9 @@ export const categoryColumns: ColumnDef<Category>[] = [
     cell: ({ row }) => {
       const subs = row.original.subcategories
       if (!subs?.length)
-        return <span className='text-muted-foreground text-sm italic'>None</span>
+        return (
+          <span className='text-muted-foreground text-sm italic'>None</span>
+        )
 
       return (
         <div className='flex flex-wrap gap-1'>
@@ -127,14 +170,15 @@ export const categoryColumns: ColumnDef<Category>[] = [
           variant='outline'
           className={cn(
             'capitalize',
-            isActive ? 'text-green-600 border-green-400' : 'text-red-600 border-red-400'
+            isActive
+              ? 'border-green-400 text-green-600'
+              : 'border-red-400 text-red-600'
           )}
         >
           {isActive ? 'Active' : 'Inactive'}
         </Badge>
       )
     },
-    enableSorting: false,
   },
 
   // 📅 Created At
@@ -147,13 +191,134 @@ export const categoryColumns: ColumnDef<Category>[] = [
       const date = new Date(row.getValue('createdAt')).toLocaleDateString()
       return <div className='text-muted-foreground'>{date}</div>
     },
-    enableSorting: true,
   },
 
-  // ⚙️ Actions (Edit/Delete)
+  // 👁️ Expand Button + ⚙️ Actions
   {
     id: 'actions',
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => (
+      <div className='flex items-center gap-2'>
+        {/* 👁️ View Details Popup */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant='outline' size='icon'>
+              <Eye className='h-4 w-4' />
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className='h-full max-w-2xl overflow-y-auto'>
+            <DialogHeader>
+              <DialogTitle className='text-xl font-semibold'>
+                {row.original.name}
+              </DialogTitle>
+              <DialogDescription>
+                Detailed information about this category.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className='grid grid-cols-2 gap-4 py-4'>
+              <div>
+                <p className='font-medium'>Slug:</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.slug}
+                </p>
+              </div>
+
+              <div>
+                <p className='font-medium'>Description:</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.description || '-'}
+                </p>
+              </div>
+
+              <div>
+                <p className='font-medium'>Meta Title:</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.meta_title || '-'}
+                </p>
+              </div>
+
+              <div>
+                <p className='font-medium'>Meta Description:</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.meta_description || '-'}
+                </p>
+              </div>
+
+              <div>
+                <p className='font-medium'>Meta Keywords:</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.meta_keywords || '-'}
+                </p>
+              </div>
+
+              <div>
+                <p className='font-medium'>Display Order:</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.display_order ?? '-'}
+                </p>
+              </div>
+
+              <div>
+                <p className='font-medium'>Status:</p>
+                <Badge
+                  variant='outline'
+                  className={cn(
+                    row.original.is_active
+                      ? 'border-green-400 text-green-600'
+                      : 'border-red-400 text-red-600'
+                  )}
+                >
+                  {row.original.is_active ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+
+              <div>
+                <p className='font-medium'>Created At:</p>
+                <p className='text-muted-foreground text-sm'>
+                  {new Date(row.original.createdAt).toLocaleString()}
+                </p>
+              </div>
+
+              <div className='col-span-2'>
+                <p className='font-medium'>Image:</p>
+                {row.original.image_url ? (
+                  <div className='mt-2'>
+                    <Image
+                      src={`${BASE_URL}${row.original.image_url}`}
+                      alt={row.original.name}
+                      width={200}
+                      height={200}
+                      className='rounded-md border'
+                    />
+                  </div>
+                ) : (
+                  <p className='text-muted-foreground text-sm'>No image</p>
+                )}
+              </div>
+
+              <div className='col-span-2'>
+                <p className='mb-1 font-medium'>Subcategories:</p>
+                {row.original.subcategories?.length ? (
+                  <div className='flex flex-wrap gap-1'>
+                    {row.original.subcategories.map((sub) => (
+                      <Badge key={sub.id} variant='secondary'>
+                        {sub.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className='text-muted-foreground text-sm italic'>None</p>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ⚙️ Edit/Delete actions */}
+        <DataTableRowActions row={row} />
+      </div>
+    ),
     meta: { className: 'w-10' },
   },
 ]

@@ -1,8 +1,12 @@
 import axios, { AxiosInstance } from "axios";
 import { store } from "../store"; // import your Redux store
 
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+
+
+
 const api: AxiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api", // base API
+  baseURL: `${BASE_URL}`, 
   headers: {
     "Content-Type": "application/json",
   },

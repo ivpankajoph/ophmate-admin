@@ -15,12 +15,13 @@ const initialState: CategoryState = {
 
 export const createCategory = createAsyncThunk(
   'categories/create',
-  async (
-    data: { name: string; description: string },
-    { rejectWithValue }
-  ) => {
+  async (formData: FormData, { rejectWithValue }) => {
     try {
-      const res = await api.post('/categories/create', data, {})
+      const res = await api.post('/categories/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       return res.data
     } catch (err: any) {
       return rejectWithValue(
@@ -54,7 +55,7 @@ export const uploadCategories = createAsyncThunk(
       formData.append("file", file);
 
       const response = await api.post(
-        "/categories/upload",
+        "/categories/import",
         formData,
         {
           headers: {

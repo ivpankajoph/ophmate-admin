@@ -19,6 +19,8 @@ const initialState: AuthState = {
   error: null,
   isAuthenticated: false,
 };
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+
 
 export const loginAdmin = createAsyncThunk(
   "auth/loginAdmin",
@@ -27,7 +29,7 @@ export const loginAdmin = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await  axios.post("http://localhost:8000/api/admin/login", credentials);
+      const response = await  axios.post(`${BASE_URL}/admin/login`, credentials);
       return response.data;
     } catch (err: any) {
       const message =
