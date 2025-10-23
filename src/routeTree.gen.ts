@@ -24,6 +24,7 @@ import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
+import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedSubcategoryIndexRouteImport } from './routes/_authenticated/subcategory/index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
@@ -112,6 +113,12 @@ const ClerkauthRouteRoute = ClerkauthRouteRouteImport.update({
   id: '/(auth)',
   getParentRoute: () => ClerkRouteRoute,
 } as any)
+const AuthenticatedVendorIndexRoute =
+  AuthenticatedVendorIndexRouteImport.update({
+    id: '/vendor/',
+    path: '/vendor/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -200,7 +207,6 @@ const AuthenticatedCategoryCreateCategoryIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
-  '/clerk/': typeof ClerkauthRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
   '/sign-in': typeof authSignInRoute
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/vendor': typeof AuthenticatedVendorIndexRoute
   '/category/create-category': typeof AuthenticatedCategoryCreateCategoryIndexRoute
   '/products/create-products': typeof AuthenticatedProductsCreateProductsIndexRoute
 }
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/vendor': typeof AuthenticatedVendorIndexRoute
   '/category/create-category': typeof AuthenticatedCategoryCreateCategoryIndexRoute
   '/products/create-products': typeof AuthenticatedProductsCreateProductsIndexRoute
 }
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/subcategory/': typeof AuthenticatedSubcategoryIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
   '/_authenticated/category/create-category/': typeof AuthenticatedCategoryCreateCategoryIndexRoute
   '/_authenticated/products/create-products/': typeof AuthenticatedProductsCreateProductsIndexRoute
 }
@@ -294,7 +303,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/clerk'
-    | '/clerk/'
     | '/forgot-password'
     | '/otp'
     | '/sign-in'
@@ -319,6 +327,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/subcategory'
     | '/users'
+    | '/vendor'
     | '/category/create-category'
     | '/products/create-products'
   fileRoutesByTo: FileRoutesByTo
@@ -348,6 +357,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/subcategory'
     | '/users'
+    | '/vendor'
     | '/category/create-category'
     | '/products/create-products'
   id:
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/'
     | '/_authenticated/subcategory/'
     | '/_authenticated/users/'
+    | '/_authenticated/vendor/'
     | '/_authenticated/category/create-category/'
     | '/_authenticated/products/create-products/'
   fileRoutesById: FileRoutesById
@@ -501,10 +512,17 @@ declare module '@tanstack/react-router' {
     }
     '/clerk/(auth)': {
       id: '/clerk/(auth)'
-      path: '/'
-      fullPath: '/clerk/'
+      path: ''
+      fullPath: '/clerk'
       preLoaderRoute: typeof ClerkauthRouteRouteImport
       parentRoute: typeof ClerkRouteRoute
+    }
+    '/_authenticated/vendor/': {
+      id: '/_authenticated/vendor/'
+      path: '/vendor'
+      fullPath: '/vendor'
+      preLoaderRoute: typeof AuthenticatedVendorIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
@@ -626,6 +644,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
   AuthenticatedSubcategoryIndexRoute: typeof AuthenticatedSubcategoryIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
+  AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
   AuthenticatedCategoryCreateCategoryIndexRoute: typeof AuthenticatedCategoryCreateCategoryIndexRoute
   AuthenticatedProductsCreateProductsIndexRoute: typeof AuthenticatedProductsCreateProductsIndexRoute
 }
@@ -642,6 +661,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   AuthenticatedSubcategoryIndexRoute: AuthenticatedSubcategoryIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
+  AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
   AuthenticatedCategoryCreateCategoryIndexRoute:
     AuthenticatedCategoryCreateCategoryIndexRoute,
   AuthenticatedProductsCreateProductsIndexRoute:

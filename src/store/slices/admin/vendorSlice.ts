@@ -1,5 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import api from "@/lib/axios";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
+import axios from "axios";
 
 interface Vendor {
   id: string;
@@ -33,13 +34,20 @@ const initialState: VendorState = {
   error: null,
 };
 
-// ✅ Async thunk to fetch all vendors (Admin)
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+
 export const fetchAllVendors = createAsyncThunk(
   "vendors/fetchAllVendors",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue,getState }) => {
     try {
-      const res = await api.get("/api/admin/vendors");
-      return res.data.vendors || res.data.data || []; // depending on backend response
+      const state:any = getState()
+      const token = state?.auth?.token
+      const res = await axios.get(`${BASE_URL}/admin/vendors`,{
+        headers:{
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return res.data.vendors || res.data.data || [];
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch vendors"

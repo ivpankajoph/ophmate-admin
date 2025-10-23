@@ -1,13 +1,22 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import api from "@/lib/axios";
+import axios from "axios";
+
+
+
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
 
 // Create Subcategory
 export const createSubcategory = createAsyncThunk(
   "subcategories/create",
-  async (formData: FormData, { rejectWithValue }) => {
+  async (formData: FormData, { rejectWithValue,getState }) => {
     try {
-      const res = await api.post("/subcategories/create", formData, {
+      const state:any = getState()
+      const token = state?.auth?.token
+      const res = await axios.post("/subcategories/create", formData, {
         headers: {
+          Authorization : `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -27,7 +36,7 @@ export const fetchSubcategories = createAsyncThunk<
   { rejectValue: string }
 >("subcategories/fetch", async (_, { rejectWithValue }) => {
   try {
-    const res = await api.get("/subcategories");
+    const res = await axios.get(`${BASE_URL}/subcategories`);
     return res.data.data; // backend wraps data in { success, data }
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || "Failed to fetch subcategories");

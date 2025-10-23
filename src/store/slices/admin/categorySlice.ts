@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import api from '@/lib/axios'
+import axios from 'axios'
 
 interface CategoryState {
   loading: boolean
@@ -13,12 +15,18 @@ const initialState: CategoryState = {
   categories: [],
 }
 
+
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+
 export const createCategory = createAsyncThunk(
   'categories/create',
-  async (formData: FormData, { rejectWithValue }) => {
+  async (formData: FormData, { rejectWithValue,getState }) => {
     try {
-      const res = await api.post('/categories/create', formData, {
+      const state:any= getState()
+      const token = state?.auth?.token
+      const res = await axios.post(`${BASE_URL}/categories/create`, formData, {
         headers: {
+          Authorization:`Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       })
@@ -35,7 +43,7 @@ export const getAllCategories = createAsyncThunk(
   'categories/getAll',
   async (_, { rejectWithValue }) => {
     try {
-      const res = await api.get('/categories/get-category', {})
+      const res = await axios.get(`${BASE_URL}/categories/get-category`, {})
       return res.data.data 
     } catch (err: any) {
       return rejectWithValue(

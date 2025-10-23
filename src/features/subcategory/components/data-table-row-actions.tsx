@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-imports */
 "use client";
 
 import { useState } from "react";
@@ -89,12 +90,6 @@ export function DataTableRowActions({ row }: any) {
             </DropdownMenuShortcut>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            Add Sub Category
-            <DropdownMenuShortcut>
-              <Plus size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 

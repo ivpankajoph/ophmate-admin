@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-duplicate-imports */
 import { getRouteApi } from '@tanstack/react-router'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
@@ -9,25 +11,27 @@ import { UsersDialogs } from './components/users-dialogs'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
 import { useEffect } from 'react'
-import { AppDispatch } from '@/store'
-import { useDispatch } from 'react-redux'
-import { useSelector } from 'react-redux'
+import { type AppDispatch } from '@/store'
+import { useDispatch, useSelector } from 'react-redux'
 import { fetchSubcategories } from '@/store/slices/admin/subcategorySlice'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
-
+import { Loader2 } from 'lucide-react'
 
 const route = getRouteApi('/_authenticated/subcategory/')
 
 export function SubCategory() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
-  const dispatch =useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>()
+
+  const { subcategories, loading, error } = useSelector(
+    (state: any) => state.subcategories
+  )
+
   useEffect(() => {
     dispatch(fetchSubcategories())
-  }, 
-  [dispatch])
+  }, [dispatch])
 
-  const users = useSelector((state: any) => state.subcategories.subcategories)
   return (
     <UsersProvider>
       <Header fixed>
@@ -49,7 +53,24 @@ export function SubCategory() {
           </div>
           <UsersPrimaryButtons />
         </div>
-        <UsersTable data={users} search={search} navigate={navigate} />
+
+        {/* ✅ Handle loading, error, and empty states */}
+        {loading ? (
+          <div className='flex justify-center items-center py-10'>
+            <Loader2 className='w-6 h-6 animate-spin text-muted-foreground' />
+            <span className='ml-2 text-muted-foreground'>Loading subcategories...</span>
+          </div>
+        ) : error ? (
+          <div className='text-red-500 text-center py-6'>
+            ⚠️ Failed to load subcategories: {error}
+          </div>
+        ) : !subcategories || subcategories.length === 0 ? (
+          <div className='text-center py-6 text-muted-foreground'>
+            No subcategories found. Try adding one.
+          </div>
+        ) : (
+          <UsersTable data={subcategories} search={search} navigate={navigate} />
+        )}
       </Main>
 
       <UsersDialogs />

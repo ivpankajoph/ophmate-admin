@@ -1,3 +1,6 @@
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getRouteApi } from '@tanstack/react-router'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
@@ -11,23 +14,22 @@ import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
 import { useEffect } from 'react'
 import { AppDispatch } from '@/store'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { getAllCategories } from '@/store/slices/admin/categorySlice'
-import { useSelector } from 'react-redux'
-
 
 const route = getRouteApi('/_authenticated/category/')
 
 export function Category() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
-  const dispatch =useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>()
+
+  const { categories, loading, error } = useSelector((state: any) => state.categories)
+
   useEffect(() => {
     dispatch(getAllCategories())
-  }, 
-  [dispatch])
+  }, [dispatch])
 
-  const users = useSelector((state: any) => state.categories.categories)
   return (
     <UsersProvider>
       <Header fixed>
@@ -49,7 +51,17 @@ export function Category() {
           </div>
           <UsersPrimaryButtons />
         </div>
-        <UsersTable data={users} search={search} navigate={navigate} />
+
+        {/* ✅ Handle loading, error, and empty states */}
+        {loading ? (
+          <p className="text-center py-10 text-muted-foreground">Loading categories...</p>
+        ) : error ? (
+          <p className="text-center py-10 text-red-500">Error loading categories.</p>
+        ) : !categories || categories.length === 0 ? (
+          <p className="text-center py-10 text-muted-foreground">No categories found.</p>
+        ) : (
+          <UsersTable data={categories} search={search} navigate={navigate} />
+        )}
       </Main>
 
       <UsersDialogs />

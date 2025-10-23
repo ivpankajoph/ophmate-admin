@@ -1,20 +1,6 @@
 import {
-  Construction,
   LayoutDashboard,
-  Monitor,
-  Bug,
-  ListTodo,
-  FileX,
   HelpCircle,
-  Lock,
-  Bell,
-  Package,
-  Palette,
-  ServerOff,
-  Settings,
-  Wrench,
-  UserCog,
-  UserX,
   Users,
   MessagesSquare,
   ShieldCheck,
@@ -27,8 +13,8 @@ import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
   user: {
-    name: 'satnaing',
-    email: 'satnaingdev@gmail.com',
+    name: 'ivpankaj',
+    email: 'imvpankaj@gmail.com',
     avatar: '/avatars/shadcn.jpg',
   },
   teams: [
@@ -57,7 +43,7 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: LayoutDashboard,
         },
-   {
+        {
           title: 'Banners',
           url: '/banners',
           icon: LayoutDashboard,
@@ -132,7 +118,23 @@ export const sidebarData: SidebarData = {
             },
             {
               title: 'Create Products',
-              url: '/create-products',
+              url: '/products/create-products',
+            },
+          ],
+        },
+      ],
+    },
+
+    {
+      title: 'Vendors',
+      items: [
+        {
+          title: 'All Vendors',
+          icon: ShieldCheck,
+          items: [
+            {
+              title: 'Show Vendors',
+              url: '/vendor',
             },
           ],
         },

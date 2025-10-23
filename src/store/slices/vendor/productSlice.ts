@@ -1,39 +1,50 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import api from "@/lib/axios";
-import { toast } from "sonner";
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
+
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+// ------------------- Thunk -------------------
+export const createProduct = createAsyncThunk(
+  "products/createProduct",
+  async (formData: FormData, { rejectWithValue,getState }) => {
+    try {
+      const state:any = getState()
+
+      const token = state?.auth?.token
+      const response = await axios.post(
+        `${BASE_URL}/products/create`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (err: any) {
+      console.error("Create Product Error:", err);
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
+// ------------------- Slice -------------------
 interface ProductState {
   loading: boolean;
   success: boolean;
   error: string | null;
+  product: any | null;
 }
 
 const initialState: ProductState = {
   loading: false,
   success: false,
   error: null,
+  product: null,
 };
-
-// ✅ Async thunk for creating product (multipart/form-data)
-export const createProduct = createAsyncThunk(
-  "product/create",
-  async (formData: FormData, { rejectWithValue }) => {
-    try {
-      const res = await api.post("/products/create", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success("🎉 Product created successfully!");
-      return res.data;
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to create product";
-      toast.error(`❌ ${message}`);
-      return rejectWithValue(message);
-    }
-  }
-);
 
 const productSlice = createSlice({
   name: "product",
@@ -43,21 +54,25 @@ const productSlice = createSlice({
       state.loading = false;
       state.success = false;
       state.error = null;
+      state.product = null;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
+        state.success = false;
         state.error = null;
       })
-      .addCase(createProduct.fulfilled, (state) => {
+      .addCase(createProduct.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
+        state.product = action.payload;
       })
-      .addCase(createProduct.rejected, (state, action: PayloadAction<any>) => {
+      .addCase(createProduct.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.success = false;
+        state.error = action.payload as string;
       });
   },
 });
