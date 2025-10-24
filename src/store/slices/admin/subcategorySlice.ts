@@ -14,7 +14,7 @@ export const createSubcategory = createAsyncThunk(
     try {
       const state:any = getState()
       const token = state?.auth?.token
-      const res = await axios.post("/subcategories/create", formData, {
+      const res = await axios.post(`${BASE_URL}/subcategories/create`, formData, {
         headers: {
           Authorization : `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

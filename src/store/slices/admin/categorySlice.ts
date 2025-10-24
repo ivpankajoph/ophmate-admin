@@ -62,8 +62,8 @@ export const uploadCategories = createAsyncThunk(
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await api.post(
-        "/categories/import",
+      const response = await axios.post(
+        `${BASE_URL}/categories/import`,
         formData,
         {
           headers: {

@@ -38,7 +38,7 @@ export function DataTableRowActions({ row }: any) {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const res = await fetch(`${API_BASE_URL}/admin/vendors/verify/${vendor.id}`, {
+          const res = await fetch(`${API_BASE_URL}/admin/vendors/verify/${vendor._id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export function DataTableRowActions({ row }: any) {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const res = await fetch(`${API_BASE_URL}/admin/vendors/reject/${vendor.id}`, {
+          const res = await fetch(`${API_BASE_URL}/admin/vendors/reject/${vendor._id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
