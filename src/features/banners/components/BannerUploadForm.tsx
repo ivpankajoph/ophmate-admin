@@ -70,7 +70,7 @@ export default function BannerUploadForm() {
 
   return (
     <motion.div
-      className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-4"
+      className="flex justify-center items-center min-h-screen  p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >

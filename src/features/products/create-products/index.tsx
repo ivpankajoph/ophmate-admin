@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { categoryAttributes } from '@/config/categoryAttributes'
 import { Button } from '@/components/ui/button'
@@ -14,18 +14,18 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trash2, Upload, Plus } from 'lucide-react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { AppDispatch } from '@/store'
-import { useDispatch } from 'react-redux'
 import { createProduct } from '@/store/slices/vendor/productSlice'
+import { getSubcategoriesByCategory } from '@/store/slices/admin/subcategorySlice'
+// 👈 Make sure this path is correct
 
 type FormData = {
   name: string
   description: string
   short_description: string
-  discount_percent: number
   stock: number
-  sku:string
+  sku: string
   status: string
   brand: string
   images: FileList
@@ -33,7 +33,7 @@ type FormData = {
 }
 
 export default function ProductCreator() {
-    const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useDispatch<AppDispatch>()
   const { register, handleSubmit, reset } = useForm<FormData>()
 
   const [selectedCategory, setSelectedCategory] = useState<string>('')
@@ -45,14 +45,24 @@ export default function ProductCreator() {
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   const categories = useSelector((state: any) => state?.categories?.categories) || []
-  const subcategories = useSelector((state: any) => state?.subcategories?.subcategories) || []
+  const allSubcategories = useSelector((state: any) => state?.subcategories?.subcategories) || []
 
-  console.log(
-    
-  "sdadsa",subcategories
+  // 🔁 Fetch subcategories when category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      dispatch(getSubcategoriesByCategory(selectedCategory))
+    } else {
+      setSelectedSubcategory('')
+      setVariants([])
+    }
+  }, [selectedCategory, dispatch])
+
+  // ✂️ Filter subcategories to only those under the selected category
+  const filteredSubcategories = allSubcategories.filter(
+    (sub: any) => sub.category_id === selectedCategory
   )
 
-   const onAddVariant = () => {
+  const onAddVariant = () => {
     const attrs = selectedSubcategory && categoryAttributes[selectedSubcategory]
       ? categoryAttributes[selectedSubcategory]
       : []
@@ -64,7 +74,6 @@ export default function ProductCreator() {
     setVariants(prev => [...prev, newVariant])
   }
 
-
   const onRemoveVariant = (index: number) => {
     setVariants((prev) => prev.filter((_, i) => i !== index))
   }
@@ -75,32 +84,29 @@ export default function ProductCreator() {
     setVariants(updated)
   }
 
-
-
-const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = e.target.files
-  if (files) {
-    const newFiles = Array.from(files)
-    setImageFiles(prev => [...prev, ...newFiles])
-    setImagePreviews(prev => [
-      ...prev,
-      ...newFiles.map(file => URL.createObjectURL(file))
-    ])
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      const newFiles = Array.from(files)
+      setImageFiles(prev => [...prev, ...newFiles])
+      setImagePreviews(prev => [
+        ...prev,
+        ...newFiles.map(file => URL.createObjectURL(file))
+      ])
+    }
   }
-}
 
-const handleRemoveImage = (index: number) => {
-  setImagePreviews(prev => prev.filter((_, i) => i !== index))
-  setImageFiles(prev => prev.filter((_, i) => i !== index))
-}
-
+  const handleRemoveImage = (index: number) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
+    setImageFiles(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) setVideoFiles(Array.from(files))
   }
 
-const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<FormData> = (data) => {
     const attrs = selectedSubcategory && categoryAttributes[selectedSubcategory]
       ? categoryAttributes[selectedSubcategory]
       : []
@@ -112,9 +118,8 @@ const onSubmit: SubmitHandler<FormData> = (data) => {
     formData.append('productSubCategory', selectedSubcategory)
     formData.append('short_description', data.short_description)
     formData.append('description', data.description)
-    formData.append('isAvailable', 'true') // hardcoded, you can replace with actual
+    formData.append('isAvailable', 'true')
 
-    // Append variants as JSON string
     const variantPayload = variants.map(v => ({
       sku: v.sku,
       attributes: attrs.reduce((acc: Record<string, any>, attr) => {
@@ -122,21 +127,17 @@ const onSubmit: SubmitHandler<FormData> = (data) => {
         return acc
       }, {}),
       price: v.price,
-      actual_price: v.price, // or your logic
+      actual_price: v.price,
       stockQuantity: v.stock,
-      discount_percent: v.discount_percent ?? 0
+      discount_percent: 0 // You can adjust logic if needed, but field removed from form
     }))
     formData.append('variants', JSON.stringify(variantPayload))
 
-    // Append images
     imageFiles.forEach(file => formData.append('images', file))
-    // Append videos
     videoFiles.forEach(file => formData.append('videos', file))
 
-    // Dispatch Redux Thunk
     dispatch(createProduct(formData))
 
-    // Reset form
     reset()
     setVariants([])
     setSelectedCategory('')
@@ -180,10 +181,7 @@ const onSubmit: SubmitHandler<FormData> = (data) => {
                 <Textarea {...register('description')} placeholder="Enter full product description" />
               </div>
 
-              <div>
-                <Label>Discount (%)</Label>
-                <Input type="number" {...register('discount_percent')} />
-              </div>
+              {/* ❌ Removed Discount (%) field */}
 
               <div>
                 <Label>Brand</Label>
@@ -191,7 +189,7 @@ const onSubmit: SubmitHandler<FormData> = (data) => {
               </div>
             </section>
 
-            {/* Category Dropdown */}
+            {/* Category & Subcategory Dropdowns */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label>Select Category</Label>
@@ -225,7 +223,7 @@ const onSubmit: SubmitHandler<FormData> = (data) => {
                   disabled={!selectedCategory}
                 >
                   <option value="">-- Select Subcategory --</option>
-                  {subcategories.map((sub: any) => (
+                  {filteredSubcategories.map((sub: any) => (
                     <option key={sub.id} value={sub.name}>
                       {sub.name}
                     </option>

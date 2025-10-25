@@ -132,30 +132,30 @@ export const categoryColumns: ColumnDef<Category>[] = [
   },
 
 
-  {
-    id: 'subcategories',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Subcategories' />
-    ),
-    cell: ({ row }) => {
-      const subs = row.original.subcategories
-      if (!subs?.length)
-        return (
-          <span className='text-muted-foreground text-sm italic'>None</span>
-        )
+  // {
+  //   id: 'subcategories',
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title='Subcategories' />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const subs = row.original.subcategories
+  //     if (!subs?.length)
+  //       return (
+  //         <span className='text-muted-foreground text-sm italic'>None</span>
+  //       )
 
-      return (
-        <div className='flex flex-wrap gap-1'>
-          {subs.map((sub) => (
-            <Badge key={sub.id} variant='secondary' className='capitalize'>
-              {sub.name}
-            </Badge>
-          ))}
-        </div>
-      )
-    },
-    enableSorting: false,
-  },
+  //     return (
+  //       <div className='flex flex-wrap gap-1'>
+  //         {subs.map((sub) => (
+  //           <Badge key={sub.id} variant='secondary' className='capitalize'>
+  //             {sub.name}
+  //           </Badge>
+  //         ))}
+  //       </div>
+  //     )
+  //   },
+  //   enableSorting: false,
+  // },
 
   // 🟢 Active Status
   {

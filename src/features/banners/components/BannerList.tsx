@@ -55,7 +55,7 @@ const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL_BANNERS;
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">🎨 Banners Gallery</h1>
+      <h1 className="text-3xl font-bold mb-6 text-left">Banners Gallery</h1>
 
       {banners.length === 0 ? (
         <p className="text-center text-gray-500">No banners available.</p>

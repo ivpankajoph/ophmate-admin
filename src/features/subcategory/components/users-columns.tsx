@@ -41,7 +41,7 @@ export type Subcategory = {
   slug: string
   description: string | null
   image_url: string | null
-  category_id: string
+  category_id: any
   createdAt: string
   updatedAt: string
   category: {
@@ -111,7 +111,7 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
   {
     accessorKey: 'category',
     header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
-    cell: ({ row }) => <div className='capitalize'>{row.original.category?.name}</div>,
+    cell: ({ row }) => <div className='capitalize'>{row.original.category_id?.name}</div>,
   },
 
   {
@@ -173,7 +173,7 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
 
               <div>
                 <p className='font-medium'>Category:</p>
-                <p className='text-muted-foreground text-sm'>{row.original.category?.name}</p>
+                <p className='text-muted-foreground text-sm'>{row.original.category_id?.name}</p>
               </div>
 
               <div>

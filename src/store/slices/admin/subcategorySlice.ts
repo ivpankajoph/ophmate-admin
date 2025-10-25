@@ -1,35 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import api from "@/lib/axios";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL as string;
 
+/* -------------------------------------------------------------------------- */
+/*                                   THUNKS                                   */
+/* -------------------------------------------------------------------------- */
 
-const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+// ✅ Create Subcategory
+export const createSubcategory = createAsyncThunk<
+  any,
+  FormData,
+  { rejectValue: string; state: any }
+>("subcategories/create", async (formData, { rejectWithValue, getState }) => {
+  try {
+    const state: any = getState();
+    const token = state?.auth?.token;
 
-// Create Subcategory
-export const createSubcategory = createAsyncThunk(
-  "subcategories/create",
-  async (formData: FormData, { rejectWithValue,getState }) => {
-    try {
-      const state:any = getState()
-      const token = state?.auth?.token
-      const res = await axios.post(`${BASE_URL}/subcategories/create`, formData, {
-        headers: {
-          Authorization : `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || "Failed to create subcategory"
-      );
-    }
+    const res = await axios.post(`${BASE_URL}/subcategories/create`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || "Failed to create subcategory");
   }
-);
+});
 
-// Fetch Subcategories
+// ✅ Fetch All Subcategories
 export const fetchSubcategories = createAsyncThunk<
   Subcategory[],
   void,
@@ -37,34 +39,53 @@ export const fetchSubcategories = createAsyncThunk<
 >("subcategories/fetch", async (_, { rejectWithValue }) => {
   try {
     const res = await axios.get(`${BASE_URL}/subcategories`);
-    return res.data.data; // backend wraps data in { success, data }
+    return res.data?.data || [];
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || "Failed to fetch subcategories");
   }
 });
 
-
-export const importSubcategories = createAsyncThunk<
-  any, 
-  FormData,
+// ✅ Fetch Subcategories by Category
+export const getSubcategoriesByCategory = createAsyncThunk<
+  Subcategory[],
+  string,
   { rejectValue: string }
->(
-  "subcategories/import",
-  async (formData: FormData, { rejectWithValue }) => {
-    try {
-      const res = await api.post("/subcategories/import", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return res.data;
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || "Failed to import CSV");
-    }
+>("subcategories/byCategory", async (categoryId, { rejectWithValue }) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/subcategories/category/${categoryId}`);
+    return res.data?.data || [];
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || "Failed to fetch subcategories");
   }
-);
+});
 
-// Types
+// ✅ Import Subcategories from CSV
+export const importSubcategories = createAsyncThunk<
+  any,
+  FormData,
+  { rejectValue: string; state: any }
+>("subcategories/import", async (formData, { rejectWithValue, getState }) => {
+  try {
+    const state: any = getState();
+    const token = state?.auth?.token;
+
+    const res = await axios.post(`${BASE_URL}/subcategories/import`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || "Failed to import subcategories");
+  }
+});
+
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
+
 export interface CategoryNested {
   id: string;
   name: string;
@@ -95,7 +116,10 @@ export interface Subcategory {
   category: CategoryNested;
 }
 
-// Initial state
+/* -------------------------------------------------------------------------- */
+/*                                  SLICE                                     */
+/* -------------------------------------------------------------------------- */
+
 interface SubcategoryState {
   subcategories: Subcategory[];
   loading: boolean;
@@ -108,42 +132,75 @@ const initialState: SubcategoryState = {
   error: null,
 };
 
-// Slice
 const subcategorySlice = createSlice({
   name: "subcategory",
   initialState,
-  reducers: {},
+  reducers: {
+    clearSubcategories: (state) => {
+      state.subcategories = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Create
+      /* ----------------------------- Create ----------------------------- */
       .addCase(createSubcategory.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createSubcategory.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.payload?.data) {
-          state.subcategories.push(action.payload.data as Subcategory);
+        const newSub = action.payload?.data;
+        if (newSub) {
+          state.subcategories.push(newSub as Subcategory);
         }
       })
       .addCase(createSubcategory.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload || "Failed to create subcategory";
       })
-      // Fetch
+
+      /* ----------------------------- Fetch All ----------------------------- */
       .addCase(fetchSubcategories.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchSubcategories.fulfilled, (state, action: PayloadAction<Subcategory[]>) => {
+      .addCase(fetchSubcategories.fulfilled, (state, action) => {
         state.loading = false;
-        state.subcategories = action.payload; // FIXED: was `state.data`
+        state.subcategories = action.payload;
       })
       .addCase(fetchSubcategories.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch subcategories";
+      })
+
+      /* ----------------------- Fetch by Category ----------------------- */
+      .addCase(getSubcategoriesByCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getSubcategoriesByCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.subcategories = action.payload;
+      })
+      .addCase(getSubcategoriesByCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch subcategories by category";
+      })
+
+      /* --------------------------- Import CSV --------------------------- */
+      .addCase(importSubcategories.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(importSubcategories.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(importSubcategories.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to import subcategories";
       });
   },
 });
 
+export const { clearSubcategories } = subcategorySlice.actions;
 export default subcategorySlice.reducer;
