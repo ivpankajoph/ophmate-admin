@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable no-duplicate-imports */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable no-console */
@@ -6,30 +7,23 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
-import { categoryAttributes } from '@/config/categoryAttributes'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trash2, Upload, Plus } from 'lucide-react'
+import { Trash2, Upload, Plus, X } from 'lucide-react'
 import { useSelector, useDispatch } from 'react-redux'
 import { AppDispatch } from '@/store'
 import { createProduct } from '@/store/slices/vendor/productSlice'
 import { getSubcategoriesByCategory } from '@/store/slices/admin/subcategorySlice'
-// 👈 Make sure this path is correct
 
 type FormData = {
   name: string
   description: string
   short_description: string
-  stock: number
-  sku: string
-  status: string
   brand: string
-  images: FileList
-  videos: FileList
 }
 
 export default function ProductCreator() {
@@ -37,50 +31,121 @@ export default function ProductCreator() {
   const { register, handleSubmit, reset } = useForm<FormData>()
 
   const [selectedCategory, setSelectedCategory] = useState<string>('')
-  const [selectedSubcategory, setSelectedSubcategory] = useState<keyof typeof categoryAttributes | ''>('')
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]) // ✅ multiple
+  const [customCategory, setCustomCategory] = useState<string>('')
+  const [customSubcategory, setCustomSubcategory] = useState<string>('')
+  const [isAddingCustomCategory, setIsAddingCustomCategory] = useState(false)
+  const [isAddingCustomSubcategory, setIsAddingCustomSubcategory] = useState(false)
   const [variants, setVariants] = useState<any[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
-  const [videoFiles, setVideoFiles] = useState<File[]>([])
+  const [variantImageFiles, setVariantImageFiles] = useState<Record<number, File[]>>({})
+  const [variantImagePreviews, setVariantImagePreviews] = useState<Record<number, string[]>>({})
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   const categories = useSelector((state: any) => state?.categories?.categories) || []
   const allSubcategories = useSelector((state: any) => state?.subcategories?.subcategories) || []
 
-  // 🔁 Fetch subcategories when category changes
-  useEffect(() => {
-    if (selectedCategory) {
-      dispatch(getSubcategoriesByCategory(selectedCategory))
-    } else {
-      setSelectedSubcategory('')
-      setVariants([])
-    }
-  }, [selectedCategory, dispatch])
+  // Fetch subcategories when a predefined category is selected
+useEffect(() => {
+  // Only fetch if selectedCategory is a valid ObjectId (24 hex chars)
+  const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(selectedCategory);
 
-  // ✂️ Filter subcategories to only those under the selected category
+  if (selectedCategory && isValidObjectId && !isAddingCustomCategory) {
+    dispatch(getSubcategoriesByCategory(selectedCategory));
+  } else {
+    // Clear subcategories if custom or invalid
+    setSelectedSubcategories([]);
+    setVariants([]);
+  }
+}, [selectedCategory, isAddingCustomCategory, dispatch]);
+
   const filteredSubcategories = allSubcategories.filter(
     (sub: any) => sub.category_id === selectedCategory
   )
 
+  // Add custom category
+  const handleAddCustomCategory = () => {
+    if (customCategory.trim()) {
+      setSelectedCategory(customCategory.trim())
+      setIsAddingCustomCategory(false)
+      setCustomCategory('')
+      setSelectedSubcategories([])
+      setVariants([])
+    }
+  }
+
+  // Add custom subcategory
+  const handleAddCustomSubcategory = () => {
+    if (customSubcategory.trim()) {
+      const newSub = customSubcategory.trim()
+      if (!selectedSubcategories.includes(newSub)) {
+        setSelectedSubcategories(prev => [...prev, newSub])
+      }
+      setIsAddingCustomSubcategory(false)
+      setCustomSubcategory('')
+      setVariants([])
+    }
+  }
+
+  // Remove a subcategory
+  const removeSubcategory = (sub: string) => {
+    setSelectedSubcategories(prev => prev.filter(s => s !== sub))
+  }
+
+  // Add new variant with empty attributes
   const onAddVariant = () => {
-    const attrs = selectedSubcategory && categoryAttributes[selectedSubcategory]
-      ? categoryAttributes[selectedSubcategory]
-      : []
-    const newVariant: Record<string, any> = {}
-    attrs.forEach(attr => (newVariant[attr.key] = ''))
-    newVariant.price = 0
-    newVariant.stock = 0
-    newVariant.sku = ''
+    const newVariant = {
+      sku: '',
+      price: '',
+      discount_percent: '0',
+      stock: '',
+      attributes: [{ key: '', value: '' }], // ✅ dynamic key-value
+    }
     setVariants(prev => [...prev, newVariant])
   }
 
   const onRemoveVariant = (index: number) => {
-    setVariants((prev) => prev.filter((_, i) => i !== index))
+    setVariants(prev => prev.filter((_, i) => i !== index))
+    setVariantImageFiles(prev => {
+      const newState = { ...prev }
+      delete newState[index]
+      return newState
+    })
+    setVariantImagePreviews(prev => {
+      const newState = { ...prev }
+      delete newState[index]
+      return newState
+    })
   }
 
-  const onUpdateVariant = (index: number, key: string, value: any) => {
+  // Update variant field (sku, price, etc.)
+  const onUpdateVariantField = (index: number, field: string, value: any) => {
     const updated = [...variants]
-    updated[index][key] = value
+    updated[index][field] = value
+    setVariants(updated)
+  }
+
+  // Update attribute key/value
+  const onUpdateAttribute = (variantIndex: number, attrIndex: number, type: 'key' | 'value', value: string) => {
+    const updated = [...variants]
+    updated[variantIndex].attributes[attrIndex][type] = value
+    setVariants(updated)
+  }
+
+  // Add new attribute pair to variant
+  const onAddAttribute = (variantIndex: number) => {
+    const updated = [...variants]
+    updated[variantIndex].attributes.push({ key: '', value: '' })
+    setVariants(updated)
+  }
+
+  // Remove attribute from variant
+  const onRemoveAttribute = (variantIndex: number, attrIndex: number) => {
+    const updated = [...variants]
+    updated[variantIndex].attributes = updated[variantIndex].attributes.filter(
+      (_: any, i: number) => i !== attrIndex
+    )
     setVariants(updated)
   }
 
@@ -101,49 +166,67 @@ export default function ProductCreator() {
     setImageFiles(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files) setVideoFiles(Array.from(files))
-  }
-
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    const attrs = selectedSubcategory && categoryAttributes[selectedSubcategory]
-      ? categoryAttributes[selectedSubcategory]
-      : []
-
     const formData = new FormData()
 
     formData.append('productName', data.name)
     formData.append('productCategory', selectedCategory)
-    formData.append('productSubCategory', selectedSubcategory)
+
+    // ✅ Send as JSON array of strings (even custom)
+    formData.append('productSubCategory', JSON.stringify(selectedSubcategories))
+
+    formData.append('brand', data.brand || '')
     formData.append('short_description', data.short_description)
     formData.append('description', data.description)
     formData.append('isAvailable', 'true')
 
-    const variantPayload = variants.map(v => ({
-      sku: v.sku,
-      attributes: attrs.reduce((acc: Record<string, any>, attr) => {
-        acc[attr.key] = v[attr.key]
-        return acc
-      }, {}),
-      price: v.price,
-      actual_price: v.price,
-      stockQuantity: v.stock,
-      discount_percent: 0 // You can adjust logic if needed, but field removed from form
-    }))
+    // Build variants with dynamic attributes
+    const variantPayload = variants.map((v) => {
+      // Build attributes object from key-value pairs (skip empty keys)
+      const attributes: Record<string, string> = {}
+      v.attributes.forEach((attr: { key: string; value: string }) => {
+        if (attr.key.trim()) {
+          attributes[attr.key.trim()] = attr.value.trim() || ''
+        }
+      })
+
+      return {
+        sku: v.sku,
+        attributes,
+        price: parseFloat(v.price) || 0,
+        discount_percent: parseFloat(v.discount_percent) || 0,
+        stockQuantity: parseInt(v.stock, 10) || 0,
+      }
+    })
+
     formData.append('variants', JSON.stringify(variantPayload))
 
-    imageFiles.forEach(file => formData.append('images', file))
-    videoFiles.forEach(file => formData.append('videos', file))
+    // Global images
+    imageFiles.forEach(file => {
+      formData.append('globalImages', file)
+    })
+
+    // Variant images
+    variants.forEach((_, idx) => {
+      const files = variantImageFiles[idx] || []
+      files.forEach(file => {
+        formData.append(`images-${idx}`, file)
+      })
+    })
 
     dispatch(createProduct(formData))
 
+    // Reset
     reset()
-    setVariants([])
     setSelectedCategory('')
-    setSelectedSubcategory('')
+    setSelectedSubcategories([])
+    setVariants([])
     setImageFiles([])
-    setVideoFiles([])
+    setImagePreviews([])
+    setVariantImageFiles({})
+    setVariantImagePreviews({})
+    setIsAddingCustomCategory(false)
+    setIsAddingCustomSubcategory(false)
   }
 
   return (
@@ -161,80 +244,154 @@ export default function ProductCreator() {
 
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
-            {/* Product Info Section */}
+            {/* Product Info */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label>Product Name</Label>
-                <Input {...register('name')} placeholder="e.g. Premium Cotton T-Shirt" />
+                <Input {...register('name', { required: true })} placeholder="e.g. Premium Wireless Headphones" />
               </div>
-
               <div>
                 <Label>Short Description</Label>
                 <Input
                   {...register('short_description')}
-                  placeholder="e.g. 100% cotton, soft and breathable"
+                  placeholder="e.g. High-quality wireless headphones with noise cancellation"
                 />
               </div>
-
               <div className="md:col-span-2">
                 <Label>Full Description</Label>
                 <Textarea {...register('description')} placeholder="Enter full product description" />
               </div>
-
-              {/* ❌ Removed Discount (%) field */}
-
               <div>
                 <Label>Brand</Label>
                 <Input type="text" {...register('brand')} />
               </div>
             </section>
 
-            {/* Category & Subcategory Dropdowns */}
+            {/* Category & Subcategories (Multiple + Custom) */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Category */}
               <div>
-                <Label>Select Category</Label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => {
-                    setSelectedCategory(e.target.value)
-                    setSelectedSubcategory('')
-                    setVariants([])
-                  }}
-                  className="w-full rounded-md border border-gray-300 p-2 text-base"
-                >
-                  <option value="">-- Select Category --</option>
-                  {categories.map((cat: any) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                <Label>Category</Label>
+                <div className="space-y-2">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === '__add_custom__') {
+                        setIsAddingCustomCategory(true)
+                        setSelectedCategory('')
+                      } else {
+                        setSelectedCategory(val)
+                        setIsAddingCustomCategory(false)
+                        setSelectedSubcategories([])
+                        setVariants([])
+                      }
+                    }}
+                    className="w-full rounded-md border border-gray-300 p-2 text-base"
+                  >
+                    <option value="">-- Select or Add Category --</option>
+                    {categories.map((cat: any) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                    <option value="__add_custom__">+ Add Custom Category</option>
+                  </select>
+
+                  {isAddingCustomCategory && (
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        value={customCategory}
+                        onChange={(e) => setCustomCategory(e.target.value)}
+                        placeholder="New category name"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddCustomCategory()}
+                      />
+                      <Button type="button" size="sm" onClick={handleAddCustomCategory}>Add</Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setIsAddingCustomCategory(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+
+                  {selectedCategory && !isAddingCustomCategory && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      Category: <strong>{selectedCategory}</strong>
+                    </p>
+                  )}
+                </div>
               </div>
 
+              {/* Subcategories (Multiple) */}
               <div>
-                <Label>Select Subcategory</Label>
-                <select
-                  value={selectedSubcategory}
-                  onChange={(e) => {
-                    setSelectedSubcategory(e.target.value as keyof typeof categoryAttributes)
-                    setVariants([])
-                  }}
-                  className="w-full rounded-md border border-gray-300 p-2 text-base"
-                  disabled={!selectedCategory}
-                >
-                  <option value="">-- Select Subcategory --</option>
-                  {filteredSubcategories.map((sub: any) => (
-                    <option key={sub.id} value={sub.name}>
-                      {sub.name}
-                    </option>
-                  ))}
-                </select>
+                <Label>Subcategories (Select or Add)</Label>
+                <div className="space-y-2">
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === '__add_custom_sub__') {
+                        setIsAddingCustomSubcategory(true)
+                      } else if (val) {
+                        if (!selectedSubcategories.includes(val)) {
+                          setSelectedSubcategories(prev => [...prev, val])
+                        }
+                      }
+                    }}
+                    className="w-full rounded-md border border-gray-300 p-2 text-base"
+                    disabled={!selectedCategory}
+                  >
+                    <option value="">-- Add Subcategory --</option>
+                    {filteredSubcategories.map((sub: any) => (
+                      <option key={sub.id} value={sub.name}>
+                        {sub.name}
+                      </option>
+                    ))}
+                    <option value="__add_custom_sub__">+ Add Custom Subcategory</option>
+                  </select>
+
+                  {isAddingCustomSubcategory && (
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        value={customSubcategory}
+                        onChange={(e) => setCustomSubcategory(e.target.value)}
+                        placeholder="New subcategory name"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSubcategory()}
+                      />
+                      <Button type="button" size="sm" onClick={handleAddCustomSubcategory}>Add</Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsAddingCustomSubcategory(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Selected subcategories as tags */}
+                  {selectedSubcategories.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedSubcategories.map((sub, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm"
+                        >
+                          {sub}
+                          <button type="button" onClick={() => removeSubcategory(sub)}>
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
 
-            {/* Image Upload */}
+            {/* Global Images */}
             <section className="space-y-4">
-              <Label>Upload Product Images</Label>
+              <Label>Upload Global Product Images</Label>
               <div className="flex flex-wrap gap-4">
                 {imagePreviews.map((src, index) => (
                   <motion.div
@@ -275,14 +432,8 @@ export default function ProductCreator() {
               </div>
             </section>
 
-            {/* Video Upload */}
-            <section>
-              <Label>Upload Product Videos (optional)</Label>
-              <Input type="file" multiple accept="video/*" onChange={handleVideoChange} />
-            </section>
-
-            {/* Variants Section */}
-            {selectedSubcategory && (
+            {/* Variants with Dynamic Attributes */}
+            {selectedSubcategories.length > 0 && (
               <section className="border-t border-gray-200 pt-6 space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-semibold text-gray-700">Variants</h3>
@@ -293,71 +444,163 @@ export default function ProductCreator() {
 
                 <AnimatePresence>
                   {variants.length > 0 ? (
-                    variants.map((variant, index) => (
+                    variants.map((variant, vIndex) => (
                       <motion.div
-                        key={index}
+                        key={vIndex}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                       >
                         <Card className="border border-gray-300 shadow-sm bg-gray-50 mb-4">
-                          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-                            {categoryAttributes[selectedSubcategory]?.map((attr) => (
-                              <div key={attr.key}>
-                                <Label>{attr.label}</Label>
-                                {attr.type === 'select' ? (
-                                  <select
-                                    value={variant[attr.key]}
-                                    onChange={(e) => onUpdateVariant(index, attr.key, e.target.value)}
-                                    className="w-full rounded-md border border-gray-300 p-2"
-                                  >
-                                    <option value="">Select {attr.label}</option>
-                                    {'options' in attr ? (attr as { options: string[] }).options.map((opt: string) => (
-                                      <option key={opt} value={opt}>
-                                        {opt}
-                                      </option>
-                                    )) : null}
-                                  </select>
-                                ) : (
-                                  <Input
-                                    type={attr.type}
-                                    placeholder={attr.label}
-                                    value={variant[attr.key]}
-                                    onChange={(e) => onUpdateVariant(index, attr.key, e.target.value)}
-                                  />
-                                )}
+                          <CardContent className="space-y-4 p-4">
+                            {/* SKU, Price, Stock, Discount */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                              <div>
+                                <Label>SKU</Label>
+                                <Input
+                                  value={variant.sku}
+                                  onChange={(e) => onUpdateVariantField(vIndex, 'sku', e.target.value)}
+                                  placeholder="e.g. SM-WH-BLK-01"
+                                />
                               </div>
-                            ))}
-
-                            <div>
-                              <Label>Price</Label>
-                              <Input
-                                type="number"
-                                value={variant.price}
-                                onChange={(e) => onUpdateVariant(index, 'price', e.target.value)}
-                              />
+                              <div>
+                                <Label>Price</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={variant.price}
+                                  onChange={(e) => onUpdateVariantField(vIndex, 'price', e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <Label>Discount (%)</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={variant.discount_percent}
+                                  onChange={(e) => onUpdateVariantField(vIndex, 'discount_percent', e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <Label>Stock</Label>
+                                <Input
+                                  type="number"
+                                  value={variant.stock}
+                                  onChange={(e) => onUpdateVariantField(vIndex, 'stock', e.target.value)}
+                                />
+                              </div>
                             </div>
 
+                            {/* Dynamic Attributes */}
                             <div>
-                              <Label>Stock</Label>
-                              <Input
-                                type="number"
-                                value={variant.stock}
-                                onChange={(e) => onUpdateVariant(index, 'stock', e.target.value)}
-                              />
+                              <div className="flex justify-between items-center mb-2">
+                                <Label>Attributes (Key-Value Pairs)</Label>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => onAddAttribute(vIndex)}
+                                >
+                                  <Plus className="w-3 h-3 mr-1" /> Add Attribute
+                                </Button>
+                              </div>
+
+                              <div className="space-y-2">
+                                {variant.attributes.map((attr: any, aIndex: number) => (
+                                  <div key={aIndex} className="flex gap-2">
+                                    <Input
+                                      placeholder="Key (e.g. color)"
+                                      value={attr.key}
+                                      onChange={(e) => onUpdateAttribute(vIndex, aIndex, 'key', e.target.value)}
+                                      className="flex-1"
+                                    />
+                                    <Input
+                                      placeholder="Value (e.g. Black)"
+                                      value={attr.value}
+                                      onChange={(e) => onUpdateAttribute(vIndex, aIndex, 'value', e.target.value)}
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="icon"
+                                      onClick={() => onRemoveAttribute(vIndex, aIndex)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
 
+                            {/* Variant Images */}
                             <div>
-                              <Label>SKU</Label>
-                              <Input
-                                value={variant.sku}
-                                onChange={(e) => onUpdateVariant(index, 'sku', e.target.value)}
-                              />
+                              <Label>Variant Images</Label>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {variantImagePreviews[vIndex]?.map((src, imgIndex) => (
+                                  <div key={imgIndex} className="relative w-20 h-20">
+                                    <img
+                                      src={src}
+                                      alt="variant preview"
+                                      className="w-full h-full object-cover rounded border"
+                                    />
+                                    <button
+                                      type="button"
+                                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                                      onClick={() => {
+                                        const newPreviews = [...(variantImagePreviews[vIndex] || [])]
+                                        const newFiles = [...(variantImageFiles[vIndex] || [])]
+                                        newPreviews.splice(imgIndex, 1)
+                                        newFiles.splice(imgIndex, 1)
+                                        setVariantImagePreviews(prev => ({
+                                          ...prev,
+                                          [vIndex]: newPreviews,
+                                        }))
+                                        setVariantImageFiles(prev => ({
+                                          ...prev,
+                                          [vIndex]: newFiles,
+                                        }))
+                                      }}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                                <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed rounded cursor-pointer text-gray-400 hover:border-blue-500">
+                                  <Upload className="w-4 h-4" />
+                                  <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const files = e.target.files
+                                      if (!files) return
+                                      const newFiles = Array.from(files)
+                                      const newPreviews = newFiles.map(f => URL.createObjectURL(f))
+                                      setVariantImageFiles(prev => ({
+                                        ...prev,
+                                        [vIndex]: [...(prev[vIndex] || []), ...newFiles],
+                                      }))
+                                      setVariantImagePreviews(prev => ({
+                                        ...prev,
+                                        [vIndex]: [...(prev[vIndex] || []), ...newPreviews],
+                                      }))
+                                    }}
+                                  />
+                                </label>
+                              </div>
                             </div>
 
-                            <div className="col-span-full flex justify-end mt-2">
-                              <Button type="button" variant="destructive" onClick={() => onRemoveVariant(index)}>
-                                <Trash2 className="w-4 h-4 mr-1" /> Remove Variant
+                            <div className="flex justify-end">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => onRemoveVariant(vIndex)}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" /> Remove Variant
                               </Button>
                             </div>
                           </CardContent>
@@ -371,7 +614,6 @@ export default function ProductCreator() {
               </section>
             )}
 
-            {/* Submit */}
             <Button type="submit" className="w-full mt-6 py-6 text-lg transition-all">
               Create Product
             </Button>
