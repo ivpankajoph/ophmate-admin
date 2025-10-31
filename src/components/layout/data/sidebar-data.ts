@@ -141,6 +141,32 @@ export const sidebarData: SidebarData = {
       ],
     },
 
+
+
+
+
+    
+    {
+      title: 'Template',
+      items: [
+        {
+          title: 'Your Template',
+          icon: ShieldCheck,
+          items: [
+            {
+              title: 'Show Template',
+              url: '/vendor',
+            },
+            {
+              title: 'Create Template',
+              url: '/vendor-template',
+            },
+          ],
+        },
+      ],
+    },
+
+
     {
       title: 'Other',
       items: [
