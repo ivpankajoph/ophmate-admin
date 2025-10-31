@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { Trash2, UserPen, Plus } from "lucide-react";
+import { Trash2, UserPen, } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

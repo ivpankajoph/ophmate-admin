@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import api from '@/lib/axios'
+
 import axios from 'axios'
 
 interface CategoryState {
