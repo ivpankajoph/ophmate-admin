@@ -471,8 +471,6 @@ export function TemplateForm() {
                 </div>
               )}
             />
-
-            {/* Team */}
             <ArrayField
               label='Team Members'
               items={data.components.about_page.team}
