@@ -60,6 +60,12 @@ export type TemplateData = {
         subheading: string
         faqs: Array<{ question: string; answer: string }>
       }
+      socialMedia: {
+        facebook: string
+        instagram: string
+        whatsapp: string
+        twitter: string
+      }
     }
   }
 }
@@ -145,6 +151,12 @@ export const initialData: TemplateData = {
         heading: '',
         subheading: '',
         faqs: [{ question: '', answer: '' }],
+      },
+      socialMedia: {
+        facebook: 'string',
+        instagram: 'string',
+        whatsapp: 'string',
+        twitter: 'string',
       },
     },
   },

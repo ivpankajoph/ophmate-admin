@@ -141,31 +141,33 @@ export const sidebarData: SidebarData = {
       ],
     },
 
-
-
-
-
-    
     {
       title: 'Template',
       items: [
         {
-          title: 'Your Template',
+          title: 'Create Template',
           icon: ShieldCheck,
           items: [
             {
-              title: 'Show Template',
-              url: '/vendor',
+              title: 'Home Page Template',
+              url: '/vendor-template',
             },
             {
-              title: 'Create Template',
-              url: '/vendor-template',
+              title: 'About Page Template',
+              url: '/vendor-template-about',
+            },
+            {
+              title: 'Contact Page Template',
+              url: '/vendor-template-contact',
+            },
+                {
+              title: 'Social Links and FAQs',
+              url: '/vendor-template-other',
             },
           ],
         },
       ],
     },
-
 
     {
       title: 'Other',
