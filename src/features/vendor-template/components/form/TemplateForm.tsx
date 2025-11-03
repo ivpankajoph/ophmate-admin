@@ -88,7 +88,7 @@ export function TemplateForm() {
             Template Preview{' '}
             <a
               className='w-fit'
-              href={`${BASE_URL}/template-preview?vendor_id=${vendor_id}`}
+              href={`http://localhost:3000/template-preview?vendor_id=${vendor_id}`}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -100,7 +100,7 @@ export function TemplateForm() {
           {/* Basic Info */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
             <div className='space-y-2'>
-              <Label htmlFor='name'>Template Name</Label>
+              <Label htmlFor='name'>Company Name / Shop Name</Label>
               <Input
                 id='name'
                 value={data.name}
@@ -110,7 +110,7 @@ export function TemplateForm() {
             </div>
             <div className='space-y-2'>
               <ImageInput
-                label='Preview Image'
+                label='Banner Image'
                 name='previewImage'
                 value={data.previewImage}
                 onChange={(file) => handleImageChange(['previewImage'], file)}
@@ -122,7 +122,7 @@ export function TemplateForm() {
           {/* Logo */}
           <div className='space-y-2'>
             <ImageInput
-              label='Logo'
+              label='Company Logo'
               name='logo'
               value={data.components.logo}
               onChange={(file) =>
@@ -134,10 +134,10 @@ export function TemplateForm() {
 
           {/* Home Page */}
           <Separator />
-          <h2 className='text-lg font-semibold'>Home Page</h2>
+          <h2 className='text-lg font-semibold'>Home Page Section 1</h2>
           <div className='space-y-4'>
             <Input
-              placeholder='Header Text'
+              placeholder='Hero Title'
               value={data.components.home_page.header_text}
               onChange={(e) =>
                 updateField(
@@ -147,7 +147,7 @@ export function TemplateForm() {
               }
             />
             <Input
-              placeholder='Header Text (Small)'
+              placeholder='Hero SubTitle'
               value={data.components.home_page.header_text_small}
               onChange={(e) =>
                 updateField(
@@ -157,7 +157,7 @@ export function TemplateForm() {
               }
             />
             <Input
-              placeholder='Button Header'
+              placeholder='Text on Header Button'
               value={data.components.home_page.button_header}
               onChange={(e) =>
                 updateField(
@@ -166,6 +166,8 @@ export function TemplateForm() {
                 )
               }
             />
+            <Separator />
+          <h2 className='text-lg font-semibold'>Home Page Section 2</h2>
             <Textarea
               placeholder='Large Description'
               value={data.components.home_page.description.large_text}
