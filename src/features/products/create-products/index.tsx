@@ -18,6 +18,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { AppDispatch } from '@/store'
 import { createProduct } from '@/store/slices/vendor/productSlice'
 import { getSubcategoriesByCategory } from '@/store/slices/admin/subcategorySlice'
+import Swal from 'sweetalert2'
 
 type FormData = {
   name: string
@@ -166,57 +167,63 @@ useEffect(() => {
     setImageFiles(prev => prev.filter((_, i) => i !== index))
   }
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
-    const formData = new FormData()
+const onSubmit: SubmitHandler<FormData> = async (data) => {
+  const formData = new FormData()
 
-    formData.append('productName', data.name)
-    formData.append('productCategory', selectedCategory)
+  formData.append('productName', data.name)
+  formData.append('productCategory', selectedCategory)
+  formData.append('productSubCategory', JSON.stringify(selectedSubcategories))
+  formData.append('brand', data.brand || '')
+  formData.append('short_description', data.short_description)
+  formData.append('description', data.description)
+  formData.append('isAvailable', 'true')
 
-    // ✅ Send as JSON array of strings (even custom)
-    formData.append('productSubCategory', JSON.stringify(selectedSubcategories))
-
-    formData.append('brand', data.brand || '')
-    formData.append('short_description', data.short_description)
-    formData.append('description', data.description)
-    formData.append('isAvailable', 'true')
-
-    // Build variants with dynamic attributes
-    const variantPayload = variants.map((v) => {
-      // Build attributes object from key-value pairs (skip empty keys)
-      const attributes: Record<string, string> = {}
-      v.attributes.forEach((attr: { key: string; value: string }) => {
-        if (attr.key.trim()) {
-          attributes[attr.key.trim()] = attr.value.trim() || ''
-        }
-      })
-
-      return {
-        sku: v.sku,
-        attributes,
-        price: parseFloat(v.price) || 0,
-        discount_percent: parseFloat(v.discount_percent) || 0,
-        stockQuantity: parseInt(v.stock, 10) || 0,
+  // Build variants with dynamic attributes
+  const variantPayload = variants.map((v) => {
+    const attributes: Record<string, string> = {}
+    v.attributes.forEach((attr: { key: string; value: string }) => {
+      if (attr.key.trim()) {
+        attributes[attr.key.trim()] = attr.value.trim() || ''
       }
     })
 
-    formData.append('variants', JSON.stringify(variantPayload))
+    return {
+      sku: v.sku,
+      attributes,
+      price: parseFloat(v.price) || 0,
+      discount_percent: parseFloat(v.discount_percent) || 0,
+      stockQuantity: parseInt(v.stock, 10) || 0,
+    }
+  })
 
-    // Global images
-    imageFiles.forEach(file => {
-      formData.append('globalImages', file)
+  formData.append('variants', JSON.stringify(variantPayload))
+
+  // Global images
+  imageFiles.forEach(file => {
+    formData.append('globalImages', file)
+  })
+
+  // Variant images
+  variants.forEach((_, idx) => {
+    const files = variantImageFiles[idx] || []
+    files.forEach(file => {
+      formData.append(`images-${idx}`, file)
+    })
+  })
+
+  // 🚀 Dispatch and wait for result
+  const resultAction:any = await dispatch(createProduct(formData))
+
+  if (createProduct.fulfilled.match(resultAction)) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: resultAction.payload.message || 'Product created successfully!',
+      timer: 2000,
+      showConfirmButton: false,
     })
 
-    // Variant images
-    variants.forEach((_, idx) => {
-      const files = variantImageFiles[idx] || []
-      files.forEach(file => {
-        formData.append(`images-${idx}`, file)
-      })
-    })
-
-    dispatch(createProduct(formData))
-
-    // Reset
+    // Reset fields
     reset()
     setSelectedCategory('')
     setSelectedSubcategories([])
@@ -227,7 +234,18 @@ useEffect(() => {
     setVariantImagePreviews({})
     setIsAddingCustomCategory(false)
     setIsAddingCustomSubcategory(false)
+
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops!',
+      text:
+        (resultAction.payload && resultAction.payload.message) ||
+        'Something went wrong while creating the product.',
+    })
   }
+}
+
 
   return (
     <div className="mx-auto w-5xl max-w-7xl p-6 space-y-10">

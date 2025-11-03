@@ -1,7 +1,6 @@
-// src/components/form/TemplateForm.tsx
 import { useState } from 'react'
 import axios from 'axios'
-import { BASE_URL, BASE_URL_TEMPLATE } from '@/store/slices/vendor/productSlice'
+import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { Link2 } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { Button } from '@/components/ui/button'
@@ -10,101 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { initialData, TemplateData } from '../../data'
 import { ArrayField } from './ArrayField'
 import { ImageInput } from './ImageInput'
-
-type TemplateData = {
-  name: string
-  previewImage: string
-  components: {
-    logo: string
-    home_page: any
-    about_page: any
-    contact_page: any
-  }
-}
-
-const initialData: TemplateData = {
-  name: '',
-  previewImage: '',
-  components: {
-    logo: '',
-    home_page: {
-      header_text: '',
-      header_text_small: '',
-      button_header: '',
-      description: {
-        large_text: '',
-        summary: '',
-        percent: { percent_in_number: '', percent_text: '' },
-        sold: { sold_number: '', sold_text: '' },
-      },
-    },
-    about_page: {
-      hero: {
-        backgroundImage: '',
-        title: '',
-        subtitle: '',
-      },
-      story: {
-        heading: '',
-        paragraphs: [''],
-        image: '',
-      },
-      values: [{ icon: '', title: '', description: '' }],
-      team: [{ name: '', role: '', image: '' }],
-      stats: [{ value: '', label: '' }],
-    },
-    contact_page: {
-      hero: {
-        backgroundImage: '',
-        title: '',
-        subtitle: '',
-      },
-      contactInfo: [{ icon: '', title: '', details: '' }],
-      contactForm: {
-        heading: '',
-        description: '',
-        fields: [
-          {
-            label: 'Full Name',
-            name: 'fullName',
-            type: 'text',
-            placeholder: 'Enter your name',
-            required: true,
-          },
-          {
-            label: 'Email Address',
-            name: 'email',
-            type: 'email',
-            placeholder: 'Enter your email',
-            required: true,
-          },
-          {
-            label: 'Message',
-            name: 'message',
-            type: 'textarea',
-            placeholder: 'Write your message here',
-            required: true,
-          },
-        ],
-        submitButtonText: '',
-      },
-      visitInfo: {
-        heading: '',
-        description: '',
-        mapImage: '',
-        reasonsHeading: '',
-        reasonsList: [''],
-      },
-      faqSection: {
-        heading: '',
-        subheading: '',
-        faqs: [{ question: '', answer: '' }],
-      },
-    },
-  },
-}
 
 export function TemplateForm() {
   const [data, setData] = useState<TemplateData>(initialData)
@@ -126,37 +33,47 @@ export function TemplateForm() {
   }
 
   const vendor_id = useSelector((state: any) => state.auth.user.id)
+
+  const handleImageChange = async (path: string[], file: File | null) => {
+    if (!file) {
+      updateField(path, '')
+      return
+    }
+
+    try {
+      const url = ''
+      updateField(path, url)
+    } catch (err) {
+      console.error('Image upload failed:', err)
+      alert('Failed to upload image. Please try again.')
+    }
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitStatus('idle')
 
-    // Trim whitespace in image URLs
-    const payload = JSON.parse(JSON.stringify(data))
-    const trimImage = (obj: any) => {
-      if (typeof obj === 'string' && obj.trim().startsWith('http')) {
-        return obj.trim()
-      }
-      if (typeof obj === 'object' && obj !== null) {
-        Object.keys(obj).forEach((key) => {
-          obj[key] = trimImage(obj[key])
-        })
-      }
-      return obj
-    }
-    trimImage(payload)
-
     try {
-      const res = await axios.post(`${BASE_URL}/templates`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      const payload = {
+        name: data.name,
+        vendor_id,
+        previewImage: data.previewImage,
+        components: data.components,
+      }
+
+      const res = await axios.post(`${BASE_URL}/templates`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
-      if (res.status == 200) {
+
+      if (res.status === 200 || res.status === 201) {
         setSubmitStatus('success')
       } else {
         setSubmitStatus('error')
       }
     } catch (err) {
+      console.error('Submission error:', err)
       setSubmitStatus('error')
     } finally {
       setIsSubmitting(false)
@@ -171,7 +88,7 @@ export function TemplateForm() {
             Template Preview{' '}
             <a
               className='w-fit'
-              href={`${BASE_URL_TEMPLATE}/?vendor_id=${vendor_id}`}
+              href={`${BASE_URL}/template-preview?vendor_id=${vendor_id}`}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -191,21 +108,29 @@ export function TemplateForm() {
                 required
               />
             </div>
-            <ImageInput
-              label='Preview Image'
-              name='previewImage'
-              value={data.previewImage}
-              onChange={(v) => updateField(['previewImage'], v)}
-            />
+            <div className='space-y-2'>
+              <ImageInput
+                label='Preview Image'
+                name='previewImage'
+                value={data.previewImage}
+                onChange={(file) => handleImageChange(['previewImage'], file)}
+                isFileInput={true}
+              />
+            </div>
           </div>
 
           {/* Logo */}
-          <ImageInput
-            label='Logo URL'
-            name='logo'
-            value={data.components.logo}
-            onChange={(v) => updateField(['components', 'logo'], v)}
-          />
+          <div className='space-y-2'>
+            <ImageInput
+              label='Logo'
+              name='logo'
+              value={data.components.logo}
+              onChange={(file) =>
+                handleImageChange(['components', 'logo'], file)
+              }
+              isFileInput={true}
+            />
+          </div>
 
           {/* Home Page */}
           <Separator />
@@ -222,7 +147,7 @@ export function TemplateForm() {
               }
             />
             <Input
-              placeholder='Header Subtitle'
+              placeholder='Header Text (Small)'
               value={data.components.home_page.header_text_small}
               onChange={(e) =>
                 updateField(
@@ -232,7 +157,7 @@ export function TemplateForm() {
               }
             />
             <Input
-              placeholder='Button Text'
+              placeholder='Button Header'
               value={data.components.home_page.button_header}
               onChange={(e) =>
                 updateField(
@@ -342,17 +267,20 @@ export function TemplateForm() {
           <Separator />
           <h2 className='text-lg font-semibold'>About Page</h2>
           <div className='space-y-4'>
-            <ImageInput
-              label='Hero Background'
-              name='aboutHeroBg'
-              value={data.components.about_page.hero.backgroundImage}
-              onChange={(v) =>
-                updateField(
-                  ['components', 'about_page', 'hero', 'backgroundImage'],
-                  v
-                )
-              }
-            />
+            <div className='space-y-2'>
+              <ImageInput
+                label='Hero Background'
+                name='aboutHeroBg'
+                value={data.components.about_page.hero.backgroundImage}
+                onChange={(file) =>
+                  handleImageChange(
+                    ['components', 'about_page', 'hero', 'backgroundImage'],
+                    file
+                  )
+                }
+                isFileInput={true}
+              />
+            </div>
             <Input
               value={data.components.about_page.hero.title}
               onChange={(e) =>
@@ -396,7 +324,7 @@ export function TemplateForm() {
                 }}
                 renderItem={(item, idx) => (
                   <Textarea
-                    value={typeof item === 'string' ? item : ''}
+                    value={item}
                     onChange={(e) => {
                       const list = [
                         ...data.components.about_page.story.paragraphs,
@@ -412,14 +340,20 @@ export function TemplateForm() {
               />
             </div>
 
-            <ImageInput
-              label='Story Image'
-              name='storyImage'
-              value={data.components.about_page.story.image}
-              onChange={(v) =>
-                updateField(['components', 'about_page', 'story', 'image'], v)
-              }
-            />
+            <div className='space-y-2'>
+              <ImageInput
+                label='Story Image'
+                name='storyImage'
+                value={data.components.about_page.story.image}
+                onChange={(file) =>
+                  handleImageChange(
+                    ['components', 'about_page', 'story', 'image'],
+                    file
+                  )
+                }
+                isFileInput={true}
+              />
+            </div>
 
             {/* Values */}
             <ArrayField
@@ -439,7 +373,7 @@ export function TemplateForm() {
                 list.splice(i, 1)
                 updateField(['components', 'about_page', 'values'], list)
               }}
-              renderItem={(item: any, idx) => (
+              renderItem={(item, idx) => (
                 <div className='grid grid-cols-1 gap-2 md:grid-cols-3'>
                   <Input
                     placeholder='Icon (e.g. leaf)'
@@ -471,6 +405,8 @@ export function TemplateForm() {
                 </div>
               )}
             />
+
+            {/* Team */}
             <ArrayField
               label='Team Members'
               items={data.components.about_page.team}
@@ -488,7 +424,7 @@ export function TemplateForm() {
                 list.splice(i, 1)
                 updateField(['components', 'about_page', 'team'], list)
               }}
-              renderItem={(item: any, idx) => (
+              renderItem={(item, idx) => (
                 <div className='space-y-2'>
                   <Input
                     placeholder='Name'
@@ -508,16 +444,26 @@ export function TemplateForm() {
                       updateField(['components', 'about_page', 'team'], list)
                     }}
                   />
-                  <ImageInput
-                    label='Image'
-                    name={`team-${idx}-img`}
-                    value={item.image}
-                    onChange={(v) => {
-                      const list = [...data.components.about_page.team]
-                      list[idx].image = v
-                      updateField(['components', 'about_page', 'team'], list)
-                    }}
-                  />
+                  <div className='space-y-2'>
+                    <ImageInput
+                      label='Team Member Image'
+                      name={`team-${idx}-image`}
+                      value={item.image}
+                      onChange={(file) => {
+                        handleImageChange(
+                          [
+                            'components',
+                            'about_page',
+                            'team',
+                            idx.toString(),
+                            'image',
+                          ],
+                          file
+                        )
+                      }}
+                      isFileInput={true}
+                    />
+                  </div>
                 </div>
               )}
             />
@@ -540,7 +486,7 @@ export function TemplateForm() {
                 list.splice(i, 1)
                 updateField(['components', 'about_page', 'stats'], list)
               }}
-              renderItem={(item: any, idx) => (
+              renderItem={(item, idx) => (
                 <div className='grid grid-cols-2 gap-2'>
                   <Input
                     placeholder='Value (e.g. 10+)'
@@ -565,15 +511,275 @@ export function TemplateForm() {
             />
           </div>
 
-          {/* Contact Page - Simplified for brevity; follow same pattern */}
+          {/* Contact Page */}
           <Separator />
           <h2 className='text-lg font-semibold'>Contact Page</h2>
-          <p className='text-muted-foreground text-sm'>
-            Configure hero, contact info, FAQs, etc. (implementation follows
-            same pattern as above)
-          </p>
 
-          {/* Submit */}
+          {/* Hero */}
+          <div className='space-y-2'>
+            <ImageInput
+              label='Contact Hero Background'
+              name='contactHeroBg'
+              value={data.components.contact_page.hero.backgroundImage}
+              onChange={(file) =>
+                handleImageChange(
+                  ['components', 'contact_page', 'hero', 'backgroundImage'],
+                  file
+                )
+              }
+              isFileInput={true}
+            />
+          </div>
+          <Input
+            placeholder='Hero Title'
+            value={data.components.contact_page.hero.title}
+            onChange={(e) =>
+              updateField(
+                ['components', 'contact_page', 'hero', 'title'],
+                e.target.value
+              )
+            }
+          />
+          <Input
+            placeholder='Hero Subtitle'
+            value={data.components.contact_page.hero.subtitle}
+            onChange={(e) =>
+              updateField(
+                ['components', 'contact_page', 'hero', 'subtitle'],
+                e.target.value
+              )
+            }
+          />
+
+          {/* Contact Info */}
+          <div className='space-y-2'>
+            <Label>Contact Information</Label>
+            {data.components.contact_page.contactInfo.map((info, idx) => (
+              <div key={idx} className='grid grid-cols-1 gap-2 md:grid-cols-3'>
+                <Input
+                  placeholder='Title'
+                  value={info.title}
+                  onChange={(e) => {
+                    const list = [...data.components.contact_page.contactInfo]
+                    list[idx].title = e.target.value
+                    updateField(
+                      ['components', 'contact_page', 'contactInfo'],
+                      list
+                    )
+                  }}
+                />
+                <Input
+                  placeholder='Details'
+                  value={info.details}
+                  onChange={(e) => {
+                    const list = [...data.components.contact_page.contactInfo]
+                    list[idx].details = e.target.value
+                    updateField(
+                      ['components', 'contact_page', 'contactInfo'],
+                      list
+                    )
+                  }}
+                />
+                <Input
+                  placeholder='Icon (e.g. mail)'
+                  value={info.icon}
+                  onChange={(e) => {
+                    const list = [...data.components.contact_page.contactInfo]
+                    list[idx].icon = e.target.value
+                    updateField(
+                      ['components', 'contact_page', 'contactInfo'],
+                      list
+                    )
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Contact Form Submit Button */}
+          <div className='space-y-2'>
+            <Label>Submit Button Text</Label>
+            <Input
+              placeholder='e.g. Send Message'
+              value={data.components.contact_page.contactForm.submitButtonText}
+              onChange={(e) =>
+                updateField(
+                  [
+                    'components',
+                    'contact_page',
+                    'contactForm',
+                    'submitButtonText',
+                  ],
+                  e.target.value
+                )
+              }
+            />
+          </div>
+
+          {/* Visit Info */}
+          <div className='space-y-2'>
+            <Label>Visit Info Heading</Label>
+            <Input
+              value={data.components.contact_page.visitInfo.heading}
+              onChange={(e) =>
+                updateField(
+                  ['components', 'contact_page', 'visitInfo', 'heading'],
+                  e.target.value
+                )
+              }
+            />
+            <Label>Visit Info Description</Label>
+            <Textarea
+              value={data.components.contact_page.visitInfo.description}
+              onChange={(e) =>
+                updateField(
+                  ['components', 'contact_page', 'visitInfo', 'description'],
+                  e.target.value
+                )
+              }
+            />
+            <ImageInput
+              label='Map Image'
+              name='mapImage'
+              value={data.components.contact_page.visitInfo.mapImage}
+              onChange={(file) =>
+                handleImageChange(
+                  ['components', 'contact_page', 'visitInfo', 'mapImage'],
+                  file
+                )
+              }
+              isFileInput={true}
+            />
+            <Label>Reasons Heading</Label>
+            <Input
+              value={data.components.contact_page.visitInfo.reasonsHeading}
+              onChange={(e) =>
+                updateField(
+                  ['components', 'contact_page', 'visitInfo', 'reasonsHeading'],
+                  e.target.value
+                )
+              }
+            />
+            <Label>Reasons List</Label>
+            <ArrayField
+              label='Reasons'
+              items={data.components.contact_page.visitInfo.reasonsList}
+              onAdd={() =>
+                updateField(
+                  ['components', 'contact_page', 'visitInfo', 'reasonsList'],
+                  [...data.components.contact_page.visitInfo.reasonsList, '']
+                )
+              }
+              onRemove={(i) => {
+                const list = [
+                  ...data.components.contact_page.visitInfo.reasonsList,
+                ]
+                list.splice(i, 1)
+                updateField(
+                  ['components', 'contact_page', 'visitInfo', 'reasonsList'],
+                  list
+                )
+              }}
+              renderItem={(item, idx) => (
+                <Input
+                  value={item}
+                  onChange={(e) => {
+                    const list = [
+                      ...data.components.contact_page.visitInfo.reasonsList,
+                    ]
+                    list[idx] = e.target.value
+                    updateField(
+                      [
+                        'components',
+                        'contact_page',
+                        'visitInfo',
+                        'reasonsList',
+                      ],
+                      list
+                    )
+                  }}
+                />
+              )}
+            />
+          </div>
+
+          {/* FAQ Section */}
+          <div className='space-y-2'>
+            <Label>FAQ Heading</Label>
+            <Input
+              value={data.components.contact_page.faqSection.heading}
+              onChange={(e) =>
+                updateField(
+                  ['components', 'contact_page', 'faqSection', 'heading'],
+                  e.target.value
+                )
+              }
+            />
+            <Label>FAQ Subheading</Label>
+            <Input
+              value={data.components.contact_page.faqSection.subheading}
+              onChange={(e) =>
+                updateField(
+                  ['components', 'contact_page', 'faqSection', 'subheading'],
+                  e.target.value
+                )
+              }
+            />
+            <ArrayField
+              label='FAQs'
+              items={data.components.contact_page.faqSection.faqs}
+              onAdd={() =>
+                updateField(
+                  ['components', 'contact_page', 'faqSection', 'faqs'],
+                  [
+                    ...data.components.contact_page.faqSection.faqs,
+                    { question: '', answer: '' },
+                  ]
+                )
+              }
+              onRemove={(i) => {
+                const list = [...data.components.contact_page.faqSection.faqs]
+                list.splice(i, 1)
+                updateField(
+                  ['components', 'contact_page', 'faqSection', 'faqs'],
+                  list
+                )
+              }}
+              renderItem={(item, idx) => (
+                <div className='space-y-2'>
+                  <Input
+                    placeholder='Question'
+                    value={item.question}
+                    onChange={(e) => {
+                      const list = [
+                        ...data.components.contact_page.faqSection.faqs,
+                      ]
+                      list[idx].question = e.target.value
+                      updateField(
+                        ['components', 'contact_page', 'faqSection', 'faqs'],
+                        list
+                      )
+                    }}
+                  />
+                  <Textarea
+                    placeholder='Answer'
+                    value={item.answer}
+                    onChange={(e) => {
+                      const list = [
+                        ...data.components.contact_page.faqSection.faqs,
+                      ]
+                      list[idx].answer = e.target.value
+                      updateField(
+                        ['components', 'contact_page', 'faqSection', 'faqs'],
+                        list
+                      )
+                    }}
+                  />
+                </div>
+              )}
+            />
+          </div>
+
           <Separator />
           <div className='flex items-center justify-between'>
             <div>
@@ -593,9 +799,9 @@ export function TemplateForm() {
             </Button>
           </div>
 
-          {/* Optional: JSON Preview */}
+          {/* Optional JSON Preview */}
           <details className='text-xs'>
-            <summary>View Payload</summary>
+            <summary>View Payload Structure</summary>
             <pre className='bg-muted mt-2 max-h-60 overflow-auto rounded p-2'>
               {JSON.stringify(data, null, 2)}
             </pre>
