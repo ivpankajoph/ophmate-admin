@@ -2,7 +2,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import { useState } from 'react'
+import axios from 'axios'
+import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { Link2 } from 'lucide-react'
+import { useSelector } from 'react-redux'
+// Adjust path if needed
+import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +18,36 @@ import { initialData, TemplateData } from '../data'
 
 function VendorTemplateAbout() {
   const [data, setData] = useState<TemplateData>(initialData)
+  const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
+
+  const vendor_id = useSelector((state: any) => state.auth.user.id)
+
+  // Cloudinary upload helper
+  async function uploadImage(file: File): Promise<string | null> {
+    try {
+      const { data: signatureData } = await axios.get(
+        `${BASE_URL}/cloudinary/signature`
+      )
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('api_key', signatureData.apiKey)
+      formData.append('timestamp', signatureData.timestamp)
+      formData.append('signature', signatureData.signature)
+      formData.append('folder', 'ecommerce')
+
+      const uploadRes = await axios.post(
+        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+        formData
+      )
+
+      return uploadRes.data.secure_url
+    } catch (error) {
+      console.error('Cloudinary upload failed:', error)
+      alert('Failed to upload image. Please try again.')
+      return null
+    }
+  }
 
   const updateField = (path: string[], value: any) => {
     setData((prev) => {
@@ -27,19 +62,47 @@ function VendorTemplateAbout() {
   }
 
   const handleImageChange = async (path: string[], file: File | null) => {
+    const pathKey = path.join('.')
+
     if (!file) {
       updateField(path, '')
+      setUploadingPaths((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(pathKey)
+        return newSet
+      })
       return
     }
 
+    setUploadingPaths((prev) => new Set(prev).add(pathKey))
+
     try {
-      const url = ''
-      updateField(path, url)
-    } catch (err) {
-      console.error('Image upload failed:', err)
-      alert('Failed to upload image. Please try again.')
+      const imageUrl = await uploadImage(file)
+      updateField(path, imageUrl || '')
+    } finally {
+      setUploadingPaths((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(pathKey)
+        return newSet
+      })
     }
   }
+
+  const handleSave = async () => {
+    try {
+      await axios.put(`${BASE_URL}/templates/about`, {
+        vendor_id,
+        components: data.components.about_page,
+      })
+      alert('About page saved successfully!')
+    } catch (err) {
+      console.error('Save failed:', err)
+      alert('Failed to save about page.')
+    }
+  }
+
+  const isUploading = (path: string[]) => uploadingPaths.has(path.join('.'))
+
   return (
     <div className='container mx-auto max-w-4xl py-8'>
       <Card className='p-6'>
@@ -56,6 +119,7 @@ function VendorTemplateAbout() {
         </CardTitle>
         <h2 className='text-lg font-semibold'>About Page</h2>
         <div className='space-y-4'>
+          {/* Hero Background */}
           <div className='space-y-2'>
             <ImageInput
               label='Hero Background'
@@ -69,7 +133,14 @@ function VendorTemplateAbout() {
               }
               isFileInput={true}
             />
+            {isUploading([
+              'components',
+              'about_page',
+              'hero',
+              'backgroundImage',
+            ]) && <p className='text-muted-foreground text-sm'>Uploading...</p>}
           </div>
+
           <Input
             value={data.components.about_page.hero.title}
             onChange={(e) =>
@@ -142,9 +213,12 @@ function VendorTemplateAbout() {
               }
               isFileInput={true}
             />
+            {isUploading(['components', 'about_page', 'story', 'image']) && (
+              <p className='text-muted-foreground text-sm'>Uploading...</p>
+            )}
           </div>
 
-          {/* Values */}
+          {/* Core Values */}
           <ArrayField
             label='Core Values'
             items={data.components.about_page.values}
@@ -252,6 +326,17 @@ function VendorTemplateAbout() {
                     }}
                     isFileInput={true}
                   />
+                  {isUploading([
+                    'components',
+                    'about_page',
+                    'team',
+                    idx.toString(),
+                    'image',
+                  ]) && (
+                    <p className='text-muted-foreground text-sm'>
+                      Uploading...
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -295,6 +380,16 @@ function VendorTemplateAbout() {
               </div>
             )}
           />
+        </div>
+
+        {/* Optional Save Button */}
+
+        <div className='mt-6'>
+          <Button onClick={handleSave} disabled={uploadingPaths.size > 0}>
+            {uploadingPaths.size > 0
+              ? 'Uploading Images...'
+              : 'Save About Page'}
+          </Button>
         </div>
       </Card>
     </div>

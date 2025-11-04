@@ -9,7 +9,6 @@ import { useSelector } from 'react-redux'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { initialData, TemplateData } from '../../data'
@@ -21,6 +20,39 @@ export function TemplateForm() {
   const [submitStatus, setSubmitStatus] = useState<
     'idle' | 'success' | 'error'
   >('idle')
+  const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
+
+  const vendor_id = useSelector((state: any) => state.auth.user.id)
+
+  // Cloudinary upload function
+  async function uploadImage(file: File): Promise<string | null> {
+    try {
+      // Step 1: Get signature from backend
+      const { data: signatureData } = await axios.get(
+        `${BASE_URL}/cloudinary/signature`
+      )
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('api_key', signatureData.apiKey)
+      formData.append('timestamp', signatureData.timestamp)
+      formData.append('signature', signatureData.signature)
+      formData.append('folder', 'ecommerce')
+
+      // Step 2: Upload to Cloudinary
+      const uploadRes = await axios.post(
+        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+        formData
+      )
+
+      // Step 3: Return secure URL
+      return uploadRes.data.secure_url
+    } catch (error) {
+      console.error('Cloudinary upload failed:', error)
+      alert('Failed to upload image. Please try again.')
+      return null
+    }
+  }
 
   const updateField = (path: string[], value: any) => {
     setData((prev) => {
@@ -34,20 +66,35 @@ export function TemplateForm() {
     })
   }
 
-  const vendor_id = useSelector((state: any) => state.auth.user.id)
-
+  // Handle image upload using Cloudinary
   const handleImageChange = async (path: string[], file: File | null) => {
+    const pathKey = path.join('.')
+
     if (!file) {
       updateField(path, '')
+      setUploadingPaths((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(pathKey)
+        return newSet
+      })
       return
     }
 
+    setUploadingPaths((prev) => new Set(prev).add(pathKey))
+
     try {
-      const url = ''
-      updateField(path, url)
-    } catch (err) {
-      console.error('Image upload failed:', err)
-      alert('Failed to upload image. Please try again.')
+      const imageUrl = await uploadImage(file)
+      if (imageUrl) {
+        updateField(path, imageUrl)
+      } else {
+        updateField(path, '')
+      }
+    } finally {
+      setUploadingPaths((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(pathKey)
+        return newSet
+      })
     }
   }
 
@@ -63,7 +110,7 @@ export function TemplateForm() {
         components: data.components,
       }
 
-      const res = await axios.post(`${BASE_URL}/templates`, payload, {
+      const res = await axios.put(`${BASE_URL}/templates/home`, payload, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -81,6 +128,9 @@ export function TemplateForm() {
       setIsSubmitting(false)
     }
   }
+
+  const isUploadingPreview = uploadingPaths.has('previewImage')
+  const isUploadingLogo = uploadingPaths.has('components.logo')
 
   return (
     <div className='space-y-6'>
@@ -101,7 +151,7 @@ export function TemplateForm() {
         <CardContent className='space-y-6'>
           {/* Basic Info */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-            <div className='space-y-2'>
+            {/* <div className='space-y-2'>
               <Label htmlFor='name'>Company Name / Shop Name</Label>
               <Input
                 id='name'
@@ -109,7 +159,7 @@ export function TemplateForm() {
                 onChange={(e) => updateField(['name'], e.target.value)}
                 required
               />
-            </div>
+            </div> */}
             <div className='space-y-2'>
               <ImageInput
                 label='Banner Image'
@@ -118,6 +168,11 @@ export function TemplateForm() {
                 onChange={(file) => handleImageChange(['previewImage'], file)}
                 isFileInput={true}
               />
+              {isUploadingPreview && (
+                <p className='text-muted-foreground text-sm'>
+                  Uploading banner...
+                </p>
+              )}
             </div>
           </div>
 
@@ -132,6 +187,9 @@ export function TemplateForm() {
               }
               isFileInput={true}
             />
+            {isUploadingLogo && (
+              <p className='text-muted-foreground text-sm'>Uploading logo...</p>
+            )}
           </div>
 
           {/* Home Page */}
@@ -267,11 +325,7 @@ export function TemplateForm() {
             </div>
           </div>
 
-          {/* Contact Page */}
-
-          {/* FAQ Section */}
-       
-
+          {/* Submit Section */}
           <Separator />
           <div className='flex items-center justify-between'>
             <div>
@@ -286,18 +340,17 @@ export function TemplateForm() {
                 </p>
               )}
             </div>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting...' : 'Create Template'}
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting || uploadingPaths.size > 0}
+            >
+              {isSubmitting
+                ? 'Submitting...'
+                : uploadingPaths.size > 0
+                  ? 'Uploading Images...'
+                  : 'Create Home Page'}
             </Button>
           </div>
-
-          {/* Optional JSON Preview */}
-          <details className='text-xs'>
-            <summary>View Payload Structure</summary>
-            <pre className='bg-muted mt-2 max-h-60 overflow-auto rounded p-2'>
-              {JSON.stringify(data, null, 2)}
-            </pre>
-          </details>
         </CardContent>
       </Card>
     </div>
