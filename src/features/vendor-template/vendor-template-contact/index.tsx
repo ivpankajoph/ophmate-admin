@@ -9,16 +9,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { ImageInput } from '../components/form/ImageInput'
-import { initialData, TemplateData } from '../data'
+import { initialData } from '../data'
 import { BASE_URL } from '@/store/slices/vendor/productSlice'
 
 // Dynamically import Leaflet (to avoid SSR issues)
 let L: any
 
 function VendorTemplateContact() {
-  const [data, setData] = useState<TemplateData>(initialData)
+  const [data, setData] = useState<any>(initialData)
   const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
   const [isMapReady, setIsMapReady] = useState(false)
   const mapRef = useRef<HTMLDivElement>(null)
@@ -34,6 +33,7 @@ function VendorTemplateContact() {
         // Import Leaflet dynamically
         const leafletModule = await import('leaflet')
         L = leafletModule.default || leafletModule
+ 
 
         // Fix icon path issue in Vite/React
         delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -137,7 +137,7 @@ function VendorTemplateContact() {
   }
 
   const updateField = (path: string[], value: any) => {
-    setData((prev) => {
+    setData((prev:any) => {
       const clone = JSON.parse(JSON.stringify(prev))
       let current: any = clone
       for (let i = 0; i < path.length - 1; i++) {
