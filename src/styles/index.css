@@ -85,3 +85,19 @@
     height: 0;
   }
 }
+
+.leaflet-container {
+  width: 100% !important;
+  height: 400px !important;
+  border-radius: 12px;
+  z-index: 0;
+}
+
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-popup,
+.leaflet-control {
+  z-index: 0 !important;
+}

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type TemplateData = {
   name: string
   previewImage: string // ImageKit URL
   components: {
+    social_page: any
     logo: string // ImageKit URL
     home_page: {
       header_text: string
@@ -30,6 +32,7 @@ export type TemplateData = {
       stats: Array<{ value: string; label: string }>
     }
     contact_page: {
+      section_2: any
       hero: {
         backgroundImage: string // ImageKit URL
         title: string
@@ -158,6 +161,8 @@ export const initialData: TemplateData = {
         whatsapp: 'string',
         twitter: 'string',
       },
+      section_2: undefined
     },
+    social_page: undefined
   },
 }
