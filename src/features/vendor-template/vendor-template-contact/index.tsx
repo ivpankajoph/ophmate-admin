@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { BASE_URL } from '@/store/slices/vendor/productSlice'
+import { debounce } from 'lodash'
 import { MapPin } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageInput } from '../components/form/ImageInput'
 import { ContactPageData } from './type/type'
-import { debounce } from 'lodash'
 
 let L: any
 
@@ -41,58 +41,60 @@ function VendorTemplateContact() {
   const mapRef = useRef<HTMLDivElement>(null)
   const leafletMapRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
-const [searchQuery, setSearchQuery] = useState('')
-const [suggestions, setSuggestions] = useState<
-  { display_name: string; lat: string; lon: string }[]
->([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<
+    { display_name: string; lat: string; lon: string }[]
+  >([])
 
+  const fetchSuggestions = async (query: string) => {
+    if (!query.trim()) {
+      setSuggestions([])
+      return
+    }
 
-const fetchSuggestions = async (query: string) => {
-  if (!query.trim()) {
-    setSuggestions([])
-    return
+    try {
+      const response = await axios.get(
+        'https://nominatim.openstreetmap.org/search',
+        {
+          params: {
+            q: query,
+            format: 'json',
+            addressdetails: 1,
+            limit: 5,
+          },
+          headers: {
+            'User-Agent': 'YourAppName/1.0 (your@email.com)', // Be polite
+          },
+        }
+      )
+      setSuggestions(response.data)
+    } catch (error) {
+      console.error('Geocoding failed:', error)
+      setSuggestions([])
+    }
   }
 
-  try {
-    const response = await axios.get('https://nominatim.openstreetmap.org/search', {
-      params: {
-        q: query,
-        format: 'json',
-        addressdetails: 1,
-        limit: 5,
-      },
-      headers: {
-        'User-Agent': 'YourAppName/1.0 (your@email.com)', // Be polite
-      },
-    })
-    setSuggestions(response.data)
-  } catch (error) {
-    console.error('Geocoding failed:', error)
-    setSuggestions([])
+  // Debounce to avoid too many requests
+  const debouncedFetch = useRef(debounce(fetchSuggestions, 400)).current
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchQuery(value)
+    debouncedFetch(value)
   }
-}
 
-// Debounce to avoid too many requests
-const debouncedFetch = useRef(debounce(fetchSuggestions, 400)).current
+  // Handle suggestion click
+  const handleSuggestionClick = (lat: string, lon: string) => {
+    setSearchQuery('')
+    setSuggestions([])
 
-// Handle search input change
-const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = e.target.value
-  setSearchQuery(value)
-  debouncedFetch(value)
-}
+    // Update form fields
+    updateField(['components', 'contact_page', 'section_2', 'lat'], lat)
+    updateField(['components', 'contact_page', 'section_2', 'long'], lon)
 
-// Handle suggestion click
-const handleSuggestionClick = (lat: string, lon: string) => {
-  setSearchQuery('')
-  setSuggestions([])
-
-  // Update form fields
-  updateField(['components', 'contact_page', 'section_2', 'lat'], lat)
-  updateField(['components', 'contact_page', 'section_2', 'long'], lon)
-
-  // Map will auto-update due to useEffect dependency
-}
+    // Map will auto-update due to useEffect dependency
+  }
   const vendor_id = useSelector((state: any) => state.auth?.user?.id)
 
   // ✅ Load Leaflet dynamically
@@ -235,7 +237,7 @@ const handleSuggestionClick = (lat: string, lon: string) => {
 
   // ✅ Nested object update
   const updateField = (path: string[], value: any) => {
-    setData((prev:any) => {
+    setData((prev: any) => {
       const clone = JSON.parse(JSON.stringify(prev))
       let current: any = clone
       for (let i = 0; i < path.length - 1; i++) {
@@ -424,41 +426,42 @@ const handleSuggestionClick = (lat: string, lon: string) => {
               />
             </div>
           </div>
-{/* Map Search */}
-<div className='space-y-2'>
-  <Label>Search Location</Label>
-  <Input
-    value={searchQuery}
-    onChange={handleSearchChange}
-    placeholder='Type an address or place...'
-  />
-  {suggestions.length > 0 && (
-    <ul className='border rounded-md bg-white max-h-60 overflow-auto z-10'>
-      {suggestions.map((suggestion, idx) => (
-        <li
-          key={idx}
-          className='px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm'
-          onClick={() => handleSuggestionClick(suggestion.lat, suggestion.lon)}
-        >
-          {suggestion.display_name}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+          {/* Map Search */}
+          <div className='space-y-2'>
+            <Label>Search Location</Label>
+            <Input
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder='Type an address or place...'
+            />
+            {suggestions.length > 0 && (
+              <ul className='z-10 max-h-60 overflow-auto rounded-md border bg-white'>
+                {suggestions.map((suggestion, idx) => (
+                  <li
+                    key={idx}
+                    className='cursor-pointer px-3 py-2 text-sm hover:bg-gray-100'
+                    onClick={() =>
+                      handleSuggestionClick(suggestion.lat, suggestion.lon)
+                    }
+                  >
+                    {suggestion.display_name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-{/* Map */}
-<div>
-  <Label>Location on Map</Label>
-  <div
-    ref={mapRef}
-    className='leaflet-container mt-1 h-[400px] w-full overflow-hidden rounded-md border bg-gray-100'
-  />
-  <p className='text-muted-foreground mt-1 text-sm'>
-    Click on the map to place your location marker. Drag to adjust.
-  </p>
-</div>
-        
+          {/* Map */}
+          <div>
+            <Label>Location on Map</Label>
+            <div
+              ref={mapRef}
+              className='leaflet-container mt-1 h-[400px] w-full overflow-hidden rounded-md border bg-gray-100'
+            />
+            <p className='text-muted-foreground mt-1 text-sm'>
+              Click on the map to place your location marker. Drag to adjust.
+            </p>
+          </div>
         </div>
 
         {/* Save Button */}
