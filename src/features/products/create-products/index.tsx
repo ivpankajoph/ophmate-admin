@@ -8,7 +8,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { AppDispatch } from '@/store'
-import { getSubcategoriesByCategory } from '@/store/slices/admin/subcategorySlice'
+import { getAllCategories } from '@/store/slices/admin/categorySlice'
+import {
+  fetchSubcategories,
+  getSubcategoriesByCategory,
+} from '@/store/slices/admin/subcategorySlice'
 import { createProduct } from '@/store/slices/vendor/productSlice'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trash2, Upload, Plus, X } from 'lucide-react'
@@ -19,6 +23,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable no-duplicate-imports */
@@ -58,7 +80,10 @@ export default function ProductCreator() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
 
   const imageInputRef = useRef<HTMLInputElement | null>(null)
-
+  useEffect(() => {
+    dispatch(getAllCategories())
+    dispatch(fetchSubcategories())
+  }, [dispatch])
   const categories =
     useSelector((state: any) => state?.categories?.categories) || []
   const allSubcategories =
@@ -67,7 +92,6 @@ export default function ProductCreator() {
   // Fetch subcategories when a predefined category is selected
   useEffect(() => {
     // Only fetch if selectedCategory is a valid ObjectId (24 hex chars)
-    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(selectedCategory)
 
     if (selectedCategoryId && !isAddingCustomCategory) {
       dispatch(getSubcategoriesByCategory(selectedCategoryId))
