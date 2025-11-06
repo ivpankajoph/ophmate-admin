@@ -13,8 +13,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageInput } from '../components/form/ImageInput'
 import { ContactPageData } from './type/type'
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
-let L: any
+
 
 function VendorTemplateContact() {
   const [data, setData] = useState<ContactPageData>({
@@ -102,7 +104,7 @@ function VendorTemplateContact() {
     const loadLeaflet = async () => {
       if (typeof window !== 'undefined') {
         const leafletModule = await import('leaflet')
-        L = leafletModule
+        const L = leafletModule
 
         // Fix marker icon paths
         delete (L.Icon.Default.prototype as any)._getIconUrl
