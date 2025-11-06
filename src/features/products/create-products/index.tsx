@@ -48,6 +48,36 @@ import { Textarea } from '@/components/ui/textarea'
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable no-duplicate-imports */
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 type FormData = {
   name: string
   description: string
@@ -62,7 +92,7 @@ export default function ProductCreator() {
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
     []
-  ) // ✅ multiple
+  )
   const [customCategory, setCustomCategory] = useState<string>('')
   const [customSubcategory, setCustomSubcategory] = useState<string>('')
   const [isAddingCustomCategory, setIsAddingCustomCategory] = useState(false)
@@ -89,14 +119,10 @@ export default function ProductCreator() {
   const allSubcategories =
     useSelector((state: any) => state?.subcategories?.subcategories) || []
 
-  // Fetch subcategories when a predefined category is selected
   useEffect(() => {
-    // Only fetch if selectedCategory is a valid ObjectId (24 hex chars)
-
     if (selectedCategoryId && !isAddingCustomCategory) {
       dispatch(getSubcategoriesByCategory(selectedCategoryId))
     } else {
-      // Clear subcategories if custom or invalid
       setSelectedSubcategories([])
       setVariants([])
     }
@@ -105,7 +131,6 @@ export default function ProductCreator() {
     (sub: any) => sub.category_id === selectedCategoryId
   )
 
-  // Add custom category
   const handleAddCustomCategory = () => {
     if (customCategory.trim()) {
       setSelectedCategory(customCategory.trim())
@@ -116,7 +141,6 @@ export default function ProductCreator() {
     }
   }
 
-  // Add custom subcategory
   const handleAddCustomSubcategory = () => {
     if (customSubcategory.trim()) {
       const newSub = customSubcategory.trim()
@@ -129,19 +153,17 @@ export default function ProductCreator() {
     }
   }
 
-  // Remove a subcategory
   const removeSubcategory = (sub: string) => {
     setSelectedSubcategories((prev) => prev.filter((s) => s !== sub))
   }
 
-  // Add new variant with empty attributes
   const onAddVariant = () => {
     const newVariant = {
       sku: '',
       price: '',
       discount_percent: '0',
       stock: '',
-      attributes: [{ key: '', value: '' }], // ✅ dynamic key-value
+      attributes: [{ key: '', value: '' }],
     }
     setVariants((prev) => [...prev, newVariant])
   }
@@ -160,14 +182,12 @@ export default function ProductCreator() {
     })
   }
 
-  // Update variant field (sku, price, etc.)
   const onUpdateVariantField = (index: number, field: string, value: any) => {
     const updated = [...variants]
     updated[index][field] = value
     setVariants(updated)
   }
 
-  // Update attribute key/value
   const onUpdateAttribute = (
     variantIndex: number,
     attrIndex: number,
@@ -179,14 +199,12 @@ export default function ProductCreator() {
     setVariants(updated)
   }
 
-  // Add new attribute pair to variant
   const onAddAttribute = (variantIndex: number) => {
     const updated = [...variants]
     updated[variantIndex].attributes.push({ key: '', value: '' })
     setVariants(updated)
   }
 
-  // Remove attribute from variant
   const onRemoveAttribute = (variantIndex: number, attrIndex: number) => {
     const updated = [...variants]
     updated[variantIndex].attributes = updated[variantIndex].attributes.filter(
@@ -223,7 +241,6 @@ export default function ProductCreator() {
     formData.append('description', data.description)
     formData.append('isAvailable', 'true')
 
-    // Build variants with dynamic attributes
     const variantPayload = variants.map((v) => {
       const attributes: Record<string, string> = {}
       v.attributes.forEach((attr: { key: string; value: string }) => {
@@ -242,21 +259,15 @@ export default function ProductCreator() {
     })
 
     formData.append('variants', JSON.stringify(variantPayload))
-
-    // Global images
     imageFiles.forEach((file) => {
       formData.append('globalImages', file)
     })
-
-    // Variant images
     variants.forEach((_, idx) => {
       const files = variantImageFiles[idx] || []
       files.forEach((file) => {
         formData.append(`images-${idx}`, file)
       })
     })
-
-    // 🚀 Dispatch and wait for result
     const resultAction: any = await dispatch(createProduct(formData))
 
     if (createProduct.fulfilled.match(resultAction)) {
@@ -268,7 +279,6 @@ export default function ProductCreator() {
         showConfirmButton: false,
       })
 
-      // Reset fields
       reset()
       setSelectedCategory('')
       setSelectedSubcategories([])
@@ -547,6 +557,258 @@ export default function ProductCreator() {
                 <div className='flex items-center justify-between'>
                   <h3 className='text-xl font-semibold text-gray-700'>
                     Variants
+                  </h3>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    onClick={onAddVariant}
+                  >
+                    <Plus className='mr-1 h-4 w-4' /> Add Variant
+                  </Button>
+                </div>
+
+                <AnimatePresence>
+                  {variants.length > 0 ? (
+                    variants.map((variant, vIndex) => (
+                      <motion.div
+                        key={vIndex}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                      >
+                        <Card className='mb-4 border border-gray-300 bg-gray-50 shadow-sm'>
+                          <CardContent className='space-y-4 p-4'>
+                            {/* SKU, Price, Stock, Discount */}
+                            <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                              <div>
+                                <Label>SKU</Label>
+                                <Input
+                                  value={variant.sku}
+                                  onChange={(e) =>
+                                    onUpdateVariantField(
+                                      vIndex,
+                                      'sku',
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder='e.g. SM-WH-BLK-01'
+                                />
+                              </div>
+                              <div>
+                                <Label>Price</Label>
+                                <Input
+                                  type='number'
+                                  step='0.01'
+                                  value={variant.price}
+                                  onChange={(e) =>
+                                    onUpdateVariantField(
+                                      vIndex,
+                                      'price',
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <Label>Discount (%)</Label>
+                                <Input
+                                  type='number'
+                                  min='0'
+                                  max='100'
+                                  value={variant.discount_percent}
+                                  onChange={(e) =>
+                                    onUpdateVariantField(
+                                      vIndex,
+                                      'discount_percent',
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <Label>Stock</Label>
+                                <Input
+                                  type='number'
+                                  value={variant.stock}
+                                  onChange={(e) =>
+                                    onUpdateVariantField(
+                                      vIndex,
+                                      'stock',
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+
+                            {/* Dynamic Attributes */}
+                            <div>
+                              <div className='mb-2 flex items-center justify-between'>
+                                <Label>Attributes (Key-Value Pairs)</Label>
+                                <Button
+                                  type='button'
+                                  size='sm'
+                                  variant='outline'
+                                  onClick={() => onAddAttribute(vIndex)}
+                                >
+                                  <Plus className='mr-1 h-3 w-3' /> Add
+                                  Attribute
+                                </Button>
+                              </div>
+
+                              <div className='space-y-2'>
+                                {variant.attributes.map(
+                                  (attr: any, aIndex: number) => (
+                                    <div key={aIndex} className='flex gap-2'>
+                                      <Input
+                                        placeholder='Key (e.g. color)'
+                                        value={attr.key}
+                                        onChange={(e) =>
+                                          onUpdateAttribute(
+                                            vIndex,
+                                            aIndex,
+                                            'key',
+                                            e.target.value
+                                          )
+                                        }
+                                        className='flex-1'
+                                      />
+                                      <Input
+                                        placeholder='Value (e.g. Black)'
+                                        value={attr.value}
+                                        onChange={(e) =>
+                                          onUpdateAttribute(
+                                            vIndex,
+                                            aIndex,
+                                            'value',
+                                            e.target.value
+                                          )
+                                        }
+                                        className='flex-1'
+                                      />
+                                      <Button
+                                        type='button'
+                                        variant='destructive'
+                                        size='icon'
+                                        onClick={() =>
+                                          onRemoveAttribute(vIndex, aIndex)
+                                        }
+                                      >
+                                        <Trash2 className='h-3 w-3' />
+                                      </Button>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Variant Images */}
+                            <div>
+                              <Label>Variant Images</Label>
+                              <div className='mt-1 flex flex-wrap gap-2'>
+                                {variantImagePreviews[vIndex]?.map(
+                                  (src, imgIndex) => (
+                                    <div
+                                      key={imgIndex}
+                                      className='relative h-20 w-20'
+                                    >
+                                      <img
+                                        src={src}
+                                        alt='variant preview'
+                                        className='h-full w-full rounded border object-cover'
+                                      />
+                                      <button
+                                        type='button'
+                                        className='absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white'
+                                        onClick={() => {
+                                          const newPreviews = [
+                                            ...(variantImagePreviews[vIndex] ||
+                                              []),
+                                          ]
+                                          const newFiles = [
+                                            ...(variantImageFiles[vIndex] ||
+                                              []),
+                                          ]
+                                          newPreviews.splice(imgIndex, 1)
+                                          newFiles.splice(imgIndex, 1)
+                                          setVariantImagePreviews((prev) => ({
+                                            ...prev,
+                                            [vIndex]: newPreviews,
+                                          }))
+                                          setVariantImageFiles((prev) => ({
+                                            ...prev,
+                                            [vIndex]: newFiles,
+                                          }))
+                                        }}
+                                      >
+                                        <Trash2 className='h-3 w-3' />
+                                      </button>
+                                    </div>
+                                  )
+                                )}
+                                <label className='flex h-20 w-20 cursor-pointer items-center justify-center rounded border-2 border-dashed text-gray-400 hover:border-blue-500'>
+                                  <Upload className='h-4 w-4' />
+                                  <input
+                                    type='file'
+                                    multiple
+                                    accept='image/*'
+                                    className='hidden'
+                                    onChange={(e) => {
+                                      const files = e.target.files
+                                      if (!files) return
+                                      const newFiles = Array.from(files)
+                                      const newPreviews = newFiles.map((f) =>
+                                        URL.createObjectURL(f)
+                                      )
+                                      setVariantImageFiles((prev) => ({
+                                        ...prev,
+                                        [vIndex]: [
+                                          ...(prev[vIndex] || []),
+                                          ...newFiles,
+                                        ],
+                                      }))
+                                      setVariantImagePreviews((prev) => ({
+                                        ...prev,
+                                        [vIndex]: [
+                                          ...(prev[vIndex] || []),
+                                          ...newPreviews,
+                                        ],
+                                      }))
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+
+                            <div className='flex justify-end'>
+                              <Button
+                                type='button'
+                                variant='destructive'
+                                size='sm'
+                                onClick={() => onRemoveVariant(vIndex)}
+                              >
+                                <Trash2 className='mr-1 h-3 w-3' /> Remove
+                                Variant
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <p className='text-gray-500 italic'>
+                      No variants added yet.
+                    </p>
+                  )}
+                </AnimatePresence>
+              </section>
+            )}
+            
+            {selectedSubcategories.length > 0 && (
+              <section className='space-y-6 border-t border-gray-200 pt-6'>
+                <div className='flex items-center justify-between'>
+                  <h3 className='text-xl font-semibold text-gray-700'>
+                    Specifications
                   </h3>
                   <Button
                     type='button'
