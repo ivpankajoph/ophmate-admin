@@ -16,8 +16,9 @@ import {
 import Swal from "sweetalert2";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
+import { VITE_PUBLIC_API_URL } from "@/config";
 
-const API_BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+const API_BASE_URL = VITE_PUBLIC_API_URL;
 
 
 

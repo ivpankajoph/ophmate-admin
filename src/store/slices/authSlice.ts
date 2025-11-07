@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { VITE_PUBLIC_API_URL } from "@/config";
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -20,7 +21,7 @@ const initialState: AuthState = {
   error: null,
   isAuthenticated: false,
 };
-const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+const BASE_URL = VITE_PUBLIC_API_URL;
 
 
 export const loginAdmin = createAsyncThunk(

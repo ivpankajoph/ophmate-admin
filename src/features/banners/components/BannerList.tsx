@@ -10,6 +10,7 @@ import { Download, Eye, ExternalLink, Info } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
 import type { AppDispatch } from "@/store"
 import { fetchBanners } from "@/store/slices/admin/bannerSlice"
+import { VITE_PUBLIC_API_URL_BANNERS } from "@/config"
 
 export default function BannerList() {
   const dispatch = useDispatch<AppDispatch>()
@@ -20,7 +21,7 @@ export default function BannerList() {
   const loading = useSelector((state: any) => state.banners?.loading ?? false)
   const error = useSelector((state: any) => state.banners?.error ?? null)
 
-const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL_BANNERS;
+const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
 
 
 

@@ -2,6 +2,7 @@
 /* eslint-disable no-console */
 import axios from 'axios'
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { VITE_PUBLIC_API_URL } from '@/config'
 
 export interface Banner {
   id: string
@@ -27,7 +28,7 @@ const initialState: BannerState = {
   success: false,
 }
 
-const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL;
+const BASE_URL = VITE_PUBLIC_API_URL;
 
 
 export const createBanner = createAsyncThunk<

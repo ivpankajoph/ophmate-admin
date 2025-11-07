@@ -1,6 +1,6 @@
 //ip
-export const VITE_PUBLIC_API_URL="http://192.168.1.20:8000/api"
-export const VITE_PUBLIC_API_URL_BANNERS="http://192.168.1.20:8000"
+// export const VITE_PUBLIC_API_URL="http://192.168.1.20:8000/api"
+// export const VITE_PUBLIC_API_URL_BANNERS="http://192.168.1.20:8000"
 
 
 //local
@@ -13,7 +13,8 @@ export const VITE_PUBLIC_API_URL_BANNERS="http://192.168.1.20:8000"
 // export const VITE_PUBLIC_API_URL_BANNERS="https://ophmate-backend.onrender.com"
 
 
-
+export const VITE_PUBLIC_API_URL="https://phpstack-1522038-5968955.cloudwaysapps.com/api"
+export const VITE_PUBLIC_API_URL_BANNERS="https://phpstack-1522038-5968955.cloudwaysapps.com"
 
 //template frontend url
 export const VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND="http://localhost:3000"

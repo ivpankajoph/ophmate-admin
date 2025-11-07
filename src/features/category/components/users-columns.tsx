@@ -17,6 +17,7 @@ import {
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { DataTableRowActions } from './data-table-row-actions'
+import { VITE_PUBLIC_API_URL_BANNERS } from '@/config'
 
 // Fallback Image component for environments without next/image
 const Image = ({
@@ -43,7 +44,7 @@ const Image = ({
   )
 }
 
-const BASE_URL = import.meta.env.VITE_PUBLIC_API_URL_BANNERS
+const BASE_URL = VITE_PUBLIC_API_URL_BANNERS
 
 // 🧩 Type definition for Category
 export type Category = {
