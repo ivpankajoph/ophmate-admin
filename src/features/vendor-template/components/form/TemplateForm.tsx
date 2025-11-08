@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { initialData, TemplateData } from '../../data'
 import { ImageInput } from './ImageInput'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 
 export function TemplateForm() {
   const [data, setData] = useState<TemplateData>(initialData)
@@ -140,7 +141,7 @@ export function TemplateForm() {
             Template Preview{' '}
             <a
               className='w-fit'
-              href={`http://localhost:3000/template-preview?vendor_id=${vendor_id}`}
+              href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}?vendor_id=${vendor_id}`}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -151,15 +152,7 @@ export function TemplateForm() {
         <CardContent className='space-y-6'>
           {/* Basic Info */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-            {/* <div className='space-y-2'>
-              <Label htmlFor='name'>Company Name / Shop Name</Label>
-              <Input
-                id='name'
-                value={data.name}
-                onChange={(e) => updateField(['name'], e.target.value)}
-                required
-              />
-            </div> */}
+
             <div className='space-y-2'>
               <ImageInput
                 label='Banner Image'

@@ -15,6 +15,7 @@ import { ImageInput } from '../components/form/ImageInput'
 import { ContactPageData } from './type/type'
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 
 
 
@@ -299,7 +300,7 @@ function VendorTemplateContact() {
           Template Preview
           <a
             className='w-fit text-blue-500 hover:underline'
-            href={`http://localhost:3000/contact`}
+            href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/contact`}
             target='_blank'
             rel='noopener noreferrer'
           >

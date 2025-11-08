@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ArrayField } from '../components/form/ArrayField'
 import { ImageInput } from '../components/form/ImageInput'
 import { initialData, TemplateData } from '../data'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 
 function VendorTemplateAbout() {
   const [data, setData] = useState<TemplateData>(initialData)
@@ -110,7 +111,7 @@ function VendorTemplateAbout() {
           Template Preview{' '}
           <a
             className='w-fit'
-            href={`http://localhost:3000/about`}
+            href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/about`}
             target='_blank'
             rel='noopener noreferrer'
           >
