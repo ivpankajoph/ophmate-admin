@@ -105,9 +105,7 @@ export function TemplateForm() {
 
     try {
       const payload = {
-        name: data.name,
         vendor_id,
-        previewImage: data.previewImage,
         components: data.components,
       }
 
@@ -130,7 +128,7 @@ export function TemplateForm() {
     }
   }
 
-  const isUploadingPreview = uploadingPaths.has('previewImage')
+  const isUploadingPreview = uploadingPaths.has('backgroundImage')
   const isUploadingLogo = uploadingPaths.has('components.logo')
 
   return (
@@ -156,9 +154,9 @@ export function TemplateForm() {
             <div className='space-y-2'>
               <ImageInput
                 label='Banner Image'
-                name='previewImage'
-                value={data.previewImage}
-                onChange={(file) => handleImageChange(['previewImage'], file)}
+                name='backgroundImage'
+                value={data.components.home_page.backgroundImage}
+                onChange={(file) => handleImageChange(['backgroundImage'], file)}
                 isFileInput={true}
               />
               {isUploadingPreview && (

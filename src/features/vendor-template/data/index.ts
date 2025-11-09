@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type TemplateData = {
-  name: string
-  previewImage: string // ImageKit URL
+
   components: {
     social_page: any
     logo: string // ImageKit URL
     home_page: {
       header_text: string
       header_text_small: string
+      backgroundImage:string
       button_header: string
       description: {
         large_text: string
@@ -74,13 +74,14 @@ export type TemplateData = {
 }
 
 export const initialData: TemplateData = {
-  name: '',
-  previewImage: '',
+
+
   components: {
     logo: '',
     home_page: {
       header_text: '',
       header_text_small: '',
+      backgroundImage:'',
       button_header: '',
       description: {
         large_text: '',
