@@ -33,6 +33,7 @@ const safeInitialData: TemplateData = {
     logo: '',
     home_page: {
       header_text: '',
+      backgroundImage: '',
       header_text_small: '',
       button_header: '',
       description: {
@@ -97,8 +98,7 @@ const safeInitialData: TemplateData = {
       }
     }
   },
-  name: '',
-  previewImage: ''
+
 };
 
 // ✅ Merge user-defined initialData (if partial)

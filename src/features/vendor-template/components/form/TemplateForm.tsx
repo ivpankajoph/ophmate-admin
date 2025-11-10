@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react'
 import axios from 'axios'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { Link2 } from 'lucide-react'
 import { useSelector } from 'react-redux'
@@ -13,7 +14,6 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { initialData, TemplateData } from '../../data'
 import { ImageInput } from './ImageInput'
-import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 
 export function TemplateForm() {
   const [data, setData] = useState<TemplateData>(initialData)
@@ -46,7 +46,6 @@ export function TemplateForm() {
         formData
       )
 
-      // Step 3: Return secure URL
       return uploadRes.data.secure_url
     } catch (error) {
       console.error('Cloudinary upload failed:', error)
@@ -67,7 +66,6 @@ export function TemplateForm() {
     })
   }
 
-  // Handle image upload using Cloudinary
   const handleImageChange = async (path: string[], file: File | null) => {
     const pathKey = path.join('.')
 
@@ -150,13 +148,14 @@ export function TemplateForm() {
         <CardContent className='space-y-6'>
           {/* Basic Info */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-
             <div className='space-y-2'>
               <ImageInput
                 label='Banner Image'
                 name='backgroundImage'
                 value={data.components.home_page.backgroundImage}
-                onChange={(file) => handleImageChange(['backgroundImage'], file)}
+                onChange={(file) =>
+                  handleImageChange(['backgroundImage'], file)
+                }
                 isFileInput={true}
               />
               {isUploadingPreview && (
@@ -166,8 +165,6 @@ export function TemplateForm() {
               )}
             </div>
           </div>
-
-          {/* Logo */}
           <div className='space-y-2'>
             <ImageInput
               label='Company Logo'
