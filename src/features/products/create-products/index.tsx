@@ -1,17 +1,17 @@
 'use client'
 
 import { useForm } from 'react-hook-form'
-import { useDispatch } from 'react-redux'
 import { AppDispatch } from '@/store'
+import { useDispatch } from 'react-redux'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useProductForm } from './hooks/useProductForm'
-import ProductDetailsSection from './components/ProductDetailsSection'
 import CategorySection from './components/CategorySection'
 import ImageUploadSection from './components/ImageUploadSection'
-import VariantSection from './components/VariantSection'
+import ProductDetailsSection from './components/ProductDetailsSection'
 import SpecificationSection from './components/SpecificationSection'
-
+import VariantSection from './components/VariantSection'
+import { useProductForm } from './hooks/useProductForm'
+import FAQBuilderPage from './components/Faq'
 
 export default function ProductCreator() {
   const dispatch = useDispatch<AppDispatch>()
@@ -36,7 +36,8 @@ export default function ProductCreator() {
             <CategorySection state={state} actions={actions} />
             <ImageUploadSection state={state} actions={actions} />
             <VariantSection state={state} actions={actions} />
-            <SpecificationSection state={state} actions={actions} />
+            <SpecificationSection />
+            <FAQBuilderPage/>
 
             <Button
               type='submit'

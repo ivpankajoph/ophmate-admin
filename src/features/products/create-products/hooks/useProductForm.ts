@@ -11,7 +11,10 @@ export function useProductForm(dispatch: any, reset: any) {
   const [customSubcategory, setCustomSubcategory] = useState('')
   const [isAddingCustomCategory, setIsAddingCustomCategory] = useState(false)
   const [isAddingCustomSubcategory, setIsAddingCustomSubcategory] = useState(false)
+
   const [variants, setVariants] = useState<any[]>([])
+  const [specifications, setSpecifications] = useState<any[]>([])
+
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [variantImageFiles, setVariantImageFiles] = useState<Record<number, File[]>>({})
@@ -20,25 +23,23 @@ export function useProductForm(dispatch: any, reset: any) {
 
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
-  // ✅ Fetch categories once
   useEffect(() => {
     dispatch(getAllCategories())
   }, [dispatch])
 
-  // ✅ Dynamically fetch subcategories based on selected category
   useEffect(() => {
     if (selectedCategoryId && !isAddingCustomCategory) {
       dispatch(getSubcategoriesByCategory(selectedCategoryId))
     } else {
-      // Reset subcategory state when category changes or custom category is added
       setSelectedSubcategories([])
+      setSpecifications([])
       setVariants([])
     }
   }, [dispatch, selectedCategoryId, isAddingCustomCategory])
 
-  // ✅ Handle product form submit
   const onSubmit = async (data: any) => {
     const formData = new FormData()
+
     formData.append('productName', data.name)
     formData.append('productCategory', selectedCategory)
     formData.append('productSubCategory', JSON.stringify(selectedSubcategories))
@@ -47,8 +48,9 @@ export function useProductForm(dispatch: any, reset: any) {
     formData.append('description', data.description)
     formData.append('isAvailable', 'true')
 
-    const variantPayload = variants.map((v) => ({
-      sku: v.sku,
+    // ✅ Prepare variant payload properly
+    const variantPayload = variants.map(v => ({
+      sku: v.sku || '',
       attributes: Object.fromEntries(
         (v.attributes || []).map((a: any) => [a.key, a.value])
       ),
@@ -57,9 +59,26 @@ export function useProductForm(dispatch: any, reset: any) {
       stockQuantity: parseInt(v.stock, 10) || 0,
     }))
 
-    formData.append('variants', JSON.stringify(variantPayload))
-    imageFiles.forEach((f) => formData.append('globalImages', f))
+    // ✅ Prepare specification payload separately
+    const specificationPayload = specifications.map(s => ({
+      key: s.key,
+      value: s.value,
+    }))
 
+    formData.append('variants', JSON.stringify(variantPayload))
+    formData.append('specifications', JSON.stringify(specificationPayload))
+
+    // ✅ Append global product images
+    imageFiles.forEach(f => formData.append('globalImages', f))
+
+    // ✅ Append variant-specific images if present
+    Object.keys(variantImageFiles).forEach((variantIndex) => {
+      variantImageFiles[Number(variantIndex)].forEach(file => {
+        formData.append(`variantImages_${variantIndex}`, file)
+      })
+    })
+
+    // ✅ Dispatch and handle result
     const resultAction: any = await dispatch(createProduct(formData))
 
     if (createProduct.fulfilled.match(resultAction)) {
@@ -70,11 +89,14 @@ export function useProductForm(dispatch: any, reset: any) {
         timer: 2000,
         showConfirmButton: false,
       })
+
       reset()
-      // reset form-related state
+
+      // ✅ Reset all state
       setSelectedCategory('')
       setSelectedSubcategories([])
       setVariants([])
+      setSpecifications([])
       setImageFiles([])
       setImagePreviews([])
       setVariantImageFiles({})
@@ -99,6 +121,7 @@ export function useProductForm(dispatch: any, reset: any) {
       isAddingCustomCategory,
       isAddingCustomSubcategory,
       variants,
+      specifications,
       imagePreviews,
       imageFiles,
       variantImageFiles,
@@ -114,6 +137,7 @@ export function useProductForm(dispatch: any, reset: any) {
       setIsAddingCustomCategory,
       setIsAddingCustomSubcategory,
       setVariants,
+      setSpecifications,
       setImageFiles,
       setImagePreviews,
       setVariantImageFiles,
