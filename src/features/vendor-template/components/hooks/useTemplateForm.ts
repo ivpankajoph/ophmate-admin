@@ -99,41 +99,46 @@ export function useTemplateForm() {
       toast.error('URL binding failed')
     }
   }
+  const token = useSelector((state: any) => state?.auth?.token)
 
   const handleDeploy = async () => {
     setIsDeploying(true)
     toast.loading('Starting deployment...', { id: 'deploy' })
-
     try {
-      const response = await fetch(`${BASE_URL}/deploy`, {
-        method: 'POST',
-        body: JSON.stringify({
-          projectName: `vendor-${vendor_id}`,
+      const response = await axios.post(
+        `${BASE_URL}/templates/deploy`,
+        {
+          projectName: `sellerslogin-${vendor_id}`,
           templatePath: `../vendor-template`,
-        }),
-      })
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: 'stream', // IMPORTANT for Node streaming
+        }
+      )
 
-      if (!response.ok || !response.body) throw new Error('Deployment failed')
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
       let serviceUrl = null
+      let buffer = ''
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+      response.data.on('data', (chunk: any) => {
+        const text = chunk.toString()
+        buffer += text
 
-        const text = decoder.decode(value, { stream: true })
         setDeployMessage((prev) => prev + text)
 
         const match = text.match(/https:\/\/[a-zA-Z0-9.-]+\.run\.app/)
         if (match) serviceUrl = match[0]
-      }
+      })
+
+      await new Promise((resolve) => response.data.on('end', resolve))
 
       toast.success('Deployment complete', { id: 'deploy' })
 
       if (serviceUrl) await bindURL(serviceUrl)
-    } catch {
+    } catch (err) {
+      console.error(err)
       toast.error('Deployment failed', { id: 'deploy' })
     } finally {
       setIsDeploying(false)
@@ -143,7 +148,7 @@ export function useTemplateForm() {
   // Cancel Deployment
   const handleCancel = async () => {
     try {
-      await axios.post(`${BASE_URL}/deploy/cancel`)
+      await axios.post(`${BASE_URL}/templates/deploy/cancel`)
       toast.success('Deployment canceled')
     } catch {
       toast.error('Cancel failed')
