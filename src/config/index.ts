@@ -20,7 +20,7 @@ export const VITE_PUBLIC_API_URL_BANNERS="http://localhost:8080"
 // export const VITE_PUBLIC_API_URL_BANNERS="https://phpstack-1522038-5968955.cloudwaysapps.com"
 
 //template frontend url
-export const VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND="http://localhost:3000"
+export const VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND="http://localhost:3001"
 
 // export const VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND="https://vendor-template.vercel.app"
 
