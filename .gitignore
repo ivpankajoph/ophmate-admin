@@ -25,4 +25,4 @@ dist-ssr
 *.sln
 *.sw?
 
-/src/config/index.ts
+# /src/config/index.ts

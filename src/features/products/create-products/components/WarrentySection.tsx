@@ -486,10 +486,10 @@ export default function WarrantySection() {
       return [...prev.slice(0, idx + 1), copy, ...prev.slice(idx + 1)];
     });
 
-  const applyTemplate = (templateCategory: string) => {
-    setCategory(templateCategory);
-    setRows([...warrantyCategoryTemplates[templateCategory]]);
-  };
+  // const applyTemplate = (templateCategory: string) => {
+  //   setCategory(templateCategory);
+  //   setRows([...warrantyCategoryTemplates[templateCategory]]);
+  // };
 
   return (
     <div className='mx-auto max-w-6xl space-y-6'>

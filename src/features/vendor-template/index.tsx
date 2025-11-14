@@ -20,7 +20,6 @@ export default function TemplateForm() {
     handleImageChange,
     handleSubmit,
     vendor_id,
-    vendor_weburl,
     uploadingPaths,
     submitStatus,
     isSubmitting,
@@ -37,6 +36,7 @@ export default function TemplateForm() {
   const VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND = import.meta.env
     .VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND
 
+  const PREVIEW_URL = `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
   return (
     <div className='space-y-6'>
       <Toaster position='top-right' />
@@ -79,7 +79,14 @@ export default function TemplateForm() {
 
           <div className='mt-3 text-sm text-slate-700'>
             Your website:{' '}
-            <span className='text-indigo-600'>{vendor_weburl}</span>
+            <a
+              href={PREVIEW_URL}
+              className='text-indigo-600'
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              {PREVIEW_URL}
+            </a>
           </div>
         </CardHeader>
 

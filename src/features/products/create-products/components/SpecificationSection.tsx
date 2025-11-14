@@ -276,10 +276,10 @@ export default function SpecificationSection() {
       return [...prev.slice(0, idx + 1), copy, ...prev.slice(idx + 1)];
     });
 
-  const applyTemplate = (templateCategory: string) => {
-    setCategory(templateCategory);
-    setRows([...categoryTemplates[templateCategory]]);
-  };
+  // const applyTemplate = (templateCategory: string) => {
+  //   setCategory(templateCategory);
+  //   setRows([...categoryTemplates[templateCategory]]);
+  // };
 
   return (
     <div className='mx-auto max-w-6xl space-y-6'>
