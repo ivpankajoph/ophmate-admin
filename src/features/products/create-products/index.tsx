@@ -6,16 +6,16 @@ import { useDispatch } from 'react-redux'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CategorySection from './components/CategorySection'
+import FAQBuilderPage from './components/Faq'
 import ImageUploadSection from './components/ImageUploadSection'
 import ProductDetailsSection from './components/ProductDetailsSection'
 import SpecificationSection from './components/SpecificationSection'
 import VariantSection from './components/VariantSection'
 import { useProductForm } from './hooks/useProductForm'
-import FAQBuilderPage from './components/Faq'
 
 export default function ProductCreator() {
   const dispatch = useDispatch<AppDispatch>()
-  const { register, handleSubmit, reset } = useForm()
+  const { register, handleSubmit, reset, watch, setValue } = useForm()
   const { state, actions, onSubmit } = useProductForm(dispatch, reset)
 
   return (
@@ -32,12 +32,16 @@ export default function ProductCreator() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className='space-y-10'>
-            <ProductDetailsSection register={register} />
+            <ProductDetailsSection
+              register={register}
+              watch={watch}
+              setValue={setValue}
+            />
             <CategorySection state={state} actions={actions} />
             <ImageUploadSection state={state} actions={actions} />
             <VariantSection state={state} actions={actions} />
             <SpecificationSection />
-            <FAQBuilderPage/>
+            <FAQBuilderPage />
 
             <Button
               type='submit'

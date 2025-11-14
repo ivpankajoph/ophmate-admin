@@ -1,16 +1,27 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
+import { AppDispatch } from '@/store'
 import { BASE_URL } from '@/store/slices/vendor/productSlice'
-import { Link2 } from 'lucide-react'
+import { fetchVendorProfile } from '@/store/slices/vendor/profileSlice'
+import {
+  Link2,
+  Rocket,
+  CheckCircle,
+  AlertCircle,
+  Upload,
+  Shield,
+  Zap,
+} from 'lucide-react'
+import toast, { Toaster } from 'react-hot-toast'
 import { useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { initialData, TemplateData } from '../../data'
 import { ImageInput } from './ImageInput'
@@ -22,8 +33,12 @@ export function TemplateForm() {
     'idle' | 'success' | 'error'
   >('idle')
   const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
-
-  const vendor_id = useSelector((state: any) => state.auth.user.id)
+  const [open, setOpen] = useState(false)
+  const [isDeploying, setIsDeploying] = useState(false)
+  const [deployMessage, setDeployMessage] = useState(
+    'Deploying your website...'
+  )
+  const vendor_id = useSelector((state: any) => state?.auth?.user?.id)
 
   // Cloudinary upload function
   async function uploadImage(file: File): Promise<string | null> {
@@ -49,7 +64,7 @@ export function TemplateForm() {
       return uploadRes.data.secure_url
     } catch (error) {
       console.error('Cloudinary upload failed:', error)
-      alert('Failed to upload image. Please try again.')
+      toast.error('Failed to upload image. Please try again.')
       return null
     }
   }
@@ -97,6 +112,15 @@ export function TemplateForm() {
     }
   }
 
+  async function handleCancel() {
+    try {
+      await axios.post(`${BASE_URL}/deploy/cancel`)
+      toast.success('🚫 Deployment canceled successfully!')
+    } catch (err) {
+      toast.error('❌ Failed to cancel deployment.')
+    }
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitStatus('idle')
@@ -115,232 +139,613 @@ export function TemplateForm() {
 
       if (res.status === 200 || res.status === 201) {
         setSubmitStatus('success')
+        toast.success('Template saved successfully!')
       } else {
         setSubmitStatus('error')
+        toast.error('Failed to save template')
       }
     } catch (err) {
       console.error('Submission error:', err)
       setSubmitStatus('error')
+      toast.error('Submission failed. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const isUploadingPreview = uploadingPaths.has('backgroundImage')
+  const isUploadingPreview = uploadingPaths.has(
+    'components.home_page.backgroundImage'
+  )
   const isUploadingLogo = uploadingPaths.has('components.logo')
+
+  const handleDeploy = async () => {
+    setIsDeploying(true)
+    toast.loading('🚀 Starting deployment...', { id: 'deploy' })
+
+    try {
+      const response = await fetch(`${BASE_URL}/deploy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectName: `vendor-${vendor_id}`,
+          templatePath: `../vendor-template`,
+        }),
+      })
+
+      if (!response.ok || !response.body) {
+        toast.error('❌ Deployment failed to start', { id: 'deploy' })
+        setIsDeploying(false)
+        return
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let serviceUrl = null
+      let logs = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        // ✅ decode the current chunk safely
+        const chunkText = decoder.decode(value, { stream: true })
+
+        logs += chunkText
+        console.log(chunkText)
+
+        // Optional: live append to modal display
+        setDeployMessage((prev) => prev + chunkText)
+
+        // 🔍 try to extract deployed URL
+        const match = chunkText.match(/https:\/\/[a-zA-Z0-9.-]+\.run\.app/)
+        if (match) {
+          serviceUrl = match[0]
+        }
+      }
+
+      toast.success('✅ Deployment completed!', { id: 'deploy' })
+
+      if (serviceUrl) {
+        toast.success(`🌐 Live URL: ${serviceUrl}`, { id: 'deploy-url' })
+
+        const bindResult = await bind_url_with_vendor_id(serviceUrl)
+        if (bindResult.success) {
+          toast.success('🔗 URL bound successfully!', { id: 'bind' })
+        } else {
+          toast.error('⚠️ Failed to bind URL.', { id: 'bind' })
+        }
+      } else {
+        toast.error('⚠️ Deployment complete, but URL not found', {
+          id: 'deploy',
+        })
+      }
+    } catch (err) {
+      console.error('💥 Deployment error:', err)
+      toast.error('❌ Deployment failed', { id: 'deploy' })
+    } finally {
+      setIsDeploying(false)
+    }
+  }
+
+  const bind_url_with_vendor_id = async (url: string) => {
+    try {
+      const res = await axios.put(`${BASE_URL}/vendor/bind-url`, {
+        url,
+        vendor_id,
+      })
+
+      if (res.status !== 200 && res.status !== 201) {
+        console.error('URL binding failed with status:', res.status)
+        return { success: false, message: 'URL binding failed' }
+      }
+
+      console.log('✅ URL successfully bound:', res.data)
+      return { success: true, data: res.data }
+    } catch (error) {
+      console.error('❌ Something went wrong while binding URL:', error)
+      return {
+        success: false,
+        message: 'An error occurred while binding the URL',
+      }
+    }
+  }
+  const dispatch = useDispatch<AppDispatch>()
+
+  useEffect(() => {
+    dispatch(fetchVendorProfile())
+  })
+
+  const vendor_weburl = useSelector(
+    (state: any) => state?.vendorprofile?.profile?.vendor?.bound_url
+  )
 
   return (
     <div className='space-y-6'>
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex gap-4'>
-            Template Preview{' '}
-            <a
-              className='w-fit'
-              href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}?vendor_id=${vendor_id}`}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              <Link2 className='-mt-1' />
-            </a>
-          </CardTitle>
+      <Toaster position='top-right' />
+
+      <Card className='border-0 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg shadow-gray-200/50'>
+        <CardHeader className='relative overflow-hidden rounded-t-2xl bg-gradient-to-r from-slate-50 to-slate-100 p-6 shadow-sm'>
+          <div className='relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+            {/* Title & Subtitle */}
+            <div>
+              <CardTitle className='text-3xl font-extrabold tracking-tight text-slate-800'>
+                Template Builder
+              </CardTitle>
+              <p className='mt-1 text-sm text-slate-600 sm:text-base'>
+                Customize your storefront and deploy instantly
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className='flex flex-col gap-3 sm:flex-row'>
+              <Button
+                onClick={() => setOpen(true)}
+                className='rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-2 text-white shadow-lg shadow-emerald-500/20 hover:from-emerald-600 hover:to-teal-600'
+              >
+                <Rocket className='mr-2 h-4 w-4' /> Deploy Website
+              </Button>
+
+              <a
+                className='w-full sm:w-fit'
+                href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}?vendor_id=${vendor_id}`}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                <Button
+                  variant='outline'
+                  className='w-full rounded-xl border-indigo-300 px-5 py-2 text-indigo-600 hover:bg-indigo-50 sm:w-fit'
+                >
+                  <Link2 className='mr-2 h-4 w-4' /> Preview
+                </Button>
+              </a>
+
+              <Button
+                variant='outline'
+                className='rounded-xl border-slate-300 px-5 py-2 hover:bg-slate-50'
+              >
+                <Link2 className='mr-2 h-4 w-4' /> Connect Your Domain
+              </Button>
+            </div>
+          </div>
+
+          {/* Website Display */}
+          <div className='mt-4 ml-1 text-sm font-medium text-slate-700 sm:ml-12'>
+            Your website:{' '}
+            <span className='text-indigo-600'>{vendor_weburl}</span>
+          </div>
         </CardHeader>
-        <CardContent className='space-y-6'>
+
+        <CardContent className='space-y-6 p-6'>
           {/* Basic Info */}
-          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-            <div className='space-y-2'>
-              <ImageInput
-                label='Banner Image'
-                name='backgroundImage'
-                value={data.components.home_page.backgroundImage}
-                onChange={(file) =>
-                  handleImageChange(['backgroundImage'], file)
-                }
-                isFileInput={true}
-              />
-              {isUploadingPreview && (
-                <p className='text-muted-foreground text-sm'>
-                  Uploading banner...
-                </p>
-              )}
-            </div>
-          </div>
-          <div className='space-y-2'>
-            <ImageInput
-              label='Company Logo'
-              name='logo'
-              value={data.components.logo}
-              onChange={(file) =>
-                handleImageChange(['components', 'logo'], file)
-              }
-              isFileInput={true}
-            />
-            {isUploadingLogo && (
-              <p className='text-muted-foreground text-sm'>Uploading logo...</p>
-            )}
-          </div>
-
-          {/* Home Page */}
-          <Separator />
-          <h2 className='text-lg font-semibold'>Home Page Section 1</h2>
-          <div className='space-y-4'>
-            <Input
-              placeholder='Hero Title'
-              value={data.components.home_page.header_text}
-              onChange={(e) =>
-                updateField(
-                  ['components', 'home_page', 'header_text'],
-                  e.target.value
-                )
-              }
-            />
-            <Input
-              placeholder='Hero SubTitle'
-              value={data.components.home_page.header_text_small}
-              onChange={(e) =>
-                updateField(
-                  ['components', 'home_page', 'header_text_small'],
-                  e.target.value
-                )
-              }
-            />
-            <Input
-              placeholder='Text on Header Button'
-              value={data.components.home_page.button_header}
-              onChange={(e) =>
-                updateField(
-                  ['components', 'home_page', 'button_header'],
-                  e.target.value
-                )
-              }
-            />
-            <Separator />
-            <h2 className='text-lg font-semibold'>Home Page Section 2</h2>
-            <Textarea
-              placeholder='Large Description'
-              value={data.components.home_page.description.large_text}
-              onChange={(e) =>
-                updateField(
-                  ['components', 'home_page', 'description', 'large_text'],
-                  e.target.value
-                )
-              }
-            />
-            <Textarea
-              placeholder='Summary'
-              value={data.components.home_page.description.summary}
-              onChange={(e) =>
-                updateField(
-                  ['components', 'home_page', 'description', 'summary'],
-                  e.target.value
-                )
-              }
-            />
-
-            <div className='grid grid-cols-2 gap-2'>
-              <Input
-                placeholder='Percent (e.g. 90)'
-                value={
-                  data.components.home_page.description.percent
-                    .percent_in_number
-                }
-                onChange={(e) =>
-                  updateField(
-                    [
-                      'components',
-                      'home_page',
-                      'description',
-                      'percent',
-                      'percent_in_number',
-                    ],
-                    e.target.value
-                  )
-                }
-              />
-              <Input
-                placeholder='Percent Label'
-                value={
-                  data.components.home_page.description.percent.percent_text
-                }
-                onChange={(e) =>
-                  updateField(
-                    [
-                      'components',
-                      'home_page',
-                      'description',
-                      'percent',
-                      'percent_text',
-                    ],
-                    e.target.value
-                  )
-                }
-              />
+          <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+            <div className='space-y-4'>
+              <div className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
+                <ImageInput
+                  label='Banner Image'
+                  name='backgroundImage'
+                  value={data.components.home_page.backgroundImage}
+                  onChange={(file) =>
+                    handleImageChange(
+                      ['components', 'home_page', 'backgroundImage'],
+                      file
+                    )
+                  }
+                  isFileInput={true}
+                />
+                {isUploadingPreview && (
+                  <div className='text-muted-foreground mt-2 flex items-center text-sm'>
+                    <Upload className='mr-2 h-4 w-4 animate-pulse' />
+                    Uploading banner...
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className='grid grid-cols-2 gap-2'>
+            <div className='space-y-4'>
+              <div className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
+                <ImageInput
+                  label='Company Logo'
+                  name='logo'
+                  value={data.components.logo}
+                  onChange={(file) =>
+                    handleImageChange(['components', 'logo'], file)
+                  }
+                  isFileInput={true}
+                />
+                {isUploadingLogo && (
+                  <div className='text-muted-foreground mt-2 flex items-center text-sm'>
+                    <Upload className='mr-2 h-4 w-4 animate-pulse' />
+                    Uploading logo...
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Home Page Section 1 */}
+          <div className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
+            <h2 className='mb-4 flex items-center border-b border-gray-100 pb-2 text-xl font-semibold text-gray-800'>
+              <div className='mr-3 rounded-lg bg-indigo-100 p-2'>
+                <Zap className='h-5 w-5 text-indigo-600' />
+              </div>
+              Hero Section
+            </h2>
+
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Hero Title
+                </label>
+                <Input
+                  placeholder='Enter hero title'
+                  value={data.components.home_page.header_text}
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'header_text'],
+                      e.target.value
+                    )
+                  }
+                  className='h-12'
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Hero Subtitle
+                </label>
+                <Input
+                  placeholder='Enter hero subtitle'
+                  value={data.components.home_page.header_text_small}
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'header_text_small'],
+                      e.target.value
+                    )
+                  }
+                  className='h-12'
+                />
+              </div>
+            </div>
+
+            <div className='mt-4 space-y-2'>
+              <label className='text-sm font-medium text-gray-700'>
+                Header Button Text
+              </label>
               <Input
-                placeholder='Sold Number'
-                value={data.components.home_page.description.sold.sold_number}
+                placeholder='Button text'
+                value={data.components.home_page.button_header}
                 onChange={(e) =>
                   updateField(
-                    [
-                      'components',
-                      'home_page',
-                      'description',
-                      'sold',
-                      'sold_number',
-                    ],
+                    ['components', 'home_page', 'button_header'],
                     e.target.value
                   )
                 }
+                className='h-12'
               />
-              <Input
-                placeholder='Sold Label'
-                value={data.components.home_page.description.sold.sold_text}
-                onChange={(e) =>
-                  updateField(
-                    [
-                      'components',
-                      'home_page',
-                      'description',
-                      'sold',
-                      'sold_text',
-                    ],
-                    e.target.value
-                  )
-                }
-              />
+            </div>
+          </div>
+
+          {/* Home Page Section 2 */}
+          <div className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
+            <h2 className='mb-4 flex items-center border-b border-gray-100 pb-2 text-xl font-semibold text-gray-800'>
+              <div className='mr-3 rounded-lg bg-purple-100 p-2'>
+                <Shield className='h-5 w-5 text-purple-600' />
+              </div>
+              Description Section
+            </h2>
+
+            <div className='space-y-4'>
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Large Description
+                </label>
+                <Textarea
+                  placeholder='Enter detailed description'
+                  value={data.components.home_page.description.large_text}
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'description', 'large_text'],
+                      e.target.value
+                    )
+                  }
+                  className='min-h-[120px]'
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Summary
+                </label>
+                <Textarea
+                  placeholder='Enter summary'
+                  value={data.components.home_page.description.summary}
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'description', 'summary'],
+                      e.target.value
+                    )
+                  }
+                  className='min-h-[100px]'
+                />
+              </div>
+
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium text-gray-700'>
+                    Percent (e.g. 90)
+                  </label>
+                  <Input
+                    placeholder='Percent number'
+                    value={
+                      data.components.home_page.description.percent
+                        .percent_in_number
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        [
+                          'components',
+                          'home_page',
+                          'description',
+                          'percent',
+                          'percent_in_number',
+                        ],
+                        e.target.value
+                      )
+                    }
+                    className='h-12'
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium text-gray-700'>
+                    Percent Label
+                  </label>
+                  <Input
+                    placeholder='Percent text'
+                    value={
+                      data.components.home_page.description.percent.percent_text
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        [
+                          'components',
+                          'home_page',
+                          'description',
+                          'percent',
+                          'percent_text',
+                        ],
+                        e.target.value
+                      )
+                    }
+                    className='h-12'
+                  />
+                </div>
+              </div>
+
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium text-gray-700'>
+                    Sold Number
+                  </label>
+                  <Input
+                    placeholder='Sold number'
+                    value={
+                      data.components.home_page.description.sold.sold_number
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        [
+                          'components',
+                          'home_page',
+                          'description',
+                          'sold',
+                          'sold_number',
+                        ],
+                        e.target.value
+                      )
+                    }
+                    className='h-12'
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium text-gray-700'>
+                    Sold Label
+                  </label>
+                  <Input
+                    placeholder='Sold text'
+                    value={data.components.home_page.description.sold.sold_text}
+                    onChange={(e) =>
+                      updateField(
+                        [
+                          'components',
+                          'home_page',
+                          'description',
+                          'sold',
+                          'sold_text',
+                        ],
+                        e.target.value
+                      )
+                    }
+                    className='h-12'
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Submit Section */}
-          <Separator />
-          <div className='flex items-center justify-between'>
-            <div>
+          <div className='flex flex-col items-center justify-between gap-4 pt-4 sm:flex-row'>
+            <div className='flex items-center'>
               {submitStatus === 'success' && (
-                <p className='text-green-600'>
-                  ✅ Template created successfully!
-                </p>
+                <div className='flex items-center text-green-600'>
+                  <CheckCircle className='mr-2 h-5 w-5' />
+                  <span>Template saved successfully!</span>
+                </div>
               )}
               {submitStatus === 'error' && (
-                <p className='text-red-600'>
-                  ❌ Failed to submit. Check console.
-                </p>
+                <div className='flex items-center text-red-600'>
+                  <AlertCircle className='mr-2 h-5 w-5' />
+                  <span>Failed to save. Please try again.</span>
+                </div>
               )}
             </div>
+
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || uploadingPaths.size > 0}
+              className='h-12 bg-gradient-to-r from-indigo-600 to-purple-600 px-8 text-white shadow-lg shadow-indigo-500/20 hover:from-indigo-700 hover:to-purple-700'
             >
-              {isSubmitting
-                ? 'Submitting...'
-                : uploadingPaths.size > 0
-                  ? 'Uploading Images...'
-                  : 'Create Home Page'}
+              {isSubmitting ? (
+                <div className='flex items-center'>
+                  <div className='mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent'></div>
+                  Saving...
+                </div>
+              ) : uploadingPaths.size > 0 ? (
+                <div className='flex items-center'>
+                  <Upload className='mr-2 h-4 w-4 animate-pulse' />
+                  Uploading Images...
+                </div>
+              ) : (
+                <div className='flex items-center'>
+                  <CheckCircle className='mr-2 h-4 w-4' />
+                  Save Template
+                </div>
+              )}
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Deployment Modal */}
+      {open && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm'>
+          <div className='animate-fadeIn relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl'>
+            {/* Decorative elements */}
+            <div className='absolute -top-6 -right-6 h-24 w-24 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 opacity-20 blur-2xl'></div>
+            <div className='absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 opacity-20 blur-2xl'></div>
+
+            {!isDeploying ? (
+              <div className='relative z-10 space-y-6'>
+                <div className='flex justify-center'>
+                  <div className='rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 p-4'>
+                    <Rocket className='h-12 w-12 text-indigo-600' />
+                  </div>
+                </div>
+
+                <div className='text-center'>
+                  <h2 className='text-2xl font-bold text-gray-900'>
+                    Deploy Your Website
+                  </h2>
+                  <p className='mt-2 text-gray-600'>
+                    Your customized storefront will be deployed to our secure
+                    servers. This process typically takes 2-3 minutes.
+                  </p>
+                </div>
+
+                <div className='space-y-4'>
+                  <div className='flex items-start'>
+                    <div className='mt-1 flex-shrink-0'>
+                      <div className='flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100'>
+                        <span className='text-sm font-bold text-indigo-600'>
+                          1
+                        </span>
+                      </div>
+                    </div>
+                    <div className='ml-3'>
+                      <p className='text-sm font-medium text-gray-900'>
+                        Build Process
+                      </p>
+                      <p className='text-sm text-gray-500'>
+                        Your site will be built with the latest technologies
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className='flex items-start'>
+                    <div className='mt-1 flex-shrink-0'>
+                      <div className='flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100'>
+                        <span className='text-sm font-bold text-indigo-600'>
+                          2
+                        </span>
+                      </div>
+                    </div>
+                    <div className='ml-3'>
+                      <p className='text-sm font-medium text-gray-900'>
+                        Secure Hosting
+                      </p>
+                      <p className='text-sm text-gray-500'>
+                        Your site will be hosted on our secure infrastructure
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className='flex items-start'>
+                    <div className='mt-1 flex-shrink-0'>
+                      <div className='flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100'>
+                        <span className='text-sm font-bold text-indigo-600'>
+                          3
+                        </span>
+                      </div>
+                    </div>
+                    <div className='ml-3'>
+                      <p className='text-sm font-medium text-gray-900'>
+                        Go Live
+                      </p>
+                      <p className='text-sm text-gray-500'>
+                        Your custom domain will be activated
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className='flex flex-col gap-3 pt-4 sm:flex-row'>
+                  <Button
+                    variant='outline'
+                    onClick={() => setOpen(false)}
+                    className='flex-1'
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className='flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600'
+                    onClick={handleDeploy}
+                  >
+                    <Rocket className='mr-2 h-4 w-4' />
+                    Deploy Now
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className='relative z-10 flex flex-col items-center py-8'>
+                <div className='mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-emerald-100 to-teal-100'>
+                  <div className='h-16 w-16 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent'></div>
+                </div>
+
+                <h3 className='text-xl font-bold text-gray-900'>
+                  Building Your Website
+                </h3>
+                <pre className='mt-2 max-h-60 overflow-y-auto rounded bg-gray-50 p-3 text-left text-xs text-gray-600'>
+                  {deployMessage}
+                </pre>
+
+                <div className='mt-8 w-full'>
+                  <div className='mb-1 flex justify-between text-sm text-gray-600'>
+                    <span>Progress</span>
+                    <span>75%</span>
+                  </div>
+                  <Button onClick={handleCancel}>Cancel Deployment</Button>
+                  <div className='h-2 w-full rounded-full bg-gray-200'>
+                    <div
+                      className='h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500 ease-out'
+                      style={{ width: '75%' }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
