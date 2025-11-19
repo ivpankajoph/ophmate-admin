@@ -1,8 +1,11 @@
+import { AppDispatch } from '@/store'
+import { fetchSpecificationsByCategory } from '@/store/slices/admin/specificationSlice'
+import { X } from 'lucide-react'
 import { useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { X } from 'lucide-react'
 
 export default function CategorySection({ state, actions }: any) {
   const {
@@ -25,6 +28,8 @@ export default function CategorySection({ state, actions }: any) {
     setIsAddingCustomSubcategory,
     setVariants,
   } = actions
+
+  const dispatch = useDispatch<AppDispatch>()
 
   const categories = useSelector((s: any) => s.categories?.categories || [])
   const allSubcategories = useSelector(
@@ -55,6 +60,7 @@ export default function CategorySection({ state, actions }: any) {
               if (selected) {
                 setSelectedCategory(selected.name)
                 setSelectedCategoryId(selected.id)
+                dispatch(fetchSpecificationsByCategory(selected.id))
               }
               setIsAddingCustomCategory(false)
               setSelectedSubcategories([])
@@ -178,7 +184,7 @@ export default function CategorySection({ state, actions }: any) {
 
           {selectedSubcategories.length > 0 && (
             <div className='mt-2 flex flex-wrap gap-2'>
-              {selectedSubcategories.map((sub:any, idx:any) => (
+              {selectedSubcategories.map((sub: any, idx: any) => (
                 <div
                   key={idx}
                   className='flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-sm text-blue-800'

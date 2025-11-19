@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { Upload, Trash2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, Trash2, Plus } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 
 export default function VariantSection({ state, actions }: any) {
   const { variants, variantImagePreviews, variantImageFiles } = state
@@ -12,7 +12,15 @@ export default function VariantSection({ state, actions }: any) {
   const onAddVariant = () =>
     setVariants((prev: any[]) => [
       ...prev,
-      { sku: '', price: '', discount_percent: '0', stock: '', attributes: [{ key: '', value: '' }] },
+      {
+        sku: '',
+     
+        final_price: '',
+        actual_price: '',
+        discount_percent: '',
+        stock: '',
+        attributes: [{ key: '', value: '' }],
+      },
     ])
 
   const onRemoveVariant = (index: number) => {
@@ -60,7 +68,7 @@ export default function VariantSection({ state, actions }: any) {
 
       <AnimatePresence>
         {variants.length > 0 ? (
-          variants.map((variant:any, vIndex:any) => (
+          variants.map((variant: any, vIndex: any) => (
             <motion.div
               key={vIndex}
               initial={{ opacity: 0, y: 20 }}
@@ -80,13 +88,13 @@ export default function VariantSection({ state, actions }: any) {
                       />
                     </div>
                     <div>
-                      <Label>Price</Label>
+                      <Label>Actual Price</Label>
                       <Input
                         type='number'
                         step='0.01'
-                        value={variant.price}
+                        value={variant.actual_price}
                         onChange={(e) =>
-                          onUpdateVariantField(vIndex, 'price', e.target.value)
+                          onUpdateVariantField(vIndex, 'actual_price', e.target.value)
                         }
                       />
                     </div>
@@ -101,6 +109,22 @@ export default function VariantSection({ state, actions }: any) {
                           onUpdateVariantField(
                             vIndex,
                             'discount_percent',
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                           <div>
+                      <Label>Final Price</Label>
+                      <Input
+                        type='number'
+                        min='0'
+                        max='100'
+                        value={variant.final_price}
+                        onChange={(e) =>
+                          onUpdateVariantField(
+                            vIndex,
+                            'final_price',
                             e.target.value
                           )
                         }
@@ -130,7 +154,6 @@ export default function VariantSection({ state, actions }: any) {
                         <Plus className='mr-1 h-3 w-3' /> Add Attribute
                       </Button>
                     </div>
-
                     <div className='space-y-2'>
                       {variant.attributes.map((attr: any, aIndex: number) => (
                         <div key={aIndex} className='flex gap-2'>
@@ -224,10 +247,7 @@ export default function VariantSection({ state, actions }: any) {
                             )
                             setVariantImageFiles((prev: any) => ({
                               ...prev,
-                              [vIndex]: [
-                                ...(prev[vIndex] || []),
-                                ...newFiles,
-                              ],
+                              [vIndex]: [...(prev[vIndex] || []), ...newFiles],
                             }))
                             setVariantImagePreviews((prev: any) => ({
                               ...prev,
