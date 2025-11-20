@@ -6,7 +6,8 @@ import { fetchVendorProfile } from '@/store/slices/vendor/profileSlice'
 import toast from 'react-hot-toast'
 import { useSelector, useDispatch } from 'react-redux'
 import { initialData } from '../../data'
-import { updateFieldImmutable, uploadImage } from './utils'
+import { updateFieldImmutable } from './utils'
+import { uploadImage } from '../../helper/fileupload'
 
 export function useTemplateForm() {
   const [data, setData] = useState(initialData)
@@ -49,7 +50,7 @@ export function useTemplateForm() {
     setUploadingPaths((prev) => new Set(prev).add(pathKey))
 
     try {
-      const url = await uploadImage(file)
+      const url = await uploadImage(file,"template_images")
       updateField(path, url || '')
     } finally {
       setUploadingPaths((prev) => {

@@ -12,17 +12,17 @@ const BASE_URL = VITE_PUBLIC_API_URL as string;
 // ✅ Create Subcategory
 export const createSubcategory = createAsyncThunk<
   any,
-  FormData,
+  any,
   { rejectValue: string; state: any }
->("subcategories/create", async (formData, { rejectWithValue, getState }) => {
+>("subcategories/create", async (payload, { rejectWithValue, getState }) => {
   try {
     const state: any = getState();
     const token = state?.auth?.token;
 
-    const res = await axios.post(`${BASE_URL}/subcategories/create`, formData, {
+    const res = await axios.post(`${BASE_URL}/subcategories/create`, payload, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
       },
     });
 
@@ -45,6 +45,18 @@ export const fetchSubcategories = createAsyncThunk<
     return rejectWithValue(err.response?.data?.message || "Failed to fetch subcategories");
   }
 });
+
+export const updateSubCategory = createAsyncThunk(
+  'category/updateSubCategory',
+  async (categoryData: any, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`${BASE_URL}/subcategories/update/${categoryData.id}`, categoryData)
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update category')
+    }
+  }
+)
 
 // ✅ Fetch Subcategories by Category
 export const getSubcategoriesByCategory = createAsyncThunk<

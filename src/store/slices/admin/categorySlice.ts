@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import axios from 'axios'
 import { VITE_PUBLIC_API_URL } from '@/config'
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-
-import axios from 'axios'
 
 interface CategoryState {
   loading: boolean
@@ -16,25 +15,57 @@ const initialState: CategoryState = {
   categories: [],
 }
 
-
-const BASE_URL = VITE_PUBLIC_API_URL;
+const BASE_URL = VITE_PUBLIC_API_URL
 
 export const createCategory = createAsyncThunk(
   'categories/create',
-  async (formData: FormData, { rejectWithValue,getState }) => {
+  async (payload: any, { rejectWithValue, getState }) => {
     try {
-      const state:any= getState()
+      const state: any = getState()
       const token = state?.auth?.token
-      const res = await axios.post(`${BASE_URL}/categories/create`, formData, {
-        headers: {
-          Authorization:`Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+
+      console.log('Token in createCategory thunk:', token)
+
+      const res = await axios.post(
+        `${BASE_URL}/categories/create`,
+        payload, // <-- JSON Data
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json', // <-- IMPORTANT
+          },
+        }
+      )
+
       return res.data
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || 'Failed to create category'
+      )
+    }
+  }
+)
+
+export const updateCategory = createAsyncThunk(
+  'category/updateCategory',
+  async (categoryData: any, { rejectWithValue, getState }) => {
+    try {
+      const state: any = getState()
+      const token = state?.auth?.token
+      const response = await axios.put(
+        `${BASE_URL}/categories/update/${categoryData.id}`,
+        categoryData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update category'
       )
     }
   }
@@ -45,7 +76,7 @@ export const getAllCategories = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get(`${BASE_URL}/categories/get-category`, {})
-      return res.data.data 
+      return res.data.data
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || 'Failed to fetch categories'
@@ -54,34 +85,34 @@ export const getAllCategories = createAsyncThunk(
   }
 )
 export const uploadCategories = createAsyncThunk(
-  "categories/upload",
+  'categories/upload',
   async (file: File, { getState, rejectWithValue }) => {
     try {
-      const state: any = getState();
-      const token = state.auth?.token; 
+      const state: any = getState()
+      const token = state.auth?.token
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const formData = new FormData()
+      formData.append('file', file)
 
       const response = await axios.post(
         `${BASE_URL}/categories/import`,
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`,
           },
         }
-      );
+      )
 
-      return response.data;
+      return response.data
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || "File upload failed"
-      );
+        error.response?.data?.message || 'File upload failed'
+      )
     }
   }
-);
+)
 const categorySlice = createSlice({
   name: 'category',
   initialState,
@@ -109,6 +140,23 @@ const categorySlice = createSlice({
         state.categories = action.payload
       })
       .addCase(getAllCategories.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      .addCase(updateCategory.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(updateCategory.fulfilled, (state, action) => {
+        state.loading = false
+        // Update the category in the list
+        const index = state.categories.findIndex(
+          (cat) => cat.id === action.payload.id
+        )
+        if (index !== -1) {
+          state.categories[index] = action.payload
+        }
+      })
+      .addCase(updateCategory.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

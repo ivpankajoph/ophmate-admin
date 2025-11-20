@@ -45,13 +45,13 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
 
   const handleDownload = (url: string, title: string) => {
     const link = document.createElement("a")
-    link.href = `${BASE_URL}${url}`
+    link.href = `${url}`
     link.download = title || "banner"
     link.click()
   }
 
   const handleOpenNewTab = (url: string) => {
-    window.open(`${BASE_URL}${url}`, "_blank")
+    window.open(`${url}`, "_blank")
   }
 
   return (
@@ -71,7 +71,7 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
               <Card className="overflow-hidden shadow-lg hover:shadow-xl border border-gray-100">
                 <div className="relative group">
                   <img
-                    src={`${BASE_URL}${banner.imageUrl}`}
+                    src={banner.imageUrl}
                     alt={banner.title ?? ""}
                     className="w-full h-56 object-cover rounded-t-lg transition-all duration-300 group-hover:brightness-90"
                     onError={(e) => {
@@ -132,7 +132,7 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
             <DialogTitle>{selectedBanner?.title}</DialogTitle>
           </DialogHeader>
           <img
-            src={`${BASE_URL}${selectedBanner?.imageUrl}`}
+            src={selectedBanner?.imageUrl}
             alt={selectedBanner?.title}
             className="w-full h-64 object-cover rounded-lg mb-4"
           />
@@ -162,7 +162,7 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
             onClick={() => setFullscreen(false)}
           >
             <motion.img
-              src={`${BASE_URL}${selectedBanner.imageUrl}`}
+              src={selectedBanner.imageUrl}
               alt={selectedBanner.title}
               className="max-h-[90vh] rounded-lg shadow-2xl object-contain"
               initial={{ scale: 0.95 }}

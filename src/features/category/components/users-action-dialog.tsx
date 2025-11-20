@@ -1,8 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { AppDispatch } from '@/store'
+import { createCategory } from '@/store/slices/admin/categorySlice'
+import { useDispatch } from 'react-redux'
+import Swal from 'sweetalert2'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,11 +26,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import Swal from 'sweetalert2'
-import { createCategory } from '@/store/slices/admin/categorySlice'
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from '@/store'
-import { useState } from 'react'
+import { uploadImage } from '@/features/vendor-template/helper/fileupload'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Category name is required.'),
@@ -35,7 +36,10 @@ const formSchema = z.object({
   meta_keywords: z.string().min(1, 'Meta keywords are required.'),
   image: z
     .any()
-    .refine((file) => file instanceof File || file?.length, 'Image is required.'),
+    .refine(
+      (file) => file instanceof File || file?.length,
+      'Image is required.'
+    ),
 })
 
 type CategoryForm = z.infer<typeof formSchema>
@@ -46,10 +50,15 @@ type CategoryDialogProps = {
   onOpenChange: (open: boolean) => void
 }
 
-export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialogProps) {
+export function CategoryDialog({
+  currentRow,
+  open,
+  onOpenChange,
+}: CategoryDialogProps) {
   const isEdit = !!currentRow
   const dispatch = useDispatch<AppDispatch>()
   const [preview, setPreview] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   const form = useForm<CategoryForm>({
     resolver: zodResolver(formSchema),
@@ -69,53 +78,47 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
           meta_keywords: '',
         },
   })
-
-  const onSubmit = async (values: CategoryForm) => {
-    onOpenChange(false)
-    try {
-      Swal.fire({
-        title: 'Please wait...',
-        text: 'Saving category...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      })
-
-      const formData = new FormData() as any
-      formData.append('name', values.name)
-      formData.append('description', values.description)
-      formData.append('meta_title', values.meta_title)
-      formData.append('meta_description', values.meta_description)
-      formData.append('meta_keywords', values.meta_keywords)
-      formData.append('image', values.image[0])
-
-      const res = await dispatch(createCategory(formData))
-
-      if (res.meta.requestStatus === 'fulfilled') {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Category created successfully.',
-          timer: 2000,
-          showConfirmButton: false,
-        })
-        form.reset()
-        setPreview(null)
-        onOpenChange(false)
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed!',
-          text: (res.payload as string) || 'Unable to create category.',
-        })
-      }
-    } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Something went wrong while creating category.',
-      })
-    }
+const onSubmit = async (values: CategoryForm) => {
+  if (!imageUrl) {
+    Swal.fire('Error', 'Please upload an image.', 'error')
+    return
   }
+
+  onOpenChange(false)
+
+  try {
+    Swal.fire({
+      title: 'Please wait...',
+      text: 'Saving category...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    })
+
+    // Send as JSON
+    const payload = {
+      name: values.name,
+      description: values.description,
+      meta_title: values.meta_title,
+      meta_description: values.meta_description,
+      meta_keywords: values.meta_keywords,
+      image_url: imageUrl,
+    }
+
+    const res = await dispatch(createCategory(payload))
+
+    if (res.meta.requestStatus === 'fulfilled') {
+      Swal.fire('Success!', 'Category created successfully.', 'success')
+      form.reset()
+      setPreview(null)
+      setImageUrl(null)
+    } else {
+      Swal.fire('Failed!', res.payload || 'Unable to create category.', 'error')
+    }
+  } catch {
+    Swal.fire('Error', 'Something went wrong.', 'error')
+  }
+}
+
 
   const handleDialogClose = () => {
     form.reset()
@@ -125,31 +128,35 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="sm:max-w-lg h-full overflow-y-auto">
-        <DialogHeader className="text-start">
-          <DialogTitle>{isEdit ? 'Edit Category' : 'Add New Category'}</DialogTitle>
+      <DialogContent className='h-full overflow-y-auto sm:max-w-lg'>
+        <DialogHeader className='text-start'>
+          <DialogTitle>
+            {isEdit ? 'Edit Category' : 'Add New Category'}
+          </DialogTitle>
           <DialogDescription>
-            {isEdit ? 'Update the category details.' : 'Create a new category with SEO fields.'}
+            {isEdit
+              ? 'Update the category details.'
+              : 'Create a new category with SEO fields.'}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-2 pe-3">
+        <div className='py-2 pe-3'>
           <Form {...form}>
             <form
-              id="category-form"
+              id='category-form'
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4 px-0.5"
-              encType="multipart/form-data"
+              className='space-y-4 px-0.5'
+              encType='multipart/form-data'
             >
               {/* Category Name */}
               <FormField
                 control={form.control}
-                name="name"
+                name='name'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Electronics" {...field} />
+                      <Input placeholder='e.g., Electronics' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -159,12 +166,15 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
               {/* Description */}
               <FormField
                 control={form.control}
-                name="description"
+                name='description'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Devices and gadgets" {...field} />
+                      <Input
+                        placeholder='e.g., Devices and gadgets'
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -174,12 +184,15 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
               {/* Meta Title */}
               <FormField
                 control={form.control}
-                name="meta_title"
+                name='meta_title'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Meta Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Best Electronics Online" {...field} />
+                      <Input
+                        placeholder='e.g., Best Electronics Online'
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -189,12 +202,15 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
               {/* Meta Description */}
               <FormField
                 control={form.control}
-                name="meta_description"
+                name='meta_description'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Meta Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Buy the latest electronics at best prices" {...field} />
+                      <Input
+                        placeholder='e.g., Buy the latest electronics at best prices'
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -204,12 +220,15 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
               {/* Meta Keywords */}
               <FormField
                 control={form.control}
-                name="meta_keywords"
+                name='meta_keywords'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Meta Keywords</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., electronics, gadgets, phones" {...field} />
+                      <Input
+                        placeholder='e.g., electronics, gadgets, phones'
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -219,29 +238,36 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
               {/* Image Upload */}
               <FormField
                 control={form.control}
-                name="image"
+                name='image'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category Image</FormLabel>
                     <FormControl>
                       <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
+                        type='file'
+                        accept='image/*'
+                        onChange={async (e) => {
                           const file = e.target.files
                           field.onChange(file)
+
                           if (file && file[0]) {
+                            // Upload image
+                            const url = await uploadImage(
+                              file[0],
+                              'category_images'
+                            )
+                            setImageUrl(url) // <-- store URL
                             setPreview(URL.createObjectURL(file[0]))
                           }
                         }}
                       />
                     </FormControl>
                     {preview && (
-                      <div className="mt-2">
+                      <div className='mt-2'>
                         <img
                           src={preview}
-                          alt="Preview"
-                          className="w-32 h-32 object-cover rounded border"
+                          alt='Preview'
+                          className='h-32 w-32 rounded border object-cover'
                         />
                       </div>
                     )}
@@ -254,7 +280,11 @@ export function CategoryDialog({ currentRow, open, onOpenChange }: CategoryDialo
         </div>
 
         <DialogFooter>
-          <Button type="submit" form="category-form">
+          <Button
+            type='submit'
+            form='category-form'
+            disabled={!imageUrl || form.formState.isSubmitting}
+          >
             {isEdit ? 'Update Category' : 'Create Category'}
           </Button>
         </DialogFooter>

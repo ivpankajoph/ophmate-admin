@@ -30,31 +30,25 @@ const initialState: BannerState = {
 
 const BASE_URL = VITE_PUBLIC_API_URL;
 
-
 export const createBanner = createAsyncThunk<
   Banner, // return type
-  { title: string; description: string; image: File }, // input type
+  { title: string; description: string; image_url: string }, // input type
   { rejectValue: string }
 >('banners/createBanner', async (data, { rejectWithValue }) => {
   try {
-    const formData = new FormData()
-    formData.append('title', data.title)
-    formData.append('description', data.description)
-    formData.append('image', data.image)
+    const res = await axios.post(`${BASE_URL}/banners`, {
+      title: data.title,
+      description: data.description,
+      imageUrl: data.image_url,
+    });
 
-    const res = await axios.post(`${BASE_URL}/banners`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-
-    return res.data // Assuming backend returns created banner JSON
+    return res.data; // backend returns banner JSON
   } catch (err: any) {
     return rejectWithValue(
       err.response?.data?.message || 'Failed to create banner'
-    )
+    );
   }
-})
+});
 
 export const fetchBanners = createAsyncThunk<
   Banner[],

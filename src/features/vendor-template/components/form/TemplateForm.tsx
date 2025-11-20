@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { initialData, TemplateData } from '../../data'
+import { uploadImage } from '../../helper/fileupload'
 import { ImageInput } from './ImageInput'
 
 export function TemplateForm() {
@@ -41,33 +42,6 @@ export function TemplateForm() {
   const vendor_id = useSelector((state: any) => state?.auth?.user?.id)
 
   // Cloudinary upload function
-  async function uploadImage(file: File): Promise<string | null> {
-    try {
-      // Step 1: Get signature from backend
-      const { data: signatureData } = await axios.get(
-        `${BASE_URL}/cloudinary/signature`
-      )
-
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('api_key', signatureData.apiKey)
-      formData.append('timestamp', signatureData.timestamp)
-      formData.append('signature', signatureData.signature)
-      formData.append('folder', 'ecommerce')
-
-      // Step 2: Upload to Cloudinary
-      const uploadRes = await axios.post(
-        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
-        formData
-      )
-
-      return uploadRes.data.secure_url
-    } catch (error) {
-      console.error('Cloudinary upload failed:', error)
-      toast.error('Failed to upload image. Please try again.')
-      return null
-    }
-  }
 
   const updateField = (path: string[], value: any) => {
     setData((prev) => {
@@ -97,7 +71,7 @@ export function TemplateForm() {
     setUploadingPaths((prev) => new Set(prev).add(pathKey))
 
     try {
-      const imageUrl = await uploadImage(file)
+      const imageUrl = await uploadImage(file, 'template_images')
       if (imageUrl) {
         updateField(path, imageUrl)
       } else {

@@ -1,6 +1,7 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
+import { VITE_PUBLIC_API_URL_BANNERS } from '@/config'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +18,6 @@ import {
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { DataTableRowActions } from './data-table-row-actions'
-import { VITE_PUBLIC_API_URL_BANNERS } from '@/config'
 
 // Fallback Image component for environments without next/image
 const Image = ({
@@ -43,8 +43,6 @@ const Image = ({
     />
   )
 }
-
-const BASE_URL = VITE_PUBLIC_API_URL_BANNERS
 
 // 🧩 Type definition for Category
 export type Category = {
@@ -131,7 +129,6 @@ export const categoryColumns: ColumnDef<Category>[] = [
       <div className='text-muted-foreground'>{row.getValue('slug')}</div>
     ),
   },
-
 
   // {
   //   id: 'subcategories',
@@ -286,7 +283,7 @@ export const categoryColumns: ColumnDef<Category>[] = [
                 {row.original.image_url ? (
                   <div className='mt-2'>
                     <Image
-                      src={`${BASE_URL}${row.original.image_url}`}
+                      src={row.original.image_url}
                       alt={row.original.name}
                       width={200}
                       height={200}

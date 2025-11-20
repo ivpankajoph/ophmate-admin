@@ -1,6 +1,7 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
+import { VITE_PUBLIC_API_URL_BANNERS } from '@/config'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +18,6 @@ import {
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { DataTableRowActions } from './data-table-row-actions'
-import { VITE_PUBLIC_API_URL_BANNERS } from '@/config'
 
 const Image = ({
   src,
@@ -31,7 +31,15 @@ const Image = ({
   width?: number
   height?: number
   className?: string
-}) => <img src={src} alt={alt ?? ''} width={width} height={height} className={className} />
+}) => (
+  <img
+    src={src}
+    alt={alt ?? ''}
+    width={width}
+    height={height}
+    className={className}
+  />
+)
 
 const BASE_URL = VITE_PUBLIC_API_URL_BANNERS
 
@@ -89,13 +97,21 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
 
   {
     accessorKey: 'name',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Subcategory' />,
-    cell: ({ row }) => <LongText className='font-medium'>{row.getValue('name') || 'N/A' }</LongText>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Subcategory' />
+    ),
+    cell: ({ row }) => (
+      <LongText className='font-medium'>
+        {row.getValue('name') || 'N/A'}
+      </LongText>
+    ),
   },
 
   {
     accessorKey: 'description',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Description' />
+    ),
     cell: ({ row }) => (
       <LongText className='text-muted-foreground max-w-56'>
         {row.getValue('description') || '-'}
@@ -105,19 +121,29 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
 
   {
     accessorKey: 'slug',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Slug' />,
-    cell: ({ row }) => <div className='text-muted-foreground'>{row.getValue('slug')}</div>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Slug' />
+    ),
+    cell: ({ row }) => (
+      <div className='text-muted-foreground'>{row.getValue('slug')}</div>
+    ),
   },
 
   {
     accessorKey: 'category',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
-    cell: ({ row }) => <div className='capitalize'>{row.original.category_id?.name}</div>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Category' />
+    ),
+    cell: ({ row }) => (
+      <div className='capitalize'>{row.original.category_id?.name}</div>
+    ),
   },
 
   {
     accessorKey: 'is_active',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Status' />
+    ),
     cell: ({ row }) => {
       const isActive = row.original.category?.is_active
       return (
@@ -125,7 +151,9 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
           variant='outline'
           className={cn(
             'capitalize',
-            isActive ? 'border-green-400 text-green-600' : 'border-red-400 text-red-600'
+            isActive
+              ? 'border-green-400 text-green-600'
+              : 'border-red-400 text-red-600'
           )}
         >
           {isActive ? 'Active' : 'Inactive'}
@@ -136,7 +164,9 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
 
   {
     accessorKey: 'createdAt',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Created At' />,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Created At' />
+    ),
     cell: ({ row }) => (
       <div className='text-muted-foreground'>
         {new Date(row.getValue('createdAt')).toLocaleDateString()}
@@ -157,24 +187,34 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
 
           <DialogContent className='h-full max-w-2xl overflow-y-auto'>
             <DialogHeader>
-              <DialogTitle className='text-xl font-semibold'>{row.original.name}</DialogTitle>
-              <DialogDescription>Detailed information about this subcategory.</DialogDescription>
+              <DialogTitle className='text-xl font-semibold'>
+                {row.original.name}
+              </DialogTitle>
+              <DialogDescription>
+                Detailed information about this subcategory.
+              </DialogDescription>
             </DialogHeader>
 
             <div className='grid grid-cols-2 gap-4 py-4'>
               <div>
                 <p className='font-medium'>Slug:</p>
-                <p className='text-muted-foreground text-sm'>{row.original.slug}</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.slug}
+                </p>
               </div>
 
               <div>
                 <p className='font-medium'>Description:</p>
-                <p className='text-muted-foreground text-sm'>{row.original.description || '-'}</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.description || '-'}
+                </p>
               </div>
 
               <div>
                 <p className='font-medium'>Category:</p>
-                <p className='text-muted-foreground text-sm'>{row.original.category_id?.name}</p>
+                <p className='text-muted-foreground text-sm'>
+                  {row.original.category_id?.name}
+                </p>
               </div>
 
               <div>
@@ -189,7 +229,7 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
                 {row.original.image_url ? (
                   <div className='mt-2'>
                     <Image
-                      src={`${BASE_URL}${row.original.image_url}`}
+                      src={row.original.image_url}
                       alt={row.original.name}
                       width={200}
                       height={200}
