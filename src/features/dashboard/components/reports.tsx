@@ -51,7 +51,7 @@ interface Report {
 }
 
 export default function Reports() {
-  const [reports, setReports] = useState<Report[]>([
+  const [reports, ] = useState<Report[]>([
     {
       id: '1',
       title: 'Monthly Traffic Analysis',

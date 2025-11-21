@@ -1,7 +1,6 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { VITE_PUBLIC_API_URL_BANNERS } from '@/config'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -41,7 +40,6 @@ const Image = ({
   />
 )
 
-const BASE_URL = VITE_PUBLIC_API_URL_BANNERS
 
 // 🧩 Type definition for Subcategory
 export type Subcategory = {

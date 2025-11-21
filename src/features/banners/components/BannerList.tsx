@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import  { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,6 @@ import { Download, Eye, ExternalLink, Info } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
 import type { AppDispatch } from "@/store"
 import { fetchBanners } from "@/store/slices/admin/bannerSlice"
-import { VITE_PUBLIC_API_URL_BANNERS } from "@/config"
 
 export default function BannerList() {
   const dispatch = useDispatch<AppDispatch>()
@@ -20,9 +19,6 @@ export default function BannerList() {
   const banners = useSelector((state: any) => state.banners?.banners ?? [])
   const loading = useSelector((state: any) => state.banners?.loading ?? false)
   const error = useSelector((state: any) => state.banners?.error ?? null)
-
-const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
-
 
 
   useEffect(() => {
@@ -55,25 +51,25 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6 text-left">Banners Gallery</h1>
+    <div className="p-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    
 
       {banners.length === 0 ? (
-        <p className="text-center text-gray-500">No banners available.</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">No banners available.</p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {banners.map((banner: any, i: number) => (
             <motion.div
               key={banner.id ?? i}
-              whileHover={{ scale: 1.03 }}
-              className="transition relative"
+              whileHover={{ y: -5 }}
+              className="transition-transform duration-300"
             >
-              <Card className="overflow-hidden shadow-lg hover:shadow-xl border border-gray-100">
+              <Card className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
                 <div className="relative group">
                   <img
                     src={banner.imageUrl}
                     alt={banner.title ?? ""}
-                    className="w-full h-56 object-cover rounded-t-lg transition-all duration-300 group-hover:brightness-90"
+                    className="w-full h-56 object-cover transition-all duration-300 group-hover:opacity-90"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = "/placeholder-banner.png"
                     }}
@@ -83,37 +79,53 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
                     }}
                   />
                   {/* Hover Actions */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition bg-black/40">
+                  <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 dark:bg-black/50">
                     <Button
                       variant="secondary"
                       size="icon"
-                      onClick={() => setSelectedBanner(banner)}
+                      className="h-9 w-9 rounded-full bg-white/90 hover:bg-gray-100 dark:bg-gray-800/90 dark:hover:bg-gray-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedBanner(banner)
+                      }}
                     >
-                      <Info className="w-5 h-5" />
+                      <Info className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                     </Button>
                     <Button
                       variant="secondary"
                       size="icon"
-                      onClick={() => handleOpenNewTab(banner.imageUrl)}
+                      className="h-9 w-9 rounded-full bg-white/90 hover:bg-gray-100 dark:bg-gray-800/90 dark:hover:bg-gray-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenNewTab(banner.imageUrl)
+                      }}
                     >
-                      <ExternalLink className="w-5 h-5" />
+                      <ExternalLink className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                     </Button>
                     <Button
                       variant="secondary"
                       size="icon"
-                      onClick={() => handleDownload(banner.imageUrl, banner.title)}
+                      className="h-9 w-9 rounded-full bg-white/90 hover:bg-gray-100 dark:bg-gray-800/90 dark:hover:bg-gray-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(banner.imageUrl, banner.title)
+                      }}
                     >
-                      <Download className="w-5 h-5" />
+                      <Download className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                     </Button>
                   </div>
                 </div>
 
-                <CardContent className="p-4 text-center">
-                  <h2 className="font-semibold text-lg">{banner.title}</h2>
-                  <p className="text-sm text-gray-600 line-clamp-2">{banner.description}</p>
+                <CardContent className="p-5 text-center">
+                  <h2 className="font-medium text-lg text-gray-800 dark:text-gray-200 tracking-tight">
+                    {banner.title}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                    {banner.description}
+                  </p>
                   <Button
                     variant="outline"
-                    className="mt-3 w-full"
+                    className="mt-4 w-full rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-750"
                     onClick={() => setSelectedBanner(banner)}
                   >
                     <Eye className="w-4 h-4 mr-2" /> View Details
@@ -125,33 +137,42 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
         </div>
       )}
 
-      {/* 🔍 Details Modal */}
+      {/* Details Modal */}
       <Dialog open={!!selectedBanner && !fullscreen} onOpenChange={() => setSelectedBanner(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg rounded-2xl border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <DialogHeader>
-            <DialogTitle>{selectedBanner?.title}</DialogTitle>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">
+              {selectedBanner?.title}
+            </DialogTitle>
           </DialogHeader>
           <img
             src={selectedBanner?.imageUrl}
             alt={selectedBanner?.title}
-            className="w-full h-64 object-cover rounded-lg mb-4"
+            className="w-full h-64 object-cover rounded-xl"
           />
-          <p className="text-gray-700">{selectedBanner?.description}</p>
-          <div className="flex justify-end gap-3 mt-4">
-            <Button onClick={() => handleDownload(selectedBanner.imageUrl, selectedBanner.title)}>
+          <p className="text-gray-700 dark:text-gray-300">
+            {selectedBanner?.description}
+          </p>
+          <div className="flex justify-end gap-3 mt-2">
+            <Button
+              variant="outline"
+              className="rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-750"
+              onClick={() => handleDownload(selectedBanner.imageUrl, selectedBanner.title)}
+            >
               <Download className="w-4 h-4 mr-2" /> Download
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
+              className="rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-750"
               onClick={() => handleOpenNewTab(selectedBanner.imageUrl)}
             >
-              <ExternalLink className="w-4 h-4 mr-2" /> Open in Tab
+              <ExternalLink className="w-4 h-4 mr-2" /> Open
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* 🖼️ Fullscreen Preview */}
+      {/* Fullscreen Preview */}
       <AnimatePresence>
         {fullscreen && selectedBanner && (
           <motion.div
@@ -164,10 +185,11 @@ const BASE_URL = VITE_PUBLIC_API_URL_BANNERS;
             <motion.img
               src={selectedBanner.imageUrl}
               alt={selectedBanner.title}
-              className="max-h-[90vh] rounded-lg shadow-2xl object-contain"
+              className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
         )}

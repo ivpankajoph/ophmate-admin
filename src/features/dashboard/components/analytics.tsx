@@ -11,7 +11,7 @@ import {
   Users, 
   TrendingUp, 
   Clock, 
-  BarChart3,
+
   Map,
   Smartphone,
   Monitor,
