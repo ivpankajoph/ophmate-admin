@@ -31,12 +31,13 @@ export const loginAdmin = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await  axios.post(`${BASE_URL}/admin/login`, credentials);
+      const response = await axios.post(`${BASE_URL}/admin/login`, credentials);
       return response.data;
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || err.message || "Login failed";
-      return rejectWithValue(message);
+      console.log("Login error in thunk:", err);
+      return rejectWithValue(
+        err || "An error occurred during login."
+      );
     }
   }
 );

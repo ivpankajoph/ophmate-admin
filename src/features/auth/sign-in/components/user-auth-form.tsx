@@ -7,7 +7,6 @@ import { Loader2, LogIn } from "lucide-react";
 import Swal from "sweetalert2"; // ✅ import swal
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, AppState } from "@/store";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import { cn } from "@/lib/utils";
-import { IconFacebook, IconGithub } from "@/assets/brand-icons";
+import { IconFacebook, IconGithub, IconGmail } from "@/assets/brand-icons";
 import { loginAdmin } from "@/store/slices/authSlice";
 
 const formSchema = z.object({
@@ -41,7 +40,7 @@ export function UserAuthForm({
 }: UserAuthFormProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { loading } = useSelector((state: AppState) => state.auth);
+  const { loading } = useSelector((state: AppState) => state?.auth);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,41 +49,36 @@ export function UserAuthForm({
     },
   });
 
-
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    try {
-      const resultAction = await dispatch(
-        loginAdmin({
-          email: data.email,
-          password: data.password,
-        })
-      );
+    const resultAction = await dispatch(
+      loginAdmin({
+        email: data.email,
+        password: data.password,
+      })
+    );
 
+    // console.log("Result Action:", resultAction);
 
-      if (loginAdmin.fulfilled.match(resultAction)) {
-        const { user } = resultAction.payload;
-
-        Swal.fire({
-          title: "Login Successful 🎉",
-          text: `Welcome back, ${user?.email || "Admin"}!`,
-          icon: "success",
-          confirmButtonColor: "#2563eb",
-        });
-
-        navigate({ to: redirectTo || "/", replace: true });
-      } else {
-        throw new Error("Login failed");
-      }
-    } catch (error: any) {
-      console.log("Login error:", error);
+    if (resultAction.payload?.success) {
       Swal.fire({
-        title: "Login Failed 😞",
-        text: error?.message || "Please check your credentials.",
-        icon: "error",
-        confirmButtonColor: "#ef4444",
+        icon: "success",
+        title: resultAction.payload?.message || "Login successful",
+        showConfirmButton: false,
+        timer: 1500,
       });
+      navigate({ to: redirectTo || "/" });
+
+    }
+    else {
+      Swal.fire({
+        icon: "error",
+        title: "Login failed",
+        text: resultAction.payload?.message || "Something went wrong!",
+      });
+      return;
     }
   };
+
 
   return (
     <Form {...form}>
@@ -143,13 +137,11 @@ export function UserAuthForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-1">
           <Button variant="outline" type="button" disabled={loading}>
-            <IconGithub className="h-4 w-4" /> GitHub
+            <IconGmail className="h-4 w-4" /> Google
           </Button>
-          <Button variant="outline" type="button" disabled={loading}>
-            <IconFacebook className="h-4 w-4" /> Facebook
-          </Button>
+       
         </div>
       </form>
     </Form>

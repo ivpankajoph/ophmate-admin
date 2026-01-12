@@ -1,5 +1,6 @@
-import { useState, DragEvent } from "react";
+"use client";
 
+import { useState, DragEvent } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,17 +11,62 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload, FileSpreadsheet, XCircle } from "lucide-react";
+import {
+  Loader2,
+  Upload,
+  FileSpreadsheet,
+  XCircle,
+  Download,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store";
 import { uploadCategories } from "@/store/slices/admin/categorySlice";
 
+/* ================================
+   Download CSV Template
+================================ */
+const downloadCategoryTemplate = () => {
+  const headers = [
+    "name",
+    "description",
+    "meta_title",
+    "meta_description",
+    "meta_keywords",
+    "image_url",
+  ];
+
+  const sampleRow = [
+    "Electronics",
+    "All electronic products",
+    "Electronics Store",
+    "Buy electronics online",
+    "electronics,gadgets",
+    "https://example.com/image.jpg",
+  ];
+
+  const csvContent =
+    headers.join(",") + "\n" + sampleRow.join(",");
+
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", "category-template.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function UploadCategoryDialog() {
   const dispatch = useDispatch<AppDispatch>();
-  const { uploadStatus } = useSelector((s:any) => s.categories);
+  const { uploadStatus } = useSelector((s: any) => s.categories);
+
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [open, setOpen] = useState(false);
@@ -35,7 +81,8 @@ export default function UploadCategoryDialog() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+
+    if (e.dataTransfer.files?.length > 0) {
       setFile(e.dataTransfer.files[0]);
     }
   };
@@ -61,7 +108,8 @@ export default function UploadCategoryDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="space-x-1">
-          <span>Upload Excel</span> <Upload size={18} />
+          <span>Upload Excel</span>
+          <Upload size={18} />
         </Button>
       </DialogTrigger>
 
@@ -69,8 +117,22 @@ export default function UploadCategoryDialog() {
         <DialogHeader>
           <DialogTitle>Upload Category File</DialogTitle>
           <DialogDescription>
-            Upload an <strong>Excel (.xlsx)</strong> or <strong>CSV</strong> file containing your category and subcategory data.
+            Upload an <strong>Excel (.xlsx)</strong> or{" "}
+            <strong>CSV</strong> file with category data.
+            <br />
+            Download the template to ensure correct columns.
           </DialogDescription>
+
+          {/* Download Template */}
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-3 w-fit"
+            onClick={downloadCategoryTemplate}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Template
+          </Button>
         </DialogHeader>
 
         {/* Drag & Drop Area */}
@@ -85,7 +147,9 @@ export default function UploadCategoryDialog() {
           }}
           onDrop={handleDrop}
           className={`mt-4 flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${
-            isDragging ? "border-primary bg-primary/10" : "border-muted bg-muted/30 hover:bg-muted/50"
+            isDragging
+              ? "border-primary bg-primary/10"
+              : "border-muted bg-muted/30 hover:bg-muted/50"
           }`}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
@@ -95,7 +159,10 @@ export default function UploadCategoryDialog() {
               <Upload className="w-10 h-10 text-primary mb-2" />
               <p className="text-sm text-muted-foreground">
                 Drag & drop your file here or{" "}
-                <label htmlFor="file-upload" className="text-primary font-medium cursor-pointer">
+                <label
+                  htmlFor="file-upload"
+                  className="text-primary font-medium cursor-pointer"
+                >
                   browse
                 </label>
               </p>
@@ -115,7 +182,9 @@ export default function UploadCategoryDialog() {
             >
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="text-primary" size={22} />
-                <span className="text-sm font-medium truncate max-w-[180px]">{file.name}</span>
+                <span className="text-sm font-medium truncate max-w-[180px]">
+                  {file.name}
+                </span>
               </div>
               <button
                 onClick={() => setFile(null)}
@@ -131,10 +200,14 @@ export default function UploadCategoryDialog() {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleUpload} disabled={uploadStatus === "loading"}>
+          <Button
+            onClick={handleUpload}
+            disabled={uploadStatus === "loading"}
+          >
             {uploadStatus === "loading" ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
               </>
             ) : (
               "Upload"
