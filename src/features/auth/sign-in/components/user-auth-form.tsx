@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import { cn } from "@/lib/utils";
-import { IconFacebook, IconGithub, IconGmail } from "@/assets/brand-icons";
+import {  IconGmail } from "@/assets/brand-icons";
 import { loginAdmin } from "@/store/slices/authSlice";
 
 const formSchema = z.object({
