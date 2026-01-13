@@ -119,7 +119,7 @@ export default function VariantSection({ state, actions }: any) {
                       <Input
                         type='number'
                         min='0'
-                        max='100'
+                    
                         value={variant.final_price}
                         onChange={(e) =>
                           onUpdateVariantField(
