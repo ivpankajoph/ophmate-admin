@@ -24,7 +24,7 @@ interface Product {
   faqs: Array<{ question: string; answer: string }>
 }
 
-const VendorProductsTable = () => {
+const AdminProductsTable = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -34,12 +34,12 @@ const VendorProductsTable = () => {
     fetchProducts()
   }, [])
 
-  const vendorId = useSelector((state: any) => state.auth.user.id)
+
   const token = useSelector((state: any) => state.auth.token)
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/products/vendor/${vendorId}`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/products/all`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -455,4 +455,4 @@ const VendorProductsTable = () => {
   )
 }
 
-export default VendorProductsTable
+export default AdminProductsTable

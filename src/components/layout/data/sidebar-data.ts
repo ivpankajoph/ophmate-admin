@@ -102,6 +102,10 @@ export const sidebarData: SidebarData = {
               title: 'Create Products',
               url: '/products/create-products',
             },
+             {
+              title: 'All Admin Products',
+              url: '/products/admin-products',
+            },
           ],
         },
       ],

@@ -43,6 +43,7 @@ import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedProductsCreateProductsIndexRouteImport } from './routes/_authenticated/products/create-products/index'
+import { Route as AuthenticatedProductsAdminProductsIndexRouteImport } from './routes/_authenticated/products/admin-products/index'
 import { Route as AuthenticatedCategoryCreateCategoryIndexRouteImport } from './routes/_authenticated/category/create-category/index'
 
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
@@ -226,6 +227,12 @@ const AuthenticatedProductsCreateProductsIndexRoute =
     path: '/products/create-products/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProductsAdminProductsIndexRoute =
+  AuthenticatedProductsAdminProductsIndexRouteImport.update({
+    id: '/products/admin-products/',
+    path: '/products/admin-products/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCategoryCreateCategoryIndexRoute =
   AuthenticatedCategoryCreateCategoryIndexRouteImport.update({
     id: '/category/create-category/',
@@ -265,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/vendor-template': typeof AuthenticatedVendorTemplateIndexRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
   '/category/create-category': typeof AuthenticatedCategoryCreateCategoryIndexRoute
+  '/products/admin-products': typeof AuthenticatedProductsAdminProductsIndexRoute
   '/products/create-products': typeof AuthenticatedProductsCreateProductsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -299,6 +307,7 @@ export interface FileRoutesByTo {
   '/vendor-template': typeof AuthenticatedVendorTemplateIndexRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
   '/category/create-category': typeof AuthenticatedCategoryCreateCategoryIndexRoute
+  '/products/admin-products': typeof AuthenticatedProductsAdminProductsIndexRoute
   '/products/create-products': typeof AuthenticatedProductsCreateProductsIndexRoute
 }
 export interface FileRoutesById {
@@ -337,6 +346,7 @@ export interface FileRoutesById {
   '/_authenticated/vendor-template/': typeof AuthenticatedVendorTemplateIndexRoute
   '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
   '/_authenticated/category/create-category/': typeof AuthenticatedCategoryCreateCategoryIndexRoute
+  '/_authenticated/products/admin-products/': typeof AuthenticatedProductsAdminProductsIndexRoute
   '/_authenticated/products/create-products/': typeof AuthenticatedProductsCreateProductsIndexRoute
 }
 export interface FileRouteTypes {
@@ -373,6 +383,7 @@ export interface FileRouteTypes {
     | '/vendor-template'
     | '/vendor'
     | '/category/create-category'
+    | '/products/admin-products'
     | '/products/create-products'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/vendor-template'
     | '/vendor'
     | '/category/create-category'
+    | '/products/admin-products'
     | '/products/create-products'
   id:
     | '__root__'
@@ -444,6 +456,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendor-template/'
     | '/_authenticated/vendor/'
     | '/_authenticated/category/create-category/'
+    | '/_authenticated/products/admin-products/'
     | '/_authenticated/products/create-products/'
   fileRoutesById: FileRoutesById
 }
@@ -702,6 +715,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsCreateProductsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/products/admin-products/': {
+      id: '/_authenticated/products/admin-products/'
+      path: '/products/admin-products'
+      fullPath: '/products/admin-products'
+      preLoaderRoute: typeof AuthenticatedProductsAdminProductsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/category/create-category/': {
       id: '/_authenticated/category/create-category/'
       path: '/category/create-category'
@@ -730,6 +750,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedVendorTemplateIndexRoute: typeof AuthenticatedVendorTemplateIndexRoute
   AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
   AuthenticatedCategoryCreateCategoryIndexRoute: typeof AuthenticatedCategoryCreateCategoryIndexRoute
+  AuthenticatedProductsAdminProductsIndexRoute: typeof AuthenticatedProductsAdminProductsIndexRoute
   AuthenticatedProductsCreateProductsIndexRoute: typeof AuthenticatedProductsCreateProductsIndexRoute
 }
 
@@ -755,6 +776,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
   AuthenticatedCategoryCreateCategoryIndexRoute:
     AuthenticatedCategoryCreateCategoryIndexRoute,
+  AuthenticatedProductsAdminProductsIndexRoute:
+    AuthenticatedProductsAdminProductsIndexRoute,
   AuthenticatedProductsCreateProductsIndexRoute:
     AuthenticatedProductsCreateProductsIndexRoute,
 }
