@@ -516,7 +516,7 @@ const ProductCreateForm: React.FC = () => {
   // --- Submit Handler ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
- 
+
     setLoading(true)
     try {
       const payload = {
@@ -719,7 +719,7 @@ const ProductCreateForm: React.FC = () => {
             </div>
           </div>
 
-          <form >
+          <form>
             {renderCurrentStep()}
 
             <div className='mt-8 flex justify-between'>
@@ -731,30 +731,27 @@ const ProductCreateForm: React.FC = () => {
               >
                 Previous
               </button>
-            
             </div>
           </form>
-            {currentStep < 6 ? (
-                <button
-                  type='button'
-                  onClick={() =>
-                    setCurrentStep((prev) => Math.min(6, prev + 1))
-                  }
-                  className='rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 mt-5'
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  type='submit'
-                  disabled={loading}
-                  onClick={handleSubmit}
-                  className='flex items-center space-x-2 rounded-lg bg-green-600 px-6 py-3 text-white hover:bg-green-700 disabled:opacity-50 mt-5'
-                >
-                  {loading && <Loader2 className='h-5 w-5 animate-spin' />}
-                  <span>{loading ? 'Creating...' : 'Create Product'}</span>
-                </button>
-              )}
+          {currentStep < 6 ? (
+            <button
+              type='button'
+              onClick={() => setCurrentStep((prev) => Math.min(6, prev + 1))}
+              className='mt-5 rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700'
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type='submit'
+              disabled={loading}
+              onClick={handleSubmit}
+              className='mt-5 flex items-center space-x-2 rounded-lg bg-green-600 px-6 py-3 text-white hover:bg-green-700 disabled:opacity-50'
+            >
+              {loading && <Loader2 className='h-5 w-5 animate-spin' />}
+              <span>{loading ? 'Creating...' : 'Create Product'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
