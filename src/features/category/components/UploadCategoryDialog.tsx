@@ -29,11 +29,11 @@ import { uploadCategories } from "@/store/slices/admin/categorySlice";
 ================================ */
 const downloadCategoryTemplate = () => {
   const headers = [
-    "name",
+    "category_name",
     "description",
-    "meta_title",
-    "meta_description",
-    "meta_keywords",
+    "metaTitle",
+    "metaDescription",
+    "metaKeywords",
     "image_url",
   ];
 

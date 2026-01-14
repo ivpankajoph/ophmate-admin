@@ -35,14 +35,26 @@ export default function UploadSubCategoryDialog() {
       setFile(e.target.files[0])
     }
   }
+
   const downloadCategoryTemplate = () => {
-    const headers = ['name', 'description', 'category_name', 'image_url']
+    const headers = [
+      'subcategory_name',
+      'description',
+      'image_url',
+      'metaTitle',
+      'metaDescription',
+      'metaKeywords',
+      'category_name',
+    ]
 
     const sampleRow = [
       'Electronics',
       'All electronic products',
-      'electronics,gadgets',
       'https://example.com/image.jpg',
+      'Electronics Store',
+      'Buy electronics online',
+      'electronics,gadgets',
+      'Electronics',
     ]
 
     const csvContent = headers.join(',') + '\n' + sampleRow.join(',')
@@ -54,7 +66,7 @@ export default function UploadSubCategoryDialog() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', 'category-template.csv')
+    link.setAttribute('download', 'sub-category-template.csv')
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

@@ -1,7 +1,10 @@
 // src/components/ProductCreate/index.tsx
 import React, { useState, useEffect } from 'react'
+import { AppDispatch } from '@/store'
+import { getAllCategories } from '@/store/slices/admin/categorySlice'
 import { Loader2 } from 'lucide-react'
 import { useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { generateSpecifications, generateWithAI } from './aiHelpers'
 import { deleteFromCloudinary, uploadToCloudinary } from './cloudinary'
 import Step1BasicInfo from './components/Step1BasicInfo'
@@ -125,8 +128,12 @@ const ProductCreateForm: React.FC = () => {
   const [tempAttributeKey, setTempAttributeKey] = useState('')
   const [tempAttributeValue, setTempAttributeValue] = useState('')
   const [variantMetaKeywordInput, setVariantMetaKeywordInput] = useState('')
+  const dispatch = useDispatch<AppDispatch>()
 
-  // 🔁 Fetch subcategories from API when selectedCategoryId changes
+  useEffect(() => {
+    dispatch(getAllCategories())
+  }, [dispatch])
+
   useEffect(() => {
     if (!selectedCategoryId) {
       setFilteredSubcategories([])
