@@ -53,7 +53,7 @@ export default function UploadSubCategoryDialog() {
       'https://example.com/image.jpg',
       'Electronics Store',
       'Buy electronics online',
-      'electronics,gadgets',
+      'electronics',
       'Electronics',
     ]
 
