@@ -30,6 +30,7 @@ import { Route as AuthenticatedVendorTemplateOtherIndexRouteImport } from './rou
 import { Route as AuthenticatedVendorTemplateContactIndexRouteImport } from './routes/_authenticated/vendor-template-contact/index'
 import { Route as AuthenticatedVendorTemplateAboutIndexRouteImport } from './routes/_authenticated/vendor-template-about/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
+import { Route as AuthenticatedUploadProductsIndexRouteImport } from './routes/_authenticated/upload-products/index'
 import { Route as AuthenticatedSubcategoryIndexRouteImport } from './routes/_authenticated/subcategory/index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products/index'
@@ -153,6 +154,12 @@ const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedUploadProductsIndexRoute =
+  AuthenticatedUploadProductsIndexRouteImport.update({
+    id: '/upload-products/',
+    path: '/upload-products/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSubcategoryIndexRoute =
   AuthenticatedSubcategoryIndexRouteImport.update({
     id: '/subcategory/',
@@ -265,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof AuthenticatedProductsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
+  '/upload-products': typeof AuthenticatedUploadProductsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/vendor-template-about': typeof AuthenticatedVendorTemplateAboutIndexRoute
   '/vendor-template-contact': typeof AuthenticatedVendorTemplateContactIndexRoute
@@ -300,6 +308,7 @@ export interface FileRoutesByTo {
   '/products': typeof AuthenticatedProductsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
+  '/upload-products': typeof AuthenticatedUploadProductsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/vendor-template-about': typeof AuthenticatedVendorTemplateAboutIndexRoute
   '/vendor-template-contact': typeof AuthenticatedVendorTemplateContactIndexRoute
@@ -339,6 +348,7 @@ export interface FileRoutesById {
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/subcategory/': typeof AuthenticatedSubcategoryIndexRoute
+  '/_authenticated/upload-products/': typeof AuthenticatedUploadProductsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/vendor-template-about/': typeof AuthenticatedVendorTemplateAboutIndexRoute
   '/_authenticated/vendor-template-contact/': typeof AuthenticatedVendorTemplateContactIndexRoute
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/profile'
     | '/subcategory'
+    | '/upload-products'
     | '/users'
     | '/vendor-template-about'
     | '/vendor-template-contact'
@@ -411,6 +422,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/profile'
     | '/subcategory'
+    | '/upload-products'
     | '/users'
     | '/vendor-template-about'
     | '/vendor-template-contact'
@@ -449,6 +461,7 @@ export interface FileRouteTypes {
     | '/_authenticated/products/'
     | '/_authenticated/profile/'
     | '/_authenticated/subcategory/'
+    | '/_authenticated/upload-products/'
     | '/_authenticated/users/'
     | '/_authenticated/vendor-template-about/'
     | '/_authenticated/vendor-template-contact/'
@@ -624,6 +637,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/upload-products/': {
+      id: '/_authenticated/upload-products/'
+      path: '/upload-products'
+      fullPath: '/upload-products'
+      preLoaderRoute: typeof AuthenticatedUploadProductsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/subcategory/': {
       id: '/_authenticated/subcategory/'
       path: '/subcategory'
@@ -743,6 +763,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
   AuthenticatedSubcategoryIndexRoute: typeof AuthenticatedSubcategoryIndexRoute
+  AuthenticatedUploadProductsIndexRoute: typeof AuthenticatedUploadProductsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedVendorTemplateAboutIndexRoute: typeof AuthenticatedVendorTemplateAboutIndexRoute
   AuthenticatedVendorTemplateContactIndexRoute: typeof AuthenticatedVendorTemplateContactIndexRoute
@@ -765,6 +786,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   AuthenticatedSubcategoryIndexRoute: AuthenticatedSubcategoryIndexRoute,
+  AuthenticatedUploadProductsIndexRoute: AuthenticatedUploadProductsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedVendorTemplateAboutIndexRoute:
     AuthenticatedVendorTemplateAboutIndexRoute,

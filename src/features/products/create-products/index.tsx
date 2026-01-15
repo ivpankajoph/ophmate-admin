@@ -13,6 +13,8 @@ import Step3Specifications from './components/Step3Specifications'
 import Step4SEO from './components/Step4SEO'
 import Step5Variants from './components/Step5Variants'
 import Step6FAQs from './components/Step6FAQs'
+import { Button } from '@/components/ui/button'
+import { Link } from '@tanstack/react-router'
 
 // Interfaces
 interface ImageUpload {
@@ -701,6 +703,13 @@ const ProductCreateForm: React.FC = () => {
           <h1 className='mb-8 text-3xl font-bold text-gray-900'>
             Create New Product
           </h1>
+
+          <Link to='/upload-products'>
+            <Button variant='outline' className='mb-12 bg-black text-white'>
+              Upload Excel or Download Template
+            </Button>
+            
+          </Link>
 
           {/* Progress Bar */}
           <div className='mb-8'>
