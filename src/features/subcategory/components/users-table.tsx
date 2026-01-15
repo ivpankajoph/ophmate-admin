@@ -58,7 +58,6 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     columnFilters: [
       // username per-column text filter
       { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
       { columnId: 'role', searchKey: 'role', type: 'array' },
     ],
   })
@@ -104,16 +103,16 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
         searchPlaceholder='Filter users...'
         searchKey='username'
         filters={[
-          {
-            columnId: 'status',
-            title: 'Status',
-            options: [
-              { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Invited', value: 'invited' },
-              { label: 'Suspended', value: 'suspended' },
-            ],
-          },
+          // {
+          //   columnId: 'status',
+          //   title: 'Status',
+          //   options: [
+          //     { label: 'Active', value: 'active' },
+          //     { label: 'Inactive', value: 'inactive' },
+          //     { label: 'Invited', value: 'invited' },
+          //     { label: 'Suspended', value: 'suspended' },
+          //   ],
+          // },
           {
             columnId: 'role',
             title: 'Role',

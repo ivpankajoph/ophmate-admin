@@ -1,41 +1,42 @@
-import { useState, useEffect } from 'react'
-import { Eye, Package, X, Box, Tag, TrendingUp } from 'lucide-react'
-import { useSelector } from 'react-redux'
+import { useState, useEffect } from 'react';
+import { Eye, Package, X, Box, Tag, TrendingUp } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 interface Product {
-  _id: string
-  productName: string
-  brand: string
-  shortDescription: string
-  description: string
-  defaultImages: Array<{ url: string }>
+  _id: string;
+  productName: string;
+  brand: string;
+  shortDescription: string;
+  description: string;
+  defaultImages: Array<{ url: string }>;
   variants: Array<{
-    variantSku: string
-    variantAttributes: Record<string, string>
-    actualPrice: number
-    discountPercent: number
-    finalPrice: number
-    stockQuantity: number
-    variantsImageUrls: Array<{ url: string }>
-  }>
-  status: string
-  createdAt: string
-  specifications: Array<Record<string, any>>
-  faqs: Array<{ question: string; answer: string }>
+    variantSku: string;
+    variantAttributes: Record<string, string>;
+    actualPrice: number;
+    discountPercent: number;
+    finalPrice: number;
+    stockQuantity: number;
+    variantsImageUrls: Array<{ url: string }>;
+  }>;
+  status: string;
+  createdAt: string;
+  specifications: Array<Record<string, any>>;
+  faqs: Array<{ question: string; answer: string }>;
 }
 
 const VendorProductsTable = () => {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [error, setError] = useState('')
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    fetchProducts();
+  }, []);
 
-  const vendorId = useSelector((state: any) => state.auth.user.id)
-  const token = useSelector((state: any) => state.auth.token)
+  const vendorId = useSelector((state: any) => state.auth.user?.id);
+  const token = useSelector((state: any) => state.auth.token);
+
   const fetchProducts = async () => {
     try {
       const response = await fetch(
@@ -45,32 +46,49 @@ const VendorProductsTable = () => {
             Authorization: `Bearer ${token}`,
           },
         }
-      )
-      const data = await response.json()
-      setProducts(data.products || [])
-      setLoading(false)
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // Ensure products is always an array
+      setProducts(Array.isArray(data.products) ? data.products : []);
+      setLoading(false);
     } catch (err) {
-      setError('Failed to fetch products')
-      setLoading(false)
+      console.error('Fetch products error:', err);
+      setError('Failed to fetch products');
+      setLoading(false);
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'approved':
-        return 'bg-green-100 text-green-700 border-green-200'
+        return 'bg-green-100 text-green-700 border-green-200';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200'
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'rejected':
-        return 'bg-red-100 text-red-700 border-red-200'
+        return 'bg-red-100 text-red-700 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200'
+        return 'bg-gray-100 text-gray-700 border-gray-200';
     }
-  }
+  };
 
-  const getTotalStock = (variants: any[]) => {
-    return variants.reduce((sum, v) => sum + v.stockQuantity, 0)
-  }
+  const getTotalStock = (variants: any[] = []) => {
+    return variants.reduce((sum, v) => sum + (v?.stockQuantity || 0), 0);
+  };
+
+  const safeMin = (arr: number[]) => {
+    if (!arr.length) return 0;
+    return Math.min(...arr);
+  };
+
+  const safeMax = (arr: number[]) => {
+    if (!arr.length) return 0;
+    return Math.max(...arr);
+  };
 
   if (loading) {
     return (
@@ -80,7 +98,7 @@ const VendorProductsTable = () => {
           <p className='mt-4 font-medium text-slate-600'>Loading products...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -90,7 +108,7 @@ const VendorProductsTable = () => {
           <p className='text-lg font-semibold text-red-700'>{error}</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -133,7 +151,7 @@ const VendorProductsTable = () => {
                   Total Variants
                 </p>
                 <p className='mt-1 text-3xl font-bold text-slate-800'>
-                  {products.reduce((sum, p) => sum + p.variants.length, 0)}
+                  {products.reduce((sum, p) => sum + (Array.isArray(p.variants) ? p.variants.length : 0), 0)}
                 </p>
               </div>
               <div className='rounded-xl bg-purple-100 p-4'>
@@ -149,7 +167,7 @@ const VendorProductsTable = () => {
                 </p>
                 <p className='mt-1 text-3xl font-bold text-slate-800'>
                   {products.reduce(
-                    (sum, p) => sum + getTotalStock(p.variants),
+                    (sum, p) => sum + getTotalStock(Array.isArray(p.variants) ? p.variants : []),
                     0
                   )}
                 </p>
@@ -191,80 +209,86 @@ const VendorProductsTable = () => {
                 </tr>
               </thead>
               <tbody className='divide-y divide-slate-200'>
-                {products.map((product) => (
-                  <tr
-                    key={product._id}
-                    className='transition-colors duration-150 hover:bg-indigo-50'
-                  >
-                    <td className='px-6 py-4'>
-                      <div className='flex items-center gap-4'>
-                        <img
-                          src={product.defaultImages[0]?.url}
-                          alt={product.productName}
-                          className='h-16 w-16 rounded-xl border-2 border-slate-200 object-cover shadow-sm'
-                        />
-                        <div className='max-w-xs'>
-                          <p className='truncate font-semibold text-slate-800'>
-                            {product.productName}
-                          </p>
-                          <p className='truncate text-sm text-slate-500'>
-                            {product.shortDescription}
-                          </p>
+                {products.map((product) => {
+                  const variants = Array.isArray(product.variants) ? product.variants : [];
+                  const prices = variants.map(v => v?.finalPrice || 0).filter(p => typeof p === 'number' && !isNaN(p));
+                  const minPrice = prices.length ? safeMin(prices) : 0;
+                  const maxPrice = prices.length ? safeMax(prices) : 0;
+
+                  return (
+                    <tr
+                      key={product._id || Math.random().toString()}
+                      className='transition-colors duration-150 hover:bg-indigo-50'
+                    >
+                      <td className='px-6 py-4'>
+                        <div className='flex items-center gap-4'>
+                          <img
+                            src={product.defaultImages?.[0]?.url || ''}
+                            alt={product.productName || 'Product'}
+                            className='h-16 w-16 rounded-xl border-2 border-slate-200 object-cover shadow-sm'
+                            onError={(e) => (e.currentTarget.src = '/fallback-image.png')}
+                          />
+                          <div className='max-w-xs'>
+                            <p className='truncate font-semibold text-slate-800'>
+                              {product.productName || 'Unnamed Product'}
+                            </p>
+                            <p className='truncate text-sm text-slate-500'>
+                              {product.shortDescription || 'No description'}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className='px-6 py-4'>
-                      <span className='font-medium text-slate-700'>
-                        {product.brand}
-                      </span>
-                    </td>
-                    <td className='px-6 py-4'>
-                      <span className='inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700'>
-                        {product.variants.length} variants
-                      </span>
-                    </td>
-                    <td className='px-6 py-4'>
-                      <span className='font-semibold text-slate-800'>
-                        {getTotalStock(product.variants)} units
-                      </span>
-                    </td>
-                    <td className='px-6 py-4'>
-                      <div className='flex flex-col gap-1'>
-                        <span className='text-sm font-semibold text-slate-800'>
-                          ₹
-                          {Math.min(
-                            ...product.variants.map((v) => v.finalPrice)
-                          ).toLocaleString()}
+                      </td>
+                      <td className='px-6 py-4'>
+                        <span className='font-medium text-slate-700'>
+                          {product.brand || '—'}
                         </span>
-                        <span className='text-xs text-slate-500'>
-                          to ₹
-                          {Math.max(
-                            ...product.variants.map((v) => v.finalPrice)
-                          ).toLocaleString()}
+                      </td>
+                      <td className='px-6 py-4'>
+                        <span className='inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700'>
+                          {variants.length} variant{variants.length !== 1 ? 's' : ''}
                         </span>
-                      </div>
-                    </td>
-                    <td className='px-6 py-4'>
-                      <span
-                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getStatusColor(
-                          product.status
-                        )}`}
-                      >
-                        {product.status.charAt(0).toUpperCase() +
-                          product.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className='px-6 py-4 text-center'>
-                      <button
-                        onClick={() => setSelectedProduct(product)}
-                        className='inline-flex transform items-center gap-2 rounded-lg bg-gray-600 px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-lg'
-                      >
-                        <Eye className='h-4 w-4' />
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className='px-6 py-4'>
+                        <span className='font-semibold text-slate-800'>
+                          {getTotalStock(variants)} units
+                        </span>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <div className='flex flex-col gap-1'>
+                          <span className='text-sm font-semibold text-slate-800'>
+                            ₹{minPrice.toLocaleString()}
+                          </span>
+                          {minPrice !== maxPrice && (
+                            <span className='text-xs text-slate-500'>
+                              to ₹{maxPrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <span
+                          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${getStatusColor(
+                            product.status || 'unknown'
+                          )}`}
+                        >
+                          {(product.status || 'Unknown')
+                            .charAt(0)
+                            .toUpperCase() +
+                            (product.status || 'Unknown').slice(1).toLowerCase()}
+                        </span>
+                      </td>
+                      <td className='px-6 py-4 text-center'>
+                        <button
+                          onClick={() => setSelectedProduct(product)}
+                          className='inline-flex transform items-center gap-2 rounded-lg bg-gray-600 px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-lg'
+                        >
+                          <Eye className='h-4 w-4' />
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -290,144 +314,159 @@ const VendorProductsTable = () => {
               {/* Product Images */}
               <div className='mb-8'>
                 <img
-                  src={selectedProduct.defaultImages[0]?.url}
-                  alt={selectedProduct.productName}
+                  src={selectedProduct.defaultImages?.[0]?.url || '/fallback-image.png'}
+                  alt={selectedProduct.productName || 'Product'}
                   className='h-96 w-full rounded-2xl object-cover shadow-lg'
+                  onError={(e) => (e.currentTarget.src = '/fallback-image.png')}
                 />
               </div>
 
               {/* Basic Info */}
               <div className='mb-8'>
                 <h3 className='mb-2 text-3xl font-bold text-slate-800'>
-                  {selectedProduct.productName}
+                  {selectedProduct.productName || 'Unnamed Product'}
                 </h3>
                 <p className='mb-4 text-slate-600'>
-                  {selectedProduct.description}
+                  {selectedProduct.description || 'No description available.'}
                 </p>
                 <div className='flex items-center gap-4'>
                   <span className='rounded-lg bg-indigo-100 px-4 py-2 font-semibold text-indigo-700'>
-                    {selectedProduct.brand}
+                    {selectedProduct.brand || '—'}
                   </span>
                   <span
                     className={`rounded-lg border px-4 py-2 font-semibold ${getStatusColor(
-                      selectedProduct.status
+                      selectedProduct.status || 'unknown'
                     )}`}
                   >
-                    {selectedProduct.status.charAt(0).toUpperCase() +
-                      selectedProduct.status.slice(1)}
+                    {(selectedProduct.status || 'Unknown')
+                      .charAt(0)
+                      .toUpperCase() +
+                      (selectedProduct.status || 'Unknown').slice(1).toLowerCase()}
                   </span>
                 </div>
               </div>
 
               {/* Specifications */}
-              {selectedProduct.specifications.length > 0 && (
-                <div className='mb-8'>
-                  <h4 className='mb-4 flex items-center gap-2 text-xl font-bold text-slate-800'>
-                    <Box className='h-5 w-5 text-indigo-600' />
-                    Specifications
-                  </h4>
-                  <div className='rounded-2xl border border-slate-200 bg-slate-50 p-6'>
-                    <div className='grid grid-cols-2 gap-4'>
-                      {Object.entries(selectedProduct.specifications[0]).map(
-                        ([key, value]) => (
-                          <div key={key} className='flex flex-col'>
-                            <span className='text-sm font-medium text-slate-500 capitalize'>
-                              {key}
-                            </span>
-                            <span className='font-semibold text-slate-800'>
-                              {typeof value === 'boolean'
-                                ? value
-                                  ? 'Yes'
-                                  : 'No'
-                                : String(value)}
-                            </span>
-                          </div>
-                        )
-                      )}
+              {Array.isArray(selectedProduct.specifications) &&
+                selectedProduct.specifications.length > 0 &&
+                selectedProduct.specifications[0] &&
+                Object.keys(selectedProduct.specifications[0]).length > 0 && (
+                  <div className='mb-8'>
+                    <h4 className='mb-4 flex items-center gap-2 text-xl font-bold text-slate-800'>
+                      <Box className='h-5 w-5 text-indigo-600' />
+                      Specifications
+                    </h4>
+                    <div className='rounded-2xl border border-slate-200 bg-slate-50 p-6'>
+                      <div className='grid grid-cols-2 gap-4'>
+                        {Object.entries(selectedProduct.specifications[0]).map(
+                          ([key, value]) => (
+                            <div key={key} className='flex flex-col'>
+                              <span className='text-sm font-medium text-slate-500 capitalize'>
+                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                              </span>
+                              <span className='font-semibold text-slate-800'>
+                                {typeof value === 'boolean'
+                                  ? value
+                                    ? 'Yes'
+                                    : 'No'
+                                  : String(value ?? '—')}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Variants */}
               <div className='mb-8'>
                 <h4 className='mb-4 flex items-center gap-2 text-xl font-bold text-slate-800'>
                   <Tag className='h-5 w-5 text-indigo-600' />
-                  Available Variants ({selectedProduct.variants.length})
+                  Available Variants (
+                  {Array.isArray(selectedProduct.variants)
+                    ? selectedProduct.variants.length
+                    : 0}
+                  )
                 </h4>
                 <div className='space-y-4'>
-                  {selectedProduct.variants.map((variant) => (
-                    <div
-                      key={variant.variantSku}
-                      className='rounded-2xl border-2 border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 p-6 transition-colors hover:border-indigo-300'
-                    >
-                      <div className='flex items-start gap-6'>
-                        {variant.variantsImageUrls[0] && (
-                          <img
-                            src={variant.variantsImageUrls[0].url}
-                            alt={variant.variantSku}
-                            className='h-24 w-24 rounded-xl border-2 border-white object-cover shadow-md'
-                          />
-                        )}
-                        <div className='flex-1'>
-                          <div className='mb-3 flex items-center gap-3'>
-                            {Object.entries(variant.variantAttributes).map(
-                              ([key, value]) => (
+                  {(Array.isArray(selectedProduct.variants)
+                    ? selectedProduct.variants
+                    : []
+                  ).map((variant, idx) => {
+                    const attrs = variant.variantAttributes || {};
+                    return (
+                      <div
+                        key={variant.variantSku || idx}
+                        className='rounded-2xl border-2 border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50 p-6 transition-colors hover:border-indigo-300'
+                      >
+                        <div className='flex items-start gap-6'>
+                          {variant.variantsImageUrls?.[0]?.url && (
+                            <img
+                              src={variant.variantsImageUrls[0].url}
+                              alt={variant.variantSku || 'Variant'}
+                              className='h-24 w-24 rounded-xl border-2 border-white object-cover shadow-md'
+                              onError={(e) => (e.currentTarget.src = '/fallback-image.png')}
+                            />
+                          )}
+                          <div className='flex-1'>
+                            <div className='mb-3 flex flex-wrap items-center gap-2'>
+                              {Object.entries(attrs).map(([key, value]) => (
                                 <span
                                   key={key}
                                   className='rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-700 capitalize'
                                 >
-                                  {value}
+                                  {String(value || '—')}
                                 </span>
-                              )
-                            )}
+                              ))}
+                            </div>
+                            <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
+                              <div>
+                                <p className='text-xs font-medium text-slate-500'>
+                                  Original Price
+                                </p>
+                                <p className='text-lg font-bold text-slate-400 line-through'>
+                                  ₹{(variant.actualPrice || 0).toLocaleString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className='text-xs font-medium text-slate-500'>
+                                  Final Price
+                                </p>
+                                <p className='text-lg font-bold text-green-600'>
+                                  ₹{(variant.finalPrice || 0).toLocaleString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className='text-xs font-medium text-slate-500'>
+                                  Discount
+                                </p>
+                                <p className='text-lg font-bold text-orange-600'>
+                                  {(variant.discountPercent || 0)}% OFF
+                                </p>
+                              </div>
+                              <div>
+                                <p className='text-xs font-medium text-slate-500'>
+                                  Stock
+                                </p>
+                                <p className='text-lg font-bold text-indigo-600'>
+                                  {(variant.stockQuantity || 0)} units
+                                </p>
+                              </div>
+                            </div>
+                            <p className='mt-3 font-mono text-xs text-slate-400'>
+                              SKU: {variant.variantSku || '—'}
+                            </p>
                           </div>
-                          <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-                            <div>
-                              <p className='text-xs font-medium text-slate-500'>
-                                Original Price
-                              </p>
-                              <p className='text-lg font-bold text-slate-400 line-through'>
-                                ₹{variant.actualPrice.toLocaleString()}
-                              </p>
-                            </div>
-                            <div>
-                              <p className='text-xs font-medium text-slate-500'>
-                                Final Price
-                              </p>
-                              <p className='text-lg font-bold text-green-600'>
-                                ₹{variant.finalPrice.toLocaleString()}
-                              </p>
-                            </div>
-                            <div>
-                              <p className='text-xs font-medium text-slate-500'>
-                                Discount
-                              </p>
-                              <p className='text-lg font-bold text-orange-600'>
-                                {variant.discountPercent}% OFF
-                              </p>
-                            </div>
-                            <div>
-                              <p className='text-xs font-medium text-slate-500'>
-                                Stock
-                              </p>
-                              <p className='text-lg font-bold text-indigo-600'>
-                                {variant.stockQuantity} units
-                              </p>
-                            </div>
-                          </div>
-                          <p className='mt-3 font-mono text-xs text-slate-400'>
-                            SKU: {variant.variantSku}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
               {/* FAQs */}
-              {selectedProduct.faqs.length > 0 && (
+              {Array.isArray(selectedProduct.faqs) && selectedProduct.faqs.length > 0 && (
                 <div>
                   <h4 className='mb-4 text-xl font-bold text-slate-800'>
                     Frequently Asked Questions
@@ -439,9 +478,9 @@ const VendorProductsTable = () => {
                         className='rounded-xl border border-slate-200 bg-slate-50 p-5'
                       >
                         <p className='mb-2 font-semibold text-slate-800'>
-                          Q: {faq.question}
+                          Q: {faq.question || '—'}
                         </p>
-                        <p className='text-slate-600'>A: {faq.answer}</p>
+                        <p className='text-slate-600'>A: {faq.answer || '—'}</p>
                       </div>
                     ))}
                   </div>
@@ -452,7 +491,7 @@ const VendorProductsTable = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default VendorProductsTable
+export default VendorProductsTable;

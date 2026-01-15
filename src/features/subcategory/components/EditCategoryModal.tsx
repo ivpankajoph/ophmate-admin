@@ -77,7 +77,7 @@ export default function EditCategoryModal({
       }
 
       const payload = {
-        id: category.id, // or category._id depending on your API
+        id: category._id, // or category._id depending on your API
         name,
         description,
         image_url: imageUrl,

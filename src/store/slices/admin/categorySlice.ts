@@ -50,6 +50,7 @@ export const updateCategory = createAsyncThunk(
   'category/updateCategory',
   async (categoryData: any, { rejectWithValue, getState }) => {
     try {
+      console.log('Updating category with data:', categoryData)
       const state: any = getState()
       const token = state?.auth?.token
       const response = await axios.put(

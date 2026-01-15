@@ -249,12 +249,12 @@ export const categoryColumns: ColumnDef<Category>[] = [
                 </p>
               </div>
 
-              <div>
+              {/* <div>
                 <p className='font-medium'>Display Order:</p>
                 <p className='text-muted-foreground text-sm'>
                   {row.original.display_order ?? '-'}
                 </p>
-              </div>
+              </div> */}
 
               <div>
                 <p className='font-medium'>Status:</p>

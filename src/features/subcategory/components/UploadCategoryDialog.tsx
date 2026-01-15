@@ -39,22 +39,24 @@ export default function UploadSubCategoryDialog() {
   const downloadCategoryTemplate = () => {
     const headers = [
       'subcategory_name',
-      'description',
+      'category_name',
+      'body_content',
       'image_url',
       'metaTitle',
       'metaDescription',
       'metaKeywords',
-      'category_name',
+
     ]
 
     const sampleRow = [
+      'Electronics',
       'Electronics',
       'All electronic products',
       'https://example.com/image.jpg',
       'Electronics Store',
       'Buy electronics online',
       'electronics',
-      'Electronics',
+    
     ]
 
     const csvContent = headers.join(',') + '\n' + sampleRow.join(',')
@@ -112,7 +114,7 @@ export default function UploadSubCategoryDialog() {
 
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Upload Category File</DialogTitle>
+          <DialogTitle>Upload Sub Category File</DialogTitle>
           <DialogDescription>
             Upload an <strong>Excel (.xlsx)</strong> or <strong>CSV</strong>{' '}
             file with category data.

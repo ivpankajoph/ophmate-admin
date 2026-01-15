@@ -74,12 +74,12 @@ export default function EditCategoryModal({
       }
 
       const payload = {
-        id: category.id, // or category._id depending on your API
+        id: category._id, // or category._id depending on your API
         name,
         description,
         image_url: imageUrl,
       }
-
+      console.log('Updating category with payload:', payload)
       await dispatch(updateCategory(payload)).unwrap()
 
       toast.success('Category updated successfully!')

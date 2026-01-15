@@ -2,8 +2,6 @@
 
 import { type ColumnDef } from '@tanstack/react-table'
 import { Eye } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -137,28 +135,28 @@ export const subcategoryColumns: ColumnDef<Subcategory>[] = [
     ),
   },
 
-  {
-    accessorKey: 'is_active',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Status' />
-    ),
-    cell: ({ row }) => {
-      const isActive = row.original.category?.is_active
-      return (
-        <Badge
-          variant='outline'
-          className={cn(
-            'capitalize',
-            isActive
-              ? 'border-green-400 text-green-600'
-              : 'border-red-400 text-red-600'
-          )}
-        >
-          {isActive ? 'Active' : 'Inactive'}
-        </Badge>
-      )
-    },
-  },
+  // {
+  //   accessorKey: 'is_active',
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title='Status' />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const isActive = row.original.category?.is_active
+  //     return (
+  //       <Badge
+  //         variant='outline'
+  //         className={cn(
+  //           'capitalize',
+  //           isActive
+  //             ? 'border-green-400 text-green-600'
+  //             : 'border-red-400 text-red-600'
+  //         )}
+  //       >
+  //         {isActive ? 'Active' : 'Inactive'}
+  //       </Badge>
+  //     )
+  //   },
+  // },
 
   {
     accessorKey: 'createdAt',
