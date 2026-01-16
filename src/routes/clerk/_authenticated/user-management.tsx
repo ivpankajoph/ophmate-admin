@@ -7,7 +7,6 @@ import {
 } from '@tanstack/react-router'
 import { SignedIn, useAuth, UserButton } from '@clerk/clerk-react'
 import { ExternalLink, Loader2 } from 'lucide-react'
-import { ClerkLogo } from '@/assets/clerk-logo'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -159,9 +158,7 @@ function Unauthorized() {
           <Button variant='outline' onClick={() => history.go(-1)}>
             Go Back
           </Button>
-          <Button onClick={() => navigate({ to: '/clerk/sign-in' })}>
-            <ClerkLogo className='invert' /> Sign in
-          </Button>
+      
         </div>
         <div className='mt-4 h-8 text-center'>
           {!cancelled && !opened && (

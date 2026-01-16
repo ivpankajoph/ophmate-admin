@@ -14,7 +14,7 @@ export default function VariantSection({ state, actions }: any) {
       ...prev,
       {
         sku: '',
-     
+
         final_price: '',
         actual_price: '',
         discount_percent: '',
@@ -94,7 +94,11 @@ export default function VariantSection({ state, actions }: any) {
                         step='0.01'
                         value={variant.actual_price}
                         onChange={(e) =>
-                          onUpdateVariantField(vIndex, 'actual_price', e.target.value)
+                          onUpdateVariantField(
+                            vIndex,
+                            'actual_price',
+                            e.target.value
+                          )
                         }
                       />
                     </div>
@@ -114,12 +118,11 @@ export default function VariantSection({ state, actions }: any) {
                         }
                       />
                     </div>
-                           <div>
+                    <div>
                       <Label>Retail Price</Label>
                       <Input
                         type='number'
                         min='0'
-                    
                         value={variant.final_price}
                         onChange={(e) =>
                           onUpdateVariantField(
