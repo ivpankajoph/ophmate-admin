@@ -705,7 +705,7 @@ const ProductCreateForm: React.FC = () => {
           </h1>
 
           <Link to='/upload-products'>
-            <Button variant='outline' className='mb-12 bg-black text-white'>
+            <Button variant='outline' className='mb-12 bg-white'>
               Upload Excel or Download Template
             </Button>
             
