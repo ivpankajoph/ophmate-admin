@@ -1,10 +1,12 @@
 // src/components/ProductCreate/index.tsx
 import React, { useState, useEffect } from 'react'
+import { Link } from '@tanstack/react-router'
 import { AppDispatch } from '@/store'
 import { getAllCategories } from '@/store/slices/admin/categorySlice'
 import { Loader2 } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux'
+import { Button } from '@/components/ui/button'
 import { generateSpecifications, generateWithAI } from './aiHelpers'
 import { deleteFromCloudinary, uploadToCloudinary } from './cloudinary'
 import Step1BasicInfo from './components/Step1BasicInfo'
@@ -13,83 +15,11 @@ import Step3Specifications from './components/Step3Specifications'
 import Step4SEO from './components/Step4SEO'
 import Step5Variants from './components/Step5Variants'
 import Step6FAQs from './components/Step6FAQs'
-import { Button } from '@/components/ui/button'
-import { Link } from '@tanstack/react-router'
+import { ProductFormData, SPECIFICATION_TEMPLATES, Variant } from './types/type'
 
 // Interfaces
-interface ImageUpload {
-  url: string
-  publicId: string
-  uploading?: boolean
-  tempId?: string
-}
-
-interface Variant {
-  variantAttributes: Record<string, string>
-  actualPrice: number
-  finalPrice: number
-  stockQuantity: number
-  variantsImageUrls: ImageUpload[]
-  variantMetaTitle: string
-  variantMetaDescription: string
-  variantMetaKeywords: string[]
-  isActive: boolean
-}
-
-interface FAQ {
-  question: string
-  answer: string
-}
-
-interface ProductFormData {
-  productName: string
-  productCategory: string
-  productSubCategories: string[]
-  brand: string
-  shortDescription: string
-  description: string
-  defaultImages: ImageUpload[]
-  specifications: Record<string, string>[]
-  isAvailable: boolean
-  metaTitle: string
-  metaDescription: string
-  metaKeywords: string[]
-  variants: Variant[]
-  faqs: FAQ[]
-}
 
 // Specification templates by category
-const SPECIFICATION_TEMPLATES: Record<string, string[]> = {
-  electronics: [
-    'brand',
-    'model',
-    'color',
-    'weight',
-    'dimensions',
-    'warranty',
-    'power',
-    'connectivity',
-  ],
-  clothing: [
-    'brand',
-    'size',
-    'color',
-    'material',
-    'gender',
-    'season',
-    'careInstructions',
-    'sleeveLength',
-  ],
-  furniture: [
-    'brand',
-    'material',
-    'color',
-    'dimensions',
-    'weight',
-    'assemblyRequired',
-  ],
-  default: ['warranty', 'returnPeriod'],
-}
 
 const ProductCreateForm: React.FC = () => {
   // Redux state (only for categories and auth)
@@ -708,7 +638,6 @@ const ProductCreateForm: React.FC = () => {
             <Button variant='outline' className='mb-12 bg-white'>
               Upload Excel or Download Template
             </Button>
-            
           </Link>
 
           {/* Progress Bar */}

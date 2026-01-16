@@ -219,303 +219,273 @@ const ExcelProductUpload: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        {/* Header with Back Button */}
-        <div className="flex items-center gap-4">
+  <div className="min-h-screen bg-white px-4 py-8 text-gray-900">
+  <div className="mx-auto max-w-5xl space-y-6">
+    <div className="flex items-center gap-4">
+      <button
+        onClick={goBack}
+        className="group flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md"
+      >
+        <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+        <span className="font-medium">Back</span>
+      </button>
+
+      <div className="flex-1 rounded-lg border border-gray-300 bg-white px-6 py-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="rounded-md bg-black p-2">
+            <Sparkles className="text-white" size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-black">Bulk Product Upload</h1>
+            <p className="text-sm text-gray-600">Upload multiple products at once using Excel</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Main Content Card */}
+    <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-lg">
+      <div className="bg-black px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">Upload Your File</h2>
           <button
-            onClick={goBack}
-            className="group flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md"
+            onClick={downloadTemplate}
+            className="flex items-center gap-2 rounded-md bg-white px-4 py-2 font-medium text-black shadow transition-all hover:bg-gray-100"
           >
-            <ArrowLeft
-              size={18}
-              className="transition-transform group-hover:-translate-x-1"
-            />
-            <span className="font-medium">Back</span>
+            <Download size={18} />
+            Download Template
           </button>
-
-          <div className="flex-1 rounded-xl border border-gray-200 bg-white px-6 py-3 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 p-2">
-                <Sparkles className="text-white" size={24} />
-              </div>
-              <div>
-                <h1 className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-2xl font-bold text-transparent">
-                  Bulk Product Upload
-                </h1>
-                <p className="text-sm text-gray-600">
-                  Upload multiple products at once using Excel
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content Card */}
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-white">
-                Upload Your File
-              </h2>
-              <button
-                onClick={downloadTemplate}
-                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 font-medium text-blue-600 shadow-md transition-all hover:bg-blue-50 hover:shadow-lg"
-              >
-                <Download size={18} />
-                Download Template
-              </button>
-            </div>
-          </div>
-
-          <div className="p-8">
-            {!result && (
-              <>
-                <div
-                  className={`relative rounded-2xl border-3 border-dashed p-12 text-center transition-all duration-300 ${
-                    dragActive
-                      ? 'scale-[1.02] border-blue-500 bg-blue-50'
-                      : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  {file ? (
-                    <div className="animate-in fade-in space-y-4 duration-300">
-                      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg">
-                        <FileSpreadsheet size={40} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-gray-800">
-                          {file.name}
-                        </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {(file.size / 1024).toFixed(2)} KB
-                        </p>
-                      </div>
-                      <button
-                        onClick={resetUpload}
-                        className="text-sm font-medium text-red-600 transition hover:text-red-700 hover:underline"
-                      >
-                        Remove file
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100">
-                        <Upload size={40} className="text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="mb-1 text-xl font-bold text-gray-800">
-                          Drop your Excel file here
-                        </p>
-                        <p className="text-gray-500">or click to browse</p>
-                      </div>
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 font-semibold text-white shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl">
-                        <Upload size={18} />
-                        Browse Files
-                        <input
-                          type="file"
-                          accept=".xlsx,.csv"
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
-                      </label>
-                      <p className="text-sm text-gray-500">
-                        Supported: <span className="font-medium">.xlsx, .csv</span> • Max
-                        size: <span className="font-medium">10MB</span>
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {file && (
-                  <button
-                    onClick={handleUpload}
-                    disabled={uploading}
-                    className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 size={24} className="animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={24} />
-                        Upload Products
-                      </>
-                    )}
-                  </button>
-                )}
-              </>
-            )}
-
-            {result && (
-              <div className="animate-in fade-in space-y-6 duration-500">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-md transition-shadow hover:shadow-lg">
-                    <div className="mb-3 flex items-center gap-3">
-                      <div className="rounded-lg bg-green-500 p-2">
-                        <CheckCircle className="text-white" size={24} />
-                      </div>
-                      <span className="text-lg font-bold text-green-800">
-                        Successful
-                      </span>
-                    </div>
-                    <p className="text-5xl font-black text-green-600">
-                      {result.successCount}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-50 p-6 shadow-md transition-shadow hover:shadow-lg">
-                    <div className="mb-3 flex items-center gap-3">
-                      <div className="rounded-lg bg-red-500 p-2">
-                        <XCircle className="text-white" size={24} />
-                      </div>
-                      <span className="text-lg font-bold text-red-800">
-                        Failed
-                      </span>
-                    </div>
-                    <p className="text-5xl font-black text-red-600">
-                      {result.failureCount}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Successfully Created Products */}
-                {(result?.successfulProducts ?? []).length > 0 && (
-                  <div className="rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-md">
-                    <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-green-800">
-                      <CheckCircle size={20} />
-                      Successfully Created Products
-                    </h3>
-                    <div className="custom-scrollbar max-h-80 space-y-3 overflow-y-auto pr-2">
-                      {(result?.successfulProducts ?? []).map((product, idx) => (
-                        <div
-                          key={idx}
-                          className="rounded-xl border border-green-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-                        >
-                          <p className="text-base font-semibold text-gray-800">
-                            {product.productName}
-                          </p>
-                          <p className="mt-1 text-sm text-gray-600">
-                            <span className="font-medium">Slug:</span> {product.slug}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Errors */}
-                {(result?.errors ?? []).length > 0 && (
-                  <div className="rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-50 p-6 shadow-md">
-                    <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-red-800">
-                      <AlertCircle size={20} />
-                      Errors ({(result?.errors ?? []).length})
-                    </h3>
-                    <div className="custom-scrollbar max-h-96 space-y-3 overflow-y-auto pr-2">
-                      {(result?.errors ?? []).map((error, idx) => (
-                        <div
-                          key={idx}
-                          className="rounded-xl border border-red-200 bg-white p-4 shadow-sm"
-                        >
-                          <p className="mb-2 text-base font-semibold text-gray-800">
-                            Row {error.row}: {error.productName || 'Unknown Product'}
-                          </p>
-                          <ul className="ml-2 space-y-1 text-sm text-red-700">
-                            {(error.errors ?? []).map((err, errIdx) => (
-                              <li key={errIdx} className="flex items-start gap-2">
-                                <span className="mt-0.5 text-red-500">•</span>
-                                <span>{err}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  onClick={resetUpload}
-                  className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl"
-                >
-                  Upload Another File
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Info Card */}
-        <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-md">
-          <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-blue-800">
-            <AlertCircle size={20} />
-            Important Guidelines
-          </h3>
-          <ul className="space-y-2 text-sm text-blue-700">
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-blue-500">✓</span>
-              <span>Download the template to ensure correct format</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-blue-500">✓</span>
-              <span>All required fields must be filled</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-blue-500">✓</span>
-              <span>Variants should be in JSON format</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-blue-500">✓</span>
-              <span>
-                Images should be valid URLs or will be uploaded separately
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-blue-500">✓</span>
-              <span>
-                Products will be created with 'pending' status for approval
-              </span>
-            </li>
-          </ul>
         </div>
       </div>
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-in {
-          animation: fade-in 0.3s ease-out;
-        }
-      `}</style>
+      <div className="p-8">
+        {!result && (
+          <>
+            <div
+              className={`relative rounded-xl border-2 border-dashed p-12 text-center transition-all duration-300 ${
+                dragActive
+                  ? 'scale-[1.02] border-black bg-gray-50'
+                  : 'border-gray-400 hover:border-gray-600 hover:bg-gray-50'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              {file ? (
+                <div className="animate-in fade-in space-y-4 duration-300">
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-xl bg-black shadow">
+                    <FileSpreadsheet size={40} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">{file.name}</p>
+                    <p className="mt-1 text-sm text-gray-600">{(file.size / 1024).toFixed(2)} KB</p>
+                  </div>
+                  <button
+                    onClick={resetUpload}
+                    className="text-sm font-medium text-red-600 transition hover:text-red-700 hover:underline"
+                  >
+                    Remove file
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-xl bg-gray-100">
+                    <Upload size={40} className="text-black" />
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xl font-bold text-gray-900">Drop your Excel file here</p>
+                    <p className="text-gray-600">or click to browse</p>
+                  </div>
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-black px-8 py-3 font-semibold text-white shadow transition-all hover:bg-gray-900">
+                    <Upload size={18} />
+                    Browse Files
+                    <input
+                      type="file"
+                      accept=".xlsx,.csv"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-sm text-gray-600">
+                    Supported: <span className="font-medium">.xlsx, .csv</span> • Max size:{' '}
+                    <span className="font-medium">10MB</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {file && (
+              <button
+                onClick={handleUpload}
+                disabled={uploading}
+                className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-black px-8 py-4 text-lg font-bold text-white shadow transition-all hover:bg-gray-900 disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 size={24} className="animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={24} />
+                    Upload Products
+                  </>
+                )}
+              </button>
+            )}
+          </>
+        )}
+
+        {result && (
+          <div className="animate-in fade-in space-y-6 duration-500">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="rounded-xl border-2 border-green-600 bg-green-50 p-6 shadow">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-md bg-green-600 p-2">
+                    <CheckCircle className="text-white" size={24} />
+                  </div>
+                  <span className="text-lg font-bold text-green-800">Successful</span>
+                </div>
+                <p className="text-5xl font-black text-green-700">{result.successCount}</p>
+              </div>
+
+              <div className="rounded-xl border-2 border-red-600 bg-red-50 p-6 shadow">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-md bg-red-600 p-2">
+                    <XCircle className="text-white" size={24} />
+                  </div>
+                  <span className="text-lg font-bold text-red-800">Failed</span>
+                </div>
+                <p className="text-5xl font-black text-red-700">{result.failureCount}</p>
+              </div>
+            </div>
+
+            {/* Successfully Created Products */}
+            {(result?.successfulProducts ?? []).length > 0 && (
+              <div className="rounded-xl border-2 border-green-600 bg-green-50 p-6 shadow">
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-green-800">
+                  <CheckCircle size={20} />
+                  Successfully Created Products
+                </h3>
+                <div className="custom-scrollbar max-h-80 space-y-3 overflow-y-auto pr-2">
+                  {(result?.successfulProducts ?? []).map((product, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-lg border border-green-200 bg-white p-4 shadow-sm"
+                    >
+                      <p className="text-base font-semibold text-gray-900">{product.productName}</p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        <span className="font-medium">Slug:</span> {product.slug}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Errors */}
+            {(result?.errors ?? []).length > 0 && (
+              <div className="rounded-xl border-2 border-red-600 bg-red-50 p-6 shadow">
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-red-800">
+                  <AlertCircle size={20} />
+                  Errors ({(result?.errors ?? []).length})
+                </h3>
+                <div className="custom-scrollbar max-h-96 space-y-3 overflow-y-auto pr-2">
+                  {(result?.errors ?? []).map((error, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-lg border border-red-200 bg-white p-4 shadow-sm"
+                    >
+                      <p className="mb-2 text-base font-semibold text-gray-900">
+                        Row {error.row}: {error.productName || 'Unknown Product'}
+                      </p>
+                      <ul className="ml-2 space-y-1 text-sm text-red-700">
+                        {(error.errors ?? []).map((err, errIdx) => (
+                          <li key={errIdx} className="flex items-start gap-2">
+                            <span className="mt-0.5 text-red-500">•</span>
+                            <span>{err}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={resetUpload}
+              className="w-full rounded-xl bg-black px-8 py-4 text-lg font-bold text-white shadow transition-all hover:bg-gray-900"
+            >
+              Upload Another File
+            </button>
+          </div>
+        )}
+      </div>
     </div>
+
+    {/* Info Card */}
+    <div className="rounded-xl border-2 border-gray-300 bg-gray-50 p-6 shadow">
+      <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-900">
+        <AlertCircle size={20} />
+        Important Guidelines
+      </h3>
+      <ul className="space-y-2 text-sm text-gray-700">
+        <li className="flex items-start gap-2">
+          <span className="mt-0.5 text-gray-500">✓</span>
+          <span>Download the template to ensure correct format</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="mt-0.5 text-gray-500">✓</span>
+          <span>All required fields must be filled</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="mt-0.5 text-gray-500">✓</span>
+          <span>Variants should be in JSON format</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="mt-0.5 text-gray-500">✓</span>
+          <span>Images should be valid URLs or will be uploaded separately</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="mt-0.5 text-gray-500">✓</span>
+          <span>Products will be created with 'pending' status for approval</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <style>{`
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f9fafb;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-in {
+      animation: fade-in 0.3s ease-out;
+    }
+  `}</style>
+</div>
   );
 };
 
