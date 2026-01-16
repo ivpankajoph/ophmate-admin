@@ -628,7 +628,7 @@ const ProductCreateForm: React.FC = () => {
 
   return (
     <div className='min-h-screen bg-gray-50 px-4 py-8'>
-      <div className='mx-auto max-w-5xl'>
+      <div className='mx-auto max-w-3xl'>
         <div className='rounded-xl bg-white p-8 shadow-lg'>
           <h1 className='mb-8 text-3xl font-bold text-gray-900'>
             Create New Product

@@ -35,6 +35,7 @@ import { Route as AuthenticatedSubcategoryIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products/index'
 import { Route as AuthenticatedOrderIndexRouteImport } from './routes/_authenticated/order/index'
+import { Route as AuthenticatedInventoryManagementIndexRouteImport } from './routes/_authenticated/inventory-management/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedCategoryIndexRouteImport } from './routes/_authenticated/category/index'
@@ -183,6 +184,12 @@ const AuthenticatedOrderIndexRoute = AuthenticatedOrderIndexRouteImport.update({
   path: '/order/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInventoryManagementIndexRoute =
+  AuthenticatedInventoryManagementIndexRouteImport.update({
+    id: '/inventory-management/',
+    path: '/inventory-management/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
     id: '/help-center/',
@@ -268,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/inventory-management': typeof AuthenticatedInventoryManagementIndexRoute
   '/order': typeof AuthenticatedOrderIndexRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
@@ -304,6 +312,7 @@ export interface FileRoutesByTo {
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/inventory-management': typeof AuthenticatedInventoryManagementIndexRoute
   '/order': typeof AuthenticatedOrderIndexRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
@@ -344,6 +353,7 @@ export interface FileRoutesById {
   '/_authenticated/category/': typeof AuthenticatedCategoryIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/inventory-management/': typeof AuthenticatedInventoryManagementIndexRoute
   '/_authenticated/order/': typeof AuthenticatedOrderIndexRoute
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/category'
     | '/chats'
     | '/help-center'
+    | '/inventory-management'
     | '/order'
     | '/products'
     | '/profile'
@@ -418,6 +429,7 @@ export interface FileRouteTypes {
     | '/category'
     | '/chats'
     | '/help-center'
+    | '/inventory-management'
     | '/order'
     | '/products'
     | '/profile'
@@ -457,6 +469,7 @@ export interface FileRouteTypes {
     | '/_authenticated/category/'
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/inventory-management/'
     | '/_authenticated/order/'
     | '/_authenticated/products/'
     | '/_authenticated/profile/'
@@ -672,6 +685,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrderIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/inventory-management/': {
+      id: '/_authenticated/inventory-management/'
+      path: '/inventory-management'
+      fullPath: '/inventory-management'
+      preLoaderRoute: typeof AuthenticatedInventoryManagementIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
       path: '/help-center'
@@ -759,6 +779,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCategoryIndexRoute: typeof AuthenticatedCategoryIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
+  AuthenticatedInventoryManagementIndexRoute: typeof AuthenticatedInventoryManagementIndexRoute
   AuthenticatedOrderIndexRoute: typeof AuthenticatedOrderIndexRoute
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
@@ -782,6 +803,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCategoryIndexRoute: AuthenticatedCategoryIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
+  AuthenticatedInventoryManagementIndexRoute:
+    AuthenticatedInventoryManagementIndexRoute,
   AuthenticatedOrderIndexRoute: AuthenticatedOrderIndexRoute,
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,

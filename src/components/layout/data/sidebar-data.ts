@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   HelpCircle,
   Users,
-  MessagesSquare,
   ShieldCheck,
   AudioWaveform,
   Command,
@@ -47,12 +46,7 @@ export const sidebarData: SidebarData = {
           url: '/banners',
           icon: LayoutDashboard,
         },
-        {
-          title: 'Chats',
-          url: '/chats',
-          badge: '3',
-          icon: MessagesSquare,
-        },
+    
         {
           title: 'Users',
           url: '/users',
@@ -105,6 +99,10 @@ export const sidebarData: SidebarData = {
              {
               title: 'All Admin Products',
               url: '/products/admin-products',
+            },
+                 {
+              title: 'Inventory Management',
+              url: '/inventory-management',
             },
           ],
         },
