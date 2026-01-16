@@ -1,3 +1,7 @@
+'use client'
+
+import { JSX } from 'react/jsx-runtime'
+import { useSelector } from 'react-redux'
 import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
@@ -6,31 +10,48 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-// import { AppTitle } from './app-title'
 import { sidebarData } from './data/sidebar-data'
 import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 
-
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
+  const userType = useSelector((state: any) => state.auth.user?.role)
+
+  const filteredNavGroups = sidebarData.navGroups
+    .filter(
+      (group: { roles: string | any[] }) =>
+        !group.roles || group.roles.includes(userType)
+    )
+    .map((group: { items: any[] }) => ({
+      ...group,
+      items: group.items
+        ?.filter((item) => !item.roles || item.roles.includes(userType))
+        .map((item) => ({
+          ...item,
+          items: item.items?.filter(
+            (subItem: { roles: string | any[] }) =>
+              !subItem.roles || subItem.roles.includes(userType)
+          ),
+        }))
+        .filter((item) => !item.items || item.items.length > 0),
+    }))
+    .filter((group: { items: string | any[] }) => group.items.length > 0)
+
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
-          <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
-
-        {/* Replace <TeamSwitch /> with the following <AppTitle />
-         /* if you want to use the normal app title instead of TeamSwitch dropdown */}
-        {/* <AppTitle /> */}
+        <SidebarFooter>
+          <NavUser />
+        </SidebarFooter>
       </SidebarHeader>
+
       <SidebarContent>
-        {sidebarData.navGroups.map((props) => (
+        {filteredNavGroups.map((props: JSX.IntrinsicAttributes & any) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
-  
+
       <SidebarRail />
     </Sidebar>
   )

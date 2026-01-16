@@ -49,6 +49,7 @@ const AdminProductsTable = () => {
       const data = await response.json()
       setProducts(data?.products || [])
       setLoading(false)
+      
     } catch (err) {
       setError('Failed to fetch products')
       setLoading(false)

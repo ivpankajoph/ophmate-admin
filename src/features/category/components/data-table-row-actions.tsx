@@ -18,10 +18,12 @@ import AddSpecificationsModal from './AddSpecificationsModal'
 import AddSubcategoryModal from './AddSubcategoryModal'
 import EditCategoryModal from './EditCategoryModal'
 import ShowSpecificationsModal from './ShowSpecificationsModal'
+import { useCan } from '@/hooks/useCan'
+import { ROLES } from '@/components/layout/data/sidebar-data'
 
 export function DataTableRowActions({ row }: any) {
   const dispatch = useDispatch<AppDispatch>()
-
+const canAdminSee = useCan([ROLES.ADMIN])
   // Modal states
   const [openSubcategory, setOpenSubcategory] = useState(false)
   const [openSpec, setOpenSpec] = useState(false)
@@ -30,7 +32,10 @@ export function DataTableRowActions({ row }: any) {
 
   return (
     <>
-      {/* Dropdown menu */}
+     {
+      canAdminSee && (
+        <> 
+         {/* Dropdown menu */}
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -116,7 +121,9 @@ export function DataTableRowActions({ row }: any) {
         open={openShowSpec}
         onOpenChange={setOpenShowSpec}
         categoryId={row.original.id}
-      />
+      /></>
+      )
+     }
     </>
   )
 }

@@ -1,4 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router'
+import { AppDispatch } from '@/store'
+import { logout } from '@/store/slices/authSlice'
 import {
   BadgeCheck,
   Bell,
@@ -7,6 +9,8 @@ import {
   LogOut,
   Sparkles,
 } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -25,24 +29,16 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { SignOutDialog } from '@/components/sign-out-dialog'
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from '@/store'
-import { logout } from '@/store/slices/authSlice'
-import { useSelector } from 'react-redux'
-
-
-
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const [open, setOpen] = useDialogState()
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
-    const user = useSelector((state: any) => state.auth.user)
+  const user = useSelector((state: any) => state.auth.user)
   const handleLogout = () => {
     // 1. Clear Redux auth state
     dispatch(logout())
-  
 
     // 2. Remove persisted token (optional if redux-persist is already doing this)
     localStorage.removeItem('persist:root') // if using redux-persist
