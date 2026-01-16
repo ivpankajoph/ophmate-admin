@@ -46,7 +46,7 @@ export const sidebarData: SidebarData = {
           url: '/banners',
           icon: LayoutDashboard,
         },
-    
+
         {
           title: 'Users',
           url: '/users',
@@ -57,7 +57,6 @@ export const sidebarData: SidebarData = {
           url: '/profile',
           icon: Users,
         },
-
       ],
     },
 
@@ -96,11 +95,11 @@ export const sidebarData: SidebarData = {
               title: 'Create Products',
               url: '/products/create-products',
             },
-             {
+            {
               title: 'All Admin Products',
               url: '/products/admin-products',
             },
-                 {
+            {
               title: 'Inventory Management',
               url: '/inventory-management',
             },
@@ -144,7 +143,7 @@ export const sidebarData: SidebarData = {
               title: 'Contact Page Template',
               url: '/vendor-template-contact',
             },
-                {
+            {
               title: 'Social Links and FAQs',
               url: '/vendor-template-other',
             },

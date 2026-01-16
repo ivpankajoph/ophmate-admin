@@ -88,7 +88,7 @@ export default function VariantSection({ state, actions }: any) {
                       />
                     </div>
                     <div>
-                      <Label>Actual Price</Label>
+                      <Label>WholeSale Price</Label>
                       <Input
                         type='number'
                         step='0.01'
@@ -115,7 +115,7 @@ export default function VariantSection({ state, actions }: any) {
                       />
                     </div>
                            <div>
-                      <Label>Final Price</Label>
+                      <Label>Retail Price</Label>
                       <Input
                         type='number'
                         min='0'
