@@ -75,7 +75,7 @@ const ProductCreateForm: React.FC = () => {
     const fetchSubcategories = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_PUBLIC_API_URL}/subcategories/category/${selectedCategoryId}`
+          `${import.meta.env.VITE_PUBLIC_API_URL}/v1/subcategories/category/${selectedCategoryId}`
         )
 
         if (!res.ok) {
@@ -134,7 +134,7 @@ const ProductCreateForm: React.FC = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/products/generate-field`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/generate-field`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -173,7 +173,7 @@ const ProductCreateForm: React.FC = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/products/generate-field`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/generate-field`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -465,7 +465,7 @@ const ProductCreateForm: React.FC = () => {
       }
 
       const res = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/products/create`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/create`,
         {
           method: 'POST',
           headers: {

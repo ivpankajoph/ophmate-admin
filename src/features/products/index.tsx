@@ -40,7 +40,7 @@ const VendorProductsTable = () => {
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/products/vendor/${vendorId}`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/vendor/${vendorId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

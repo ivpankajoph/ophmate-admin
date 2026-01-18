@@ -56,7 +56,7 @@ export const fetchBanners = createAsyncThunk<
   { rejectValue: string }
 >('banners/fetchBanners', async (_, { rejectWithValue }) => {
   try {
-    const res = await axios.get(`${BASE_URL}/banners`)
+    const res = await axios.get(`${BASE_URL}/v1/banners`)
 
     if (!Array.isArray(res.data)) {
       console.error('Unexpected response format:', res.data)

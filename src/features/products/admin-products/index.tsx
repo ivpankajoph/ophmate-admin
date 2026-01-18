@@ -39,7 +39,7 @@ const AdminProductsTable = () => {
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/products/all`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/all`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

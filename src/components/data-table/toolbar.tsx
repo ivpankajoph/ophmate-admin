@@ -26,21 +26,21 @@ export function DataTableToolbar<TData>({
   searchKey,
   filters = [],
 }: DataTableToolbarProps<TData>) {
+  const columnsById = new Map(
+    table.getAllLeafColumns().map((column) => [column.id, column])
+  )
+  const searchColumn = searchKey ? columnsById.get(searchKey) : undefined
   const isFiltered =
     table.getState().columnFilters.length > 0 || table.getState().globalFilter
 
   return (
     <div className='flex items-center justify-between'>
       <div className='flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2'>
-        {searchKey ? (
+        {searchKey && searchColumn ? (
           <Input
             placeholder={searchPlaceholder}
-            value={
-              (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table.getColumn(searchKey)?.setFilterValue(event.target.value)
-            }
+            value={(searchColumn.getFilterValue() as string) ?? ''}
+            onChange={(event) => searchColumn.setFilterValue(event.target.value)}
             className='h-8 w-[150px] lg:w-[250px]'
           />
         ) : (
@@ -53,7 +53,7 @@ export function DataTableToolbar<TData>({
         )}
         <div className='flex gap-x-2'>
           {filters.map((filter) => {
-            const column = table.getColumn(filter.columnId)
+            const column = columnsById.get(filter.columnId)
             if (!column) return null
             return (
               <DataTableFacetedFilter

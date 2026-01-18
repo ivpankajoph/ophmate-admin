@@ -63,7 +63,7 @@ const InventoryDashboard = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/categories/get-category`, {
+      const response = await fetch(`${API_BASE}/v1/categories/getall`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -84,7 +84,7 @@ const InventoryDashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_BASE}/products/category/${categoryId}`, {
+      const response = await fetch(`${API_BASE}/v1/products/category/${categoryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

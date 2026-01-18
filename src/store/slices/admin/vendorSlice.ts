@@ -43,7 +43,7 @@ export const fetchAllVendors = createAsyncThunk(
     try {
       const state:any = getState()
       const token = state?.auth?.token
-      const res = await axios.get(`${BASE_URL}/admin/vendors`,{
+      const res = await axios.get(`${BASE_URL}/v1/vendors/getall`,{
         headers:{
           Authorization: `Bearer ${token}`
         }

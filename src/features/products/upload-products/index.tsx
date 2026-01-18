@@ -101,7 +101,7 @@ const ExcelProductUpload: React.FC = () => {
   const downloadTemplate = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/products/download-template`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/download-template`,
         {
           method: 'GET',
           headers: {
@@ -170,7 +170,7 @@ const ExcelProductUpload: React.FC = () => {
     formData.append('file', file);
 
     try {
-      const url = `${import.meta.env.VITE_PUBLIC_API_URL}/products/bulk-upload`;
+      const url = `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/bulk-upload`;
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
