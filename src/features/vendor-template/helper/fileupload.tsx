@@ -23,8 +23,7 @@ export async function uploadImage(file: File, folder: string): Promise<string | 
     );
 
     return uploadRes.data.secure_url;
-  } catch (error) {
-    console.error("Cloudinary upload failed:", error);
+  } catch {
     toast.error("Image upload failed. Try again.");
     return null;
   }

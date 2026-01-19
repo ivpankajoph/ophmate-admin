@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react'
 import axios from 'axios'
@@ -118,8 +117,7 @@ export function TemplateForm() {
         setSubmitStatus('error')
         toast.error('Failed to save template')
       }
-    } catch (err) {
-      console.error('Submission error:', err)
+    } catch {
       setSubmitStatus('error')
       toast.error('Submission failed. Please try again.')
     } finally {
@@ -155,16 +153,12 @@ export function TemplateForm() {
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let serviceUrl = null
-      let logs = ''
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
         // ✅ decode the current chunk safely
         const chunkText = decoder.decode(value, { stream: true })
-
-        logs += chunkText
-        console.log(chunkText)
 
         // Optional: live append to modal display
         setDeployMessage((prev) => prev + chunkText)
@@ -192,8 +186,7 @@ export function TemplateForm() {
           id: 'deploy',
         })
       }
-    } catch (err) {
-      console.error('💥 Deployment error:', err)
+    } catch {
       toast.error('❌ Deployment failed', { id: 'deploy' })
     } finally {
       setIsDeploying(false)
@@ -208,14 +201,11 @@ export function TemplateForm() {
       })
 
       if (res.status !== 200 && res.status !== 201) {
-        console.error('URL binding failed with status:', res.status)
         return { success: false, message: 'URL binding failed' }
       }
 
-      console.log('✅ URL successfully bound:', res.data)
       return { success: true, data: res.data }
-    } catch (error) {
-      console.error('❌ Something went wrong while binding URL:', error)
+    } catch {
       return {
         success: false,
         message: 'An error occurred while binding the URL',

@@ -43,7 +43,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn("Unauthorized — maybe token expired");
       // Optionally trigger logout here
     }
     return Promise.reject(error);

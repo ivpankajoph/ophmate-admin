@@ -79,7 +79,6 @@ const ProductCreateForm: React.FC = () => {
         )
 
         if (!res.ok) {
-          console.error('Failed to fetch subcategories: HTTP', res.status)
           setFilteredSubcategories([])
           return
         }
@@ -89,11 +88,9 @@ const ProductCreateForm: React.FC = () => {
         if (json.success && Array.isArray(json.data)) {
           setFilteredSubcategories(json.data)
         } else {
-          console.warn('Unexpected API response format:', json)
           setFilteredSubcategories([])
         }
       } catch (err) {
-        console.error('Error fetching subcategories:', err)
         setFilteredSubcategories([])
       }
     }
@@ -479,7 +476,6 @@ const ProductCreateForm: React.FC = () => {
       if (!res.ok) throw new Error('Failed to create product')
       alert('Product created successfully!')
     } catch (err) {
-      console.error(err)
       alert('Failed to create product')
     } finally {
       setLoading(false)

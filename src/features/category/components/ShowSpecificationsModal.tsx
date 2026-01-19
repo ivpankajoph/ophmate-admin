@@ -61,8 +61,7 @@ export default function ShowSpecificationsModal({
       )
 
       setSpecifications(response.data.data)
-    } catch (err) {
-      console.error('Failed to fetch specifications:', err)
+    } catch {
       toast.error('Failed to fetch specifications.')
     } finally {
       setLoading(false)

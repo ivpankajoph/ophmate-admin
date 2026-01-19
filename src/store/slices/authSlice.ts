@@ -34,7 +34,6 @@ export const loginAdmin = createAsyncThunk(
       const response = await axios.post(`${BASE_URL}/v1/auth/login`, credentials);
       return response.data;
     } catch (err: any) {
-      console.log("Login error in thunk:", err);
       return rejectWithValue(
         err || "An error occurred during login."
       );

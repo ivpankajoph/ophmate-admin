@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import { useState } from 'react'
@@ -43,8 +42,7 @@ function VendorTemplateAbout() {
       )
 
       return uploadRes.data.secure_url
-    } catch (error) {
-      console.error('Cloudinary upload failed:', error)
+    } catch {
       alert('Failed to upload image. Please try again.')
       return null
     }
@@ -96,8 +94,7 @@ function VendorTemplateAbout() {
         components: data.components.about_page,
       })
       alert('About page saved successfully!')
-    } catch (err) {
-      console.error('Save failed:', err)
+    } catch {
       alert('Failed to save about page.')
     }
   }

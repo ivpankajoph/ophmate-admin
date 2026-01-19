@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { VITE_PUBLIC_API_URL, VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from "@/config";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
@@ -27,7 +26,6 @@ export const createProduct = createAsyncThunk(
       );
       return response.data;
     } catch (err: any) {
-      console.error("Create Product Error:", err);
       return rejectWithValue(err.response?.data || err.message);
     }
   }

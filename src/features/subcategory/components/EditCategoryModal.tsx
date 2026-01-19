@@ -88,7 +88,6 @@ export default function EditCategoryModal({
       toast.success('Category updated successfully!')
       onOpenChange(false)
     } catch (err: any) {
-      console.error('Failed to update category:', err)
       toast.error(err.message || 'Failed to update category.')
     } finally {
       setIsUploading(false)

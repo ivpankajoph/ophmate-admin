@@ -57,7 +57,6 @@ const VendorProductsTable = () => {
       setProducts(Array.isArray(data.products) ? data.products : []);
       setLoading(false);
     } catch (err) {
-      console.error('Fetch products error:', err);
       setError('Failed to fetch products');
       setLoading(false);
     }

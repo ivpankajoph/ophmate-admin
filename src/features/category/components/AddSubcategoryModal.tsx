@@ -78,7 +78,6 @@ export default function AddSubcategoryModal({
       setImagePreview(null)
       onOpenChange(false)
     } catch (err: any) {
-      console.error('Failed to create subcategory:', err)
       toast.error(err.message || 'Failed to create subcategory.')
     } finally {
       setIsUploading(false)

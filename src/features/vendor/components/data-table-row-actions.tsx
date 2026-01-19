@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -56,7 +55,6 @@ export function DataTableRowActions({ row }: any) {
             throw new Error(data.message || "Failed to verify vendor.");
           }
         } catch (error: any) {
-          console.error(error);
           Swal.fire("Error", error.message || "Something went wrong.", "error");
         }
       }
@@ -93,7 +91,6 @@ export function DataTableRowActions({ row }: any) {
             throw new Error(data.message || "Failed to reject vendor.");
           }
         } catch (error: any) {
-          console.error(error);
           Swal.fire("Error", error.message || "Something went wrong.", "error");
         }
       }

@@ -25,7 +25,6 @@ export const uploadToCloudinary = async (file: File): Promise<ImageUpload | null
       publicId: data.public_id,
     };
   } catch (error) {
-    console.error('Upload failed:', error);
     alert('Image upload failed');
     return null;
   }
@@ -62,6 +61,5 @@ export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
       }
     );
   } catch (error) {
-    console.error('Delete failed:', error);
   }
 };

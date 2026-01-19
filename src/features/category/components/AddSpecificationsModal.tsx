@@ -46,20 +46,17 @@ export default function AddSpecificationsModal({
       // Transform into the required format
       const specs: any = keysArray.map((key) => ({ key }))
 
-      const response = await axios.post(`${BASE_URL}/specifications`, {
+      await axios.post(`${BASE_URL}/specifications`, {
         category_id: category.id,
         title: specTitle,
         specs: specs,
       })
-
-      console.log(response.data)
 
       toast.success('Specifications created successfully!')
       setSpecTitle('')
       setSpecKeys('')
       onOpenChange(false)
     } catch (err: any) {
-      console.error('Failed to create specifications:', err)
       toast.error(err.message || 'Failed to create specifications.')
     }
   }

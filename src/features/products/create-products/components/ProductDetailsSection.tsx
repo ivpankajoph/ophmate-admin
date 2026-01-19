@@ -48,13 +48,9 @@ export default function ProductDetailsSection({
       if (res.status !== 200) throw new Error('Failed to generate description')
 
       const data = res.data
-      console.log('Raw API Response:', data)
 
       const shortDesc = data.shortDescription || ''
       const fullDesc = data.fullDescription || ''
-
-      console.log('Short Description:', shortDesc)
-      console.log('Full Description:', fullDesc)
 
       // Update form fields
       setValue('shortDescription', shortDesc, {
@@ -72,8 +68,7 @@ export default function ProductDetailsSection({
       setFeatures('')
       alert('Descriptions generated successfully!')
     } catch (error) {
-      console.error('Error generating description:', error)
-      alert('Error generating description. Check console for details.')
+      alert('Error generating description. Please try again.')
     } finally {
       setLoading(false)
     }

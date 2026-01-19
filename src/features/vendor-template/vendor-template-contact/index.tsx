@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
@@ -71,8 +70,7 @@ function VendorTemplateContact() {
         }
       )
       setSuggestions(response.data)
-    } catch (error) {
-      console.error('Geocoding failed:', error)
+    } catch {
       setSuggestions([])
     }
   }
@@ -231,8 +229,7 @@ function VendorTemplateContact() {
         formData
       )
       return uploadRes.data.secure_url
-    } catch (error) {
-      console.error('Cloudinary upload failed:', error)
+    } catch {
       alert('Failed to upload image. Please try again.')
       return null
     }
@@ -285,8 +282,7 @@ function VendorTemplateContact() {
         components: data.components.contact_page,
       })
       alert('✅ Contact page saved successfully!')
-    } catch (err) {
-      console.error('Save failed:', err)
+    } catch {
       alert('❌ Failed to save contact page.')
     }
   }

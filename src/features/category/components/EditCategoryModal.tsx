@@ -79,13 +79,11 @@ export default function EditCategoryModal({
         description,
         image_url: imageUrl,
       }
-      console.log('Updating category with payload:', payload)
       await dispatch(updateCategory(payload)).unwrap()
 
       toast.success('Category updated successfully!')
       onOpenChange(false)
     } catch (err: any) {
-      console.error('Failed to update category:', err)
       toast.error(err.message || 'Failed to update category.')
     } finally {
       setIsUploading(false)

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-console */
 import axios from 'axios'
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { VITE_PUBLIC_API_URL } from '@/config'
@@ -59,7 +58,6 @@ export const fetchBanners = createAsyncThunk<
     const res = await axios.get(`${BASE_URL}/v1/banners`)
 
     if (!Array.isArray(res.data)) {
-      console.error('Unexpected response format:', res.data)
       throw new Error('Invalid response structure')
     }
 

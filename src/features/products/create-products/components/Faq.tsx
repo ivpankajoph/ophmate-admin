@@ -54,7 +54,6 @@ export default function FAQForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log(faqs)
     alert(`Submitted ${faqs.length} FAQs!`)
   }
 

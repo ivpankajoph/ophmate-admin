@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-console */
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Input } from '@/components/ui/input';
@@ -164,7 +163,6 @@ function VendorTemplateOther() {
         toast.error(response.data?.message || 'Failed to save.');
       }
     } catch (error: unknown) {
-      console.error('Save error:', error);
       if (axios.isAxiosError(error)) {
         toast.error(
           error.response?.data?.message ||

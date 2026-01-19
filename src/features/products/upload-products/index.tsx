@@ -123,8 +123,7 @@ const ExcelProductUpload: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download template error:', error);
+    } catch {
       alert('Unable to download template. Please try again.');
     }
   };
@@ -194,8 +193,7 @@ const ExcelProductUpload: React.FC = () => {
           successfulProducts: [],
         });
       }
-    } catch (error: any) {
-      console.error('Network error:', error);
+    } catch {
       const errorMsg = 'Network error. Please check your connection and try again.';
       setResult({
         success: false,

@@ -57,8 +57,6 @@ export function UserAuthForm({
       })
     );
 
-    // console.log("Result Action:", resultAction);
-
     if (resultAction.payload?.success) {
       Swal.fire({
         icon: "success",

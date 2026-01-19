@@ -26,7 +26,7 @@ export function useTemplateForm() {
   const dispatch = useDispatch<AppDispatch>()
   useEffect(() => {
     dispatch(fetchVendorProfile())
-  }, [])
+  }, [dispatch])
 
   // Update any nested value
   const updateField = (path: string[], value: any) => {
@@ -121,11 +121,9 @@ export function useTemplateForm() {
       )
 
       let serviceUrl = null
-      let buffer = ''
 
       response.data.on('data', (chunk: any) => {
         const text = chunk.toString()
-        buffer += text
 
         setDeployMessage((prev) => prev + text)
 
@@ -138,8 +136,7 @@ export function useTemplateForm() {
       toast.success('Deployment complete', { id: 'deploy' })
 
       if (serviceUrl) await bindURL(serviceUrl)
-    } catch (err) {
-      console.error(err)
+    } catch {
       toast.error('Deployment failed', { id: 'deploy' })
     } finally {
       setIsDeploying(false)
