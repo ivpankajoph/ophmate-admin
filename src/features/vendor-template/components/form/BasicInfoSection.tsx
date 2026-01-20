@@ -29,6 +29,7 @@ export function BasicInfoSection({
               file
             )
           }
+          isFileInput={true}
         />
         {isUploadingBanner && (
           <p className='mt-1 flex items-center text-sm text-gray-600'>
@@ -44,6 +45,7 @@ export function BasicInfoSection({
           name='logo'
           value={data.components.logo}
           onChange={(file) => handleImageChange(['components', 'logo'], file)}
+          isFileInput={true}
         />
         {isUploadingLogo && (
           <p className='mt-1 flex items-center text-sm text-gray-600'>

@@ -1,22 +1,21 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useRef } from 'react'
+import { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import axios from 'axios'
-import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { debounce } from 'lodash'
-import { MapPin } from 'lucide-react'
 import { useSelector } from 'react-redux'
+import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { Button } from '@/components/ui/button'
-import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { TemplatePageLayout } from '../components/TemplatePageLayout'
+import { TemplatePreviewPanel } from '../components/TemplatePreviewPanel'
+import { TemplateSectionOrder } from '../components/TemplateSectionOrder'
 import { ImageInput } from '../components/form/ImageInput'
 import { ContactPageData } from './type/type'
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
-
-
+import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
 
 function VendorTemplateContact() {
   const [data, setData] = useState<ContactPageData>({
@@ -40,6 +39,11 @@ function VendorTemplateContact() {
   })
   const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
   const [isMapReady, setIsMapReady] = useState(false)
+  const [sectionOrder, setSectionOrder] = useState([
+    'hero',
+    'details',
+    'map',
+  ])
   const mapRef = useRef<HTMLDivElement>(null)
   const leafletMapRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
@@ -47,6 +51,8 @@ function VendorTemplateContact() {
   const [suggestions, setSuggestions] = useState<
     { display_name: string; lat: string; lon: string }[]
   >([])
+
+  const vendor_id = useSelector((state: any) => state.auth?.user?.id)
 
   const fetchSuggestions = async (query: string) => {
     if (!query.trim()) {
@@ -65,7 +71,7 @@ function VendorTemplateContact() {
             limit: 5,
           },
           headers: {
-            'User-Agent': 'YourAppName/1.0 (your@email.com)', // Be polite
+            'User-Agent': 'TemplateStudio/1.0 (support@ophmate.com)',
           },
         }
       )
@@ -75,43 +81,32 @@ function VendorTemplateContact() {
     }
   }
 
-  // Debounce to avoid too many requests
   const debouncedFetch = useRef(debounce(fetchSuggestions, 400)).current
 
-  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchQuery(value)
     debouncedFetch(value)
   }
 
-  // Handle suggestion click
   const handleSuggestionClick = (lat: string, lon: string) => {
     setSearchQuery('')
     setSuggestions([])
-
-    // Update form fields
     updateField(['components', 'contact_page', 'section_2', 'lat'], lat)
     updateField(['components', 'contact_page', 'section_2', 'long'], lon)
-
-    // Map will auto-update due to useEffect dependency
   }
-  const vendor_id = useSelector((state: any) => state.auth?.user?.id)
 
-  // ✅ Load Leaflet dynamically
   useEffect(() => {
     const loadLeaflet = async () => {
       if (typeof window !== 'undefined') {
         const leafletModule = await import('leaflet')
         const L = leafletModule
 
-        // Fix marker icon paths
         delete (L.Icon.Default.prototype as any)._getIconUrl
         L.Icon.Default.mergeOptions({
           iconRetinaUrl:
             'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          iconUrl:
-            'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
           shadowUrl:
             'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
         })
@@ -123,7 +118,6 @@ function VendorTemplateContact() {
     loadLeaflet()
   }, [])
 
-  // ✅ Initialize or update the map
   useEffect(() => {
     if (!isMapReady || !L || !mapRef.current) return
 
@@ -131,7 +125,7 @@ function VendorTemplateContact() {
     const lng = parseFloat(data.components.contact_page.section_2.long) || 0
 
     const defaultCenter: [number, number] =
-      lat && lng ? [lat, lng] : [20.5937, 78.9629] // India default
+      lat && lng ? [lat, lng] : [20.5937, 78.9629]
     const defaultZoom = lat && lng ? 14 : 4
 
     if (leafletMapRef.current) {
@@ -166,7 +160,6 @@ function VendorTemplateContact() {
       })
     }
 
-    // Add marker on click
     map.on('click', (e: any) => {
       const { lat, lng } = e.latlng
 
@@ -201,7 +194,6 @@ function VendorTemplateContact() {
 
     leafletMapRef.current = map
 
-    // ✅ Fix misaligned map tiles
     setTimeout(() => {
       map.invalidateSize()
     }, 300)
@@ -211,7 +203,6 @@ function VendorTemplateContact() {
     data.components.contact_page.section_2.long,
   ])
 
-  // ✅ Upload to Cloudinary
   async function uploadImage(file: File): Promise<string | null> {
     try {
       const { data: signatureData } = await axios.get(
@@ -235,7 +226,6 @@ function VendorTemplateContact() {
     }
   }
 
-  // ✅ Nested object update
   const updateField = (path: string[], value: any) => {
     setData((prev: any) => {
       const clone = JSON.parse(JSON.stringify(prev))
@@ -248,7 +238,6 @@ function VendorTemplateContact() {
     })
   }
 
-  // ✅ Handle image input
   const handleImageChange = async (path: string[], file: File | null) => {
     const pathKey = path.join('.')
     if (!file) {
@@ -274,40 +263,49 @@ function VendorTemplateContact() {
     }
   }
 
-  // ✅ Save contact page
   const handleSave = async () => {
     try {
-      await axios.put(`${BASE_URL}/templates/contact`, {
+      await axios.put(`${BASE_URL}/v1/templates/contact`, {
         vendor_id,
         components: data.components.contact_page,
+        section_order: sectionOrder,
       })
-      alert('✅ Contact page saved successfully!')
+      alert('Contact page saved successfully!')
     } catch {
-      alert('❌ Failed to save contact page.')
+      alert('Failed to save contact page.')
     }
   }
 
-  const isUploading = (path: string[]) => uploadingPaths.has(path.join('.'))
+  const previewUrl = vendor_id ? `/template/${vendor_id}/contact` : undefined
+  const fullPreviewUrl = vendor_id
+    ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
+    : undefined
 
-  return (
-    <div className='container mx-auto max-w-4xl py-8'>
-      <Card className='p-6'>
-        <CardTitle className='flex items-center gap-4'>
-          Template Preview
-          <a
-            className='w-fit text-blue-500 hover:underline'
-            href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/contact`}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            <MapPin className='-mt-1' />
-          </a>
-        </CardTitle>
+  const sections = useMemo(
+    () => [
+      {
+        id: 'hero',
+        title: 'Hero Block',
+        description: 'Background image and hero copy',
+      },
+      {
+        id: 'details',
+        title: 'Location Details',
+        description: 'Address and supporting copy',
+      },
+      {
+        id: 'map',
+        title: 'Map + Coordinates',
+        description: 'Search, coordinates, and pin placement',
+      },
+    ],
+    []
+  )
 
-        <h2 className='mt-2 text-lg font-semibold'>Contact Page</h2>
-
-        {/* Hero Section */}
-        <div className='mt-4 space-y-4'>
+  const sectionBlocks: Record<string, JSX.Element> = {
+    hero: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <div className='space-y-4'>
           <div className='space-y-2'>
             <ImageInput
               label='Hero Background'
@@ -321,12 +319,9 @@ function VendorTemplateContact() {
               }
               isFileInput={true}
             />
-            {isUploading([
-              'components',
-              'contact_page',
-              'hero',
-              'backgroundImage',
-            ]) && <p className='text-muted-foreground text-sm'>Uploading...</p>}
+            {uploadingPaths.has(
+              ['components', 'contact_page', 'hero', 'backgroundImage'].join('.')
+            ) && <p className='text-sm text-slate-500'>Uploading...</p>}
           </div>
 
           <Input
@@ -350,11 +345,11 @@ function VendorTemplateContact() {
             }
           />
         </div>
-
-        {/* Section 2 */}
-        <div className='mt-6 space-y-4'>
-          <h3 className='text-md font-medium'>Section 2 (Location Info)</h3>
-
+      </div>
+    ),
+    details: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <div className='space-y-4'>
           <Input
             placeholder='Section Title'
             value={data.components.contact_page.section_2.hero_title}
@@ -395,9 +390,13 @@ function VendorTemplateContact() {
               )
             }
           />
-
-          {/* Lat/Long */}
-          <div className='grid grid-cols-2 gap-2'>
+        </div>
+      </div>
+    ),
+    map: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <div className='space-y-4'>
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
             <div>
               <Label>Latitude</Label>
               <Input
@@ -425,7 +424,7 @@ function VendorTemplateContact() {
               />
             </div>
           </div>
-          {/* Map Search */}
+
           <div className='space-y-2'>
             <Label>Search Location</Label>
             <Input
@@ -434,11 +433,11 @@ function VendorTemplateContact() {
               placeholder='Type an address or place...'
             />
             {suggestions.length > 0 && (
-              <ul className='z-10 max-h-60 overflow-auto rounded-md border bg-white'>
+              <ul className='z-10 max-h-60 overflow-auto rounded-md border border-slate-200 bg-white'>
                 {suggestions.map((suggestion, idx) => (
                   <li
                     key={idx}
-                    className='cursor-pointer px-3 py-2 text-sm hover:bg-gray-100'
+                    className='cursor-pointer px-3 py-2 text-sm hover:bg-slate-50'
                     onClick={() =>
                       handleSuggestionClick(suggestion.lat, suggestion.lon)
                     }
@@ -450,29 +449,61 @@ function VendorTemplateContact() {
             )}
           </div>
 
-          {/* Map */}
           <div>
             <Label>Location on Map</Label>
             <div
               ref={mapRef}
-              className='leaflet-container mt-1 h-[400px] w-full overflow-hidden rounded-md border bg-gray-100'
+              className='leaflet-container mt-2 h-[400px] w-full overflow-hidden rounded-2xl border bg-slate-100'
             />
-            <p className='text-muted-foreground mt-1 text-sm'>
-              Click on the map to place your location marker. Drag to adjust.
+            <p className='mt-2 text-sm text-slate-500'>
+              Click to drop a pin. Drag the marker to fine-tune the position.
             </p>
           </div>
         </div>
+      </div>
+    ),
+  }
 
-        {/* Save Button */}
-        <div className='mt-6'>
-          <Button onClick={handleSave} disabled={uploadingPaths.size > 0}>
-            {uploadingPaths.size > 0
-              ? 'Uploading Images...'
-              : 'Save Contact Page'}
-          </Button>
-        </div>
-      </Card>
-    </div>
+  return (
+    <TemplatePageLayout
+      title='Contact Page Builder'
+      description='Configure contact hero content, location messaging, and pin placement. Sync to preview how customers will reach you.'
+      activeKey='contact'
+      actions={
+        <Button
+          onClick={handleSave}
+          disabled={uploadingPaths.size > 0}
+          className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
+        >
+          {uploadingPaths.size > 0 ? 'Uploading...' : 'Save Contact Page'}
+        </Button>
+      }
+      preview={
+        <TemplatePreviewPanel
+          title='Live Contact Preview'
+          subtitle='Sync to refresh the right-side preview'
+          src={previewUrl}
+          fullPreviewUrl={fullPreviewUrl}
+          onSync={handleSave}
+          syncDisabled={uploadingPaths.size > 0}
+          vendorId={vendor_id}
+          page='contact'
+          previewData={data}
+          sectionOrder={sectionOrder}
+        />
+      }
+    >
+      <TemplateSectionOrder
+        title='Contact Page Sections'
+        items={sections}
+        order={sectionOrder}
+        setOrder={setSectionOrder}
+      />
+
+      {sectionOrder.map((sectionId) => (
+        <div key={sectionId}>{sectionBlocks[sectionId]}</div>
+      ))}
+    </TemplatePageLayout>
   )
 }
 

@@ -32,7 +32,7 @@ export function DomainModal({ open, setOpen }: Type) {
 
     try {
       const res = await axios.post(
-        `${BASE_URL}/templates/domain/initiate`,
+        `${BASE_URL}/v1/templates/domain/initiate`,
         { domain },
         {
           headers: {

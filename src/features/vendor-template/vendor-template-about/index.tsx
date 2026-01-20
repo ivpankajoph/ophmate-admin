@@ -1,28 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/consistent-type-imports */
-import { useState } from 'react'
+import { JSX, useMemo, useState } from 'react'
 import axios from 'axios'
-import { BASE_URL } from '@/store/slices/vendor/productSlice'
-import { Link2 } from 'lucide-react'
 import { useSelector } from 'react-redux'
-// Adjust path if needed
 import { Button } from '@/components/ui/button'
-import { Card, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { BASE_URL } from '@/store/slices/vendor/productSlice'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
+import { TemplatePageLayout } from '../components/TemplatePageLayout'
+import { TemplatePreviewPanel } from '../components/TemplatePreviewPanel'
+import { TemplateSectionOrder } from '../components/TemplateSectionOrder'
 import { ArrayField } from '../components/form/ArrayField'
 import { ImageInput } from '../components/form/ImageInput'
 import { initialData, TemplateData } from '../data'
-import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 
 function VendorTemplateAbout() {
   const [data, setData] = useState<TemplateData>(initialData)
   const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
+  const [sectionOrder, setSectionOrder] = useState([
+    'hero',
+    'story',
+    'values',
+    'team',
+    'stats',
+  ])
 
   const vendor_id = useSelector((state: any) => state.auth.user.id)
 
-  // Cloudinary upload helper
   async function uploadImage(file: File): Promise<string | null> {
     try {
       const { data: signatureData } = await axios.get(
@@ -89,9 +94,10 @@ function VendorTemplateAbout() {
 
   const handleSave = async () => {
     try {
-      await axios.put(`${BASE_URL}/templates/about`, {
+      await axios.put(`${BASE_URL}/v1/templates/about`, {
         vendor_id,
         components: data.components.about_page,
+        section_order: sectionOrder,
       })
       alert('About page saved successfully!')
     } catch {
@@ -99,25 +105,46 @@ function VendorTemplateAbout() {
     }
   }
 
-  const isUploading = (path: string[]) => uploadingPaths.has(path.join('.'))
+  const previewUrl = vendor_id ? `/template/${vendor_id}/about` : undefined
+  const fullPreviewUrl = vendor_id
+    ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
+    : undefined
 
-  return (
-    <div className='container mx-auto max-w-4xl py-8'>
-      <Card className='p-6'>
-        <CardTitle className='flex gap-4'>
-          Template Preview{' '}
-          <a
-            className='w-fit'
-            href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/about`}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            <Link2 className='-mt-1' />
-          </a>
-        </CardTitle>
-        <h2 className='text-lg font-semibold'>About Page</h2>
+  const sections = useMemo(
+    () => [
+      {
+        id: 'hero',
+        title: 'Hero Block',
+        description: 'Hero background, title, and subtitle',
+      },
+      {
+        id: 'story',
+        title: 'Story + Media',
+        description: 'Narrative paragraphs and featured image',
+      },
+      {
+        id: 'values',
+        title: 'Core Values',
+        description: 'Iconic value statements',
+      },
+      {
+        id: 'team',
+        title: 'Team Spotlight',
+        description: 'Team member cards',
+      },
+      {
+        id: 'stats',
+        title: 'Highlight Stats',
+        description: 'Numbers that build trust',
+      },
+    ],
+    []
+  )
+
+  const sectionBlocks: Record<string, JSX.Element> = {
+    hero: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
         <div className='space-y-4'>
-          {/* Hero Background */}
           <div className='space-y-2'>
             <ImageInput
               label='Hero Background'
@@ -131,12 +158,9 @@ function VendorTemplateAbout() {
               }
               isFileInput={true}
             />
-            {isUploading([
-              'components',
-              'about_page',
-              'hero',
-              'backgroundImage',
-            ]) && <p className='text-muted-foreground text-sm'>Uploading...</p>}
+            {uploadingPaths.has(
+              ['components', 'about_page', 'hero', 'backgroundImage'].join('.')
+            ) && <p className='text-sm text-slate-500'>Uploading...</p>}
           </div>
 
           <Input
@@ -159,8 +183,22 @@ function VendorTemplateAbout() {
             }
             placeholder='Hero Subtitle'
           />
-
-          {/* Story */}
+        </div>
+      </div>
+    ),
+    story: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <div className='space-y-4'>
+          <Input
+            value={data.components.about_page.story.heading}
+            onChange={(e) =>
+              updateField(
+                ['components', 'about_page', 'story', 'heading'],
+                e.target.value
+              )
+            }
+            placeholder='Story Heading'
+          />
           <div className='space-y-2'>
             <Label>Story Paragraphs</Label>
             <ArrayField
@@ -184,9 +222,7 @@ function VendorTemplateAbout() {
                 <Textarea
                   value={item}
                   onChange={(e) => {
-                    const list = [
-                      ...data.components.about_page.story.paragraphs,
-                    ]
+                    const list = [...data.components.about_page.story.paragraphs]
                     list[idx] = e.target.value
                     updateField(
                       ['components', 'about_page', 'story', 'paragraphs'],
@@ -211,186 +247,207 @@ function VendorTemplateAbout() {
               }
               isFileInput={true}
             />
-            {isUploading(['components', 'about_page', 'story', 'image']) && (
-              <p className='text-muted-foreground text-sm'>Uploading...</p>
-            )}
+            {uploadingPaths.has(
+              ['components', 'about_page', 'story', 'image'].join('.')
+            ) && <p className='text-sm text-slate-500'>Uploading...</p>}
           </div>
-
-          {/* Core Values */}
-          <ArrayField
-            label='Core Values'
-            items={data.components.about_page.values}
-            onAdd={() =>
-              updateField(
-                ['components', 'about_page', 'values'],
-                [
-                  ...data.components.about_page.values,
-                  { icon: '', title: '', description: '' },
-                ]
-              )
-            }
-            onRemove={(i) => {
-              const list = [...data.components.about_page.values]
-              list.splice(i, 1)
-              updateField(['components', 'about_page', 'values'], list)
-            }}
-            renderItem={(item, idx) => (
-              <div className='grid grid-cols-1 gap-2 md:grid-cols-3'>
-                <Input
-                  placeholder='Icon (e.g. leaf)'
-                  value={item.icon}
-                  onChange={(e) => {
-                    const list = [...data.components.about_page.values]
-                    list[idx].icon = e.target.value
-                    updateField(['components', 'about_page', 'values'], list)
-                  }}
-                />
-                <Input
-                  placeholder='Title'
-                  value={item.title}
-                  onChange={(e) => {
-                    const list = [...data.components.about_page.values]
-                    list[idx].title = e.target.value
-                    updateField(['components', 'about_page', 'values'], list)
-                  }}
-                />
-                <Input
-                  placeholder='Description'
-                  value={item.description}
-                  onChange={(e) => {
-                    const list = [...data.components.about_page.values]
-                    list[idx].description = e.target.value
-                    updateField(['components', 'about_page', 'values'], list)
-                  }}
-                />
-              </div>
-            )}
-          />
-
-          {/* Team */}
-          <ArrayField
-            label='Team Members'
-            items={data.components.about_page.team}
-            onAdd={() =>
-              updateField(
-                ['components', 'about_page', 'team'],
-                [
-                  ...data.components.about_page.team,
-                  { name: '', role: '', image: '' },
-                ]
-              )
-            }
-            onRemove={(i) => {
-              const list = [...data.components.about_page.team]
-              list.splice(i, 1)
-              updateField(['components', 'about_page', 'team'], list)
-            }}
-            renderItem={(item, idx) => (
+        </div>
+      </div>
+    ),
+    values: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <ArrayField
+          label='Core Values'
+          items={data.components.about_page.values}
+          onAdd={() =>
+            updateField(
+              ['components', 'about_page', 'values'],
+              [
+                ...data.components.about_page.values,
+                { icon: '', title: '', description: '' },
+              ]
+            )
+          }
+          onRemove={(i) => {
+            const list = [...data.components.about_page.values]
+            list.splice(i, 1)
+            updateField(['components', 'about_page', 'values'], list)
+          }}
+          renderItem={(item, idx) => (
+            <div className='grid grid-cols-1 gap-2 md:grid-cols-3'>
+              <Input
+                placeholder='Icon (e.g. leaf)'
+                value={item.icon}
+                onChange={(e) => {
+                  const list = [...data.components.about_page.values]
+                  list[idx].icon = e.target.value
+                  updateField(['components', 'about_page', 'values'], list)
+                }}
+              />
+              <Input
+                placeholder='Title'
+                value={item.title}
+                onChange={(e) => {
+                  const list = [...data.components.about_page.values]
+                  list[idx].title = e.target.value
+                  updateField(['components', 'about_page', 'values'], list)
+                }}
+              />
+              <Input
+                placeholder='Description'
+                value={item.description}
+                onChange={(e) => {
+                  const list = [...data.components.about_page.values]
+                  list[idx].description = e.target.value
+                  updateField(['components', 'about_page', 'values'], list)
+                }}
+              />
+            </div>
+          )}
+        />
+      </div>
+    ),
+    team: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <ArrayField
+          label='Team Members'
+          items={data.components.about_page.team}
+          onAdd={() =>
+            updateField(
+              ['components', 'about_page', 'team'],
+              [...data.components.about_page.team, { name: '', role: '', image: '' }]
+            )
+          }
+          onRemove={(i) => {
+            const list = [...data.components.about_page.team]
+            list.splice(i, 1)
+            updateField(['components', 'about_page', 'team'], list)
+          }}
+          renderItem={(item, idx) => (
+            <div className='space-y-2'>
+              <Input
+                placeholder='Name'
+                value={item.name}
+                onChange={(e) => {
+                  const list = [...data.components.about_page.team]
+                  list[idx].name = e.target.value
+                  updateField(['components', 'about_page', 'team'], list)
+                }}
+              />
+              <Input
+                placeholder='Role'
+                value={item.role}
+                onChange={(e) => {
+                  const list = [...data.components.about_page.team]
+                  list[idx].role = e.target.value
+                  updateField(['components', 'about_page', 'team'], list)
+                }}
+              />
               <div className='space-y-2'>
-                <Input
-                  placeholder='Name'
-                  value={item.name}
-                  onChange={(e) => {
-                    const list = [...data.components.about_page.team]
-                    list[idx].name = e.target.value
-                    updateField(['components', 'about_page', 'team'], list)
+                <ImageInput
+                  label='Team Member Image'
+                  name={`team-${idx}-image`}
+                  value={item.image}
+                  onChange={(file) => {
+                    handleImageChange(
+                      ['components', 'about_page', 'team', idx.toString(), 'image'],
+                      file
+                    )
                   }}
+                  isFileInput={true}
                 />
-                <Input
-                  placeholder='Role'
-                  value={item.role}
-                  onChange={(e) => {
-                    const list = [...data.components.about_page.team]
-                    list[idx].role = e.target.value
-                    updateField(['components', 'about_page', 'team'], list)
-                  }}
-                />
-                <div className='space-y-2'>
-                  <ImageInput
-                    label='Team Member Image'
-                    name={`team-${idx}-image`}
-                    value={item.image}
-                    onChange={(file) => {
-                      handleImageChange(
-                        [
-                          'components',
-                          'about_page',
-                          'team',
-                          idx.toString(),
-                          'image',
-                        ],
-                        file
-                      )
-                    }}
-                    isFileInput={true}
-                  />
-                  {isUploading([
-                    'components',
-                    'about_page',
-                    'team',
-                    idx.toString(),
-                    'image',
-                  ]) && (
-                    <p className='text-muted-foreground text-sm'>
-                      Uploading...
-                    </p>
-                  )}
-                </div>
+                {uploadingPaths.has(
+                  ['components', 'about_page', 'team', idx.toString(), 'image'].join('.')
+                ) && <p className='text-sm text-slate-500'>Uploading...</p>}
               </div>
-            )}
-          />
+            </div>
+          )}
+        />
+      </div>
+    ),
+    stats: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <ArrayField
+          label='Stats'
+          items={data.components.about_page.stats}
+          onAdd={() =>
+            updateField(
+              ['components', 'about_page', 'stats'],
+              [...data.components.about_page.stats, { value: '', label: '' }]
+            )
+          }
+          onRemove={(i) => {
+            const list = [...data.components.about_page.stats]
+            list.splice(i, 1)
+            updateField(['components', 'about_page', 'stats'], list)
+          }}
+          renderItem={(item, idx) => (
+            <div className='grid grid-cols-2 gap-2'>
+              <Input
+                placeholder='Value (e.g. 10+)'
+                value={item.value}
+                onChange={(e) => {
+                  const list = [...data.components.about_page.stats]
+                  list[idx].value = e.target.value
+                  updateField(['components', 'about_page', 'stats'], list)
+                }}
+              />
+              <Input
+                placeholder='Label'
+                value={item.label}
+                onChange={(e) => {
+                  const list = [...data.components.about_page.stats]
+                  list[idx].label = e.target.value
+                  updateField(['components', 'about_page', 'stats'], list)
+                }}
+              />
+            </div>
+          )}
+        />
+      </div>
+    ),
+  }
 
-          {/* Stats */}
-          <ArrayField
-            label='Stats'
-            items={data.components.about_page.stats}
-            onAdd={() =>
-              updateField(
-                ['components', 'about_page', 'stats'],
-                [...data.components.about_page.stats, { value: '', label: '' }]
-              )
-            }
-            onRemove={(i) => {
-              const list = [...data.components.about_page.stats]
-              list.splice(i, 1)
-              updateField(['components', 'about_page', 'stats'], list)
-            }}
-            renderItem={(item, idx) => (
-              <div className='grid grid-cols-2 gap-2'>
-                <Input
-                  placeholder='Value (e.g. 10+)'
-                  value={item.value}
-                  onChange={(e) => {
-                    const list = [...data.components.about_page.stats]
-                    list[idx].value = e.target.value
-                    updateField(['components', 'about_page', 'stats'], list)
-                  }}
-                />
-                <Input
-                  placeholder='Label'
-                  value={item.label}
-                  onChange={(e) => {
-                    const list = [...data.components.about_page.stats]
-                    list[idx].label = e.target.value
-                    updateField(['components', 'about_page', 'stats'], list)
-                  }}
-                />
-              </div>
-            )}
-          />
-        </div>
+  return (
+    <TemplatePageLayout
+      title='About Page Builder'
+      description='Tell your story, highlight your values, and introduce the team. Reorder sections to control how the narrative flows.'
+      activeKey='about'
+      actions={
+        <Button
+          onClick={handleSave}
+          disabled={uploadingPaths.size > 0}
+          className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
+        >
+          {uploadingPaths.size > 0 ? 'Uploading...' : 'Save About Page'}
+        </Button>
+      }
+      preview={
+        <TemplatePreviewPanel
+          title='Live About Preview'
+          subtitle='Sync to refresh the right-side preview'
+          src={previewUrl}
+          fullPreviewUrl={fullPreviewUrl}
+          onSync={handleSave}
+          syncDisabled={uploadingPaths.size > 0}
+          vendorId={vendor_id}
+          page='about'
+          previewData={data}
+          sectionOrder={sectionOrder}
+        />
+      }
+    >
+      <TemplateSectionOrder
+        title='About Page Sections'
+        items={sections}
+        order={sectionOrder}
+        setOrder={setSectionOrder}
+      />
 
-        {/* Optional Save Button */}
-
-        <div className='mt-6'>
-          <Button onClick={handleSave} disabled={uploadingPaths.size > 0}>
-            {uploadingPaths.size > 0
-              ? 'Uploading Images...'
-              : 'Save About Page'}
-          </Button>
-        </div>
-      </Card>
-    </div>
+      {sectionOrder.map((sectionId) => (
+        <div key={sectionId}>{sectionBlocks[sectionId]}</div>
+      ))}
+    </TemplatePageLayout>
   )
 }
 

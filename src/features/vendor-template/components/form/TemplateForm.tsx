@@ -104,7 +104,7 @@ export function TemplateForm() {
         components: data.components,
       }
 
-      const res = await axios.put(`${BASE_URL}/templates/home`, payload, {
+      const res = await axios.put(`${BASE_URL}/v1/templates/home`, payload, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -135,7 +135,7 @@ export function TemplateForm() {
     toast.loading('🚀 Starting deployment...', { id: 'deploy' })
 
     try {
-      const response = await fetch(`${BASE_URL}/deploy`, {
+      const response = await fetch(`${BASE_URL}/v1/templates/deploy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Rocket, Link2 } from 'lucide-react'
+import { JSX, useMemo, useState } from 'react'
+import { Link2, Rocket, Wand2 } from 'lucide-react'
 import { Toaster } from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 import { DomainModal } from './components/DomainModel'
+import { TemplatePageLayout } from './components/TemplatePageLayout'
+import { TemplatePreviewPanel } from './components/TemplatePreviewPanel'
+import { TemplateSectionOrder } from './components/TemplateSectionOrder'
 import { BasicInfoSection } from './components/form/BasicInfoSection'
 import { DeploymentModal } from './components/form/DeploymentModal'
 import { DescriptionSection } from './components/form/DescriptionSection'
@@ -31,87 +34,157 @@ export default function TemplateForm() {
     handleCancel,
   } = useTemplateForm()
 
-  const [domainOpen, setDomainOpen] = useState(false) // ⬅ New modal state
+  const [domainOpen, setDomainOpen] = useState(false)
+  const [sectionOrder, setSectionOrder] = useState([
+    'branding',
+    'hero',
+    'description',
+    'products',
+  ])
 
-  const VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND = import.meta.env
-    .VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND
+  const previewUrl = vendor_id ? `/template/${vendor_id}` : undefined
+  const fullPreviewUrl = vendor_id
+    ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
+    : undefined
 
-  const PREVIEW_URL = `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
+  const handleSubmitWithOrder = () => handleSubmit(sectionOrder)
+
+  const sections = useMemo(
+    () => [
+      {
+        id: 'branding',
+        title: 'Branding + Media',
+        description: 'Hero banner and logo assets',
+      },
+      {
+        id: 'hero',
+        title: 'Hero Headline',
+        description: 'Primary headline and CTA copy',
+      },
+      {
+        id: 'description',
+        title: 'Story + Metrics',
+        description: 'Long-form description and highlight stats',
+      },
+      {
+        id: 'products',
+        title: 'Product Grid',
+        description: 'Auto-populated from your dashboard inventory',
+      },
+    ],
+    []
+  )
+
+  const sectionBlocks: Record<string, JSX.Element> = {
+    branding: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <BasicInfoSection
+          data={data}
+          handleImageChange={handleImageChange}
+          uploadingPaths={uploadingPaths}
+        />
+      </div>
+    ),
+    hero: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <HeroSection data={data} updateField={updateField} />
+      </div>
+    ),
+    description: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <DescriptionSection data={data} updateField={updateField} />
+      </div>
+    ),
+    products: (
+      <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+        <div className='space-y-2'>
+          <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
+            Products
+          </p>
+          <h3 className='text-lg font-semibold text-slate-900'>
+            Product grid is auto-populated
+          </h3>
+          <p className='text-sm text-slate-600'>
+            Upload products from your dashboard to show them in the live
+            template preview.
+          </p>
+        </div>
+      </div>
+    ),
+  }
+
   return (
-    <div className='space-y-6'>
+    <>
       <Toaster position='top-right' />
 
-      <Card className='border-0 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg shadow-gray-200/50'>
-        <CardHeader className='relative p-6 shadow-sm'>
-          <div className='flex flex-col gap-4 sm:flex-row sm:justify-between'>
-            <div>
-              <CardTitle className='text-3xl font-extrabold text-slate-800'>
-                Template Builder
-              </CardTitle>
-              <p className='mt-1 text-slate-600'>
-                Customize your storefront and deploy instantly
-              </p>
-            </div>
-
-            <div className='flex gap-3'>
-              <Button
-                onClick={() => setOpen(true)}
-                className='bg-emerald-500 text-white'
-              >
-                <Rocket className='mr-2 h-4 w-4' /> Deploy Website
-              </Button>
-
-              <a
-                href={`${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}?vendor_id=${vendor_id}`}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                <Button variant='outline' className='text-indigo-600'>
-                  <Link2 className='mr-2 h-4 w-4' /> Preview
+      <TemplatePageLayout
+        title='Homepage Builder'
+        description='Craft your storefront hero, brand story, and key metrics. Drag sections to reorder and sync to preview how products appear on your live template.'
+        activeKey='home'
+        actions={
+          <>
+            <Button
+              onClick={() => setOpen(true)}
+              className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
+            >
+              <Rocket className='h-4 w-4' /> Deploy
+            </Button>
+            <Button
+              variant='outline'
+              onClick={() => setDomainOpen(true)}
+              className='rounded-full border-slate-300'
+            >
+              <Wand2 className='h-4 w-4' /> Connect Domain
+            </Button>
+            {previewUrl ? (
+              <a href={previewUrl} target='_blank' rel='noopener noreferrer'>
+                <Button
+                  variant='outline'
+                  className='rounded-full border-slate-300'
+                >
+                  <Link2 className='h-4 w-4' /> Open Preview
                 </Button>
               </a>
-
-              <Button variant='outline' onClick={() => setDomainOpen(true)}>
-                Connect Domain
-              </Button>
-            </div>
-          </div>
-
-          <div className='mt-3 text-sm text-slate-700'>
-            Your website:{' '}
-            <a
-              href={PREVIEW_URL}
-              className='text-indigo-600'
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {PREVIEW_URL}
-            </a>
-          </div>
-        </CardHeader>
-
-        <CardContent className='space-y-6 p-6'>
-          {/* ⬇ Split into components */}
-          <BasicInfoSection
-            data={data}
-            handleImageChange={handleImageChange}
-            uploadingPaths={uploadingPaths}
+            ) : null}
+          </>
+        }
+        preview={
+          <TemplatePreviewPanel
+            title='Live Homepage Preview'
+            subtitle='Sync to refresh the right-side preview'
+            src={previewUrl}
+            fullPreviewUrl={fullPreviewUrl}
+            onSync={handleSubmitWithOrder}
+            isSyncing={isSubmitting}
+            syncDisabled={uploadingPaths.size > 0}
+            vendorId={vendor_id}
+            page='home'
+            previewData={data}
+            sectionOrder={sectionOrder}
           />
+        }
+      >
+        <TemplateSectionOrder
+          title='Home Sections'
+          items={sections}
+          order={sectionOrder}
+          setOrder={setSectionOrder}
+        />
 
-          <HeroSection data={data} updateField={updateField} />
+        {sectionOrder.map((sectionId) => (
+          <div key={sectionId}>{sectionBlocks[sectionId]}</div>
+        ))}
 
-          <DescriptionSection data={data} updateField={updateField} />
-
+        <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
           <SubmitSection
             submitStatus={submitStatus}
             isSubmitting={isSubmitting}
             uploadingPaths={uploadingPaths}
-            handleSubmit={handleSubmit}
+            handleSubmit={handleSubmitWithOrder}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </TemplatePageLayout>
 
-      {/* Deployment Modal */}
       <DeploymentModal
         open={open}
         setOpen={setOpen}
@@ -121,6 +194,6 @@ export default function TemplateForm() {
         handleCancel={handleCancel}
       />
       <DomainModal open={domainOpen} setOpen={setDomainOpen} />
-    </div>
+    </>
   )
 }

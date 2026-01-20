@@ -23,6 +23,7 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
+import { Route as TemplateVendorIdIndexRouteImport } from './routes/template/$vendorId/index'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedVendorTemplateIndexRouteImport } from './routes/_authenticated/vendor-template/index'
 import { Route as AuthenticatedVendorTemplateOtherIndexRouteImport } from './routes/_authenticated/vendor-template-other/index'
@@ -39,6 +40,8 @@ import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedCategoryIndexRouteImport } from './routes/_authenticated/category/index'
 import { Route as AuthenticatedBannersIndexRouteImport } from './routes/_authenticated/banners/index'
+import { Route as TemplateVendorIdContactRouteImport } from './routes/template/$vendorId/contact'
+import { Route as TemplateVendorIdAboutRouteImport } from './routes/template/$vendorId/about'
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
@@ -46,6 +49,7 @@ import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenti
 import { Route as AuthenticatedProductsCreateProductsIndexRouteImport } from './routes/_authenticated/products/create-products/index'
 import { Route as AuthenticatedProductsAdminProductsIndexRouteImport } from './routes/_authenticated/products/admin-products/index'
 import { Route as AuthenticatedCategoryCreateCategoryIndexRouteImport } from './routes/_authenticated/category/create-category/index'
+import { Route as TemplateVendorIdProductProductIdRouteImport } from './routes/template/$vendorId/product/$productId'
 
 const ClerkRouteRoute = ClerkRouteRouteImport.update({
   id: '/clerk',
@@ -113,6 +117,11 @@ const ClerkAuthenticatedRouteRoute = ClerkAuthenticatedRouteRouteImport.update({
 const ClerkauthRouteRoute = ClerkauthRouteRouteImport.update({
   id: '/(auth)',
   getParentRoute: () => ClerkRouteRoute,
+} as any)
+const TemplateVendorIdIndexRoute = TemplateVendorIdIndexRouteImport.update({
+  id: '/template/$vendorId/',
+  path: '/template/$vendorId/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedVendorIndexRoute =
   AuthenticatedVendorIndexRouteImport.update({
@@ -207,6 +216,16 @@ const AuthenticatedBannersIndexRoute =
     path: '/banners/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const TemplateVendorIdContactRoute = TemplateVendorIdContactRouteImport.update({
+  id: '/template/$vendorId/contact',
+  path: '/template/$vendorId/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplateVendorIdAboutRoute = TemplateVendorIdAboutRouteImport.update({
+  id: '/template/$vendorId/about',
+  path: '/template/$vendorId/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClerkAuthenticatedUserManagementRoute =
   ClerkAuthenticatedUserManagementRouteImport.update({
     id: '/user-management',
@@ -247,6 +266,12 @@ const AuthenticatedCategoryCreateCategoryIndexRoute =
     path: '/category/create-category/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const TemplateVendorIdProductProductIdRoute =
+  TemplateVendorIdProductProductIdRouteImport.update({
+    id: '/template/$vendorId/product/$productId',
+    path: '/template/$vendorId/product/$productId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
@@ -264,6 +289,8 @@ export interface FileRoutesByFullPath {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/template/$vendorId/about': typeof TemplateVendorIdAboutRoute
+  '/template/$vendorId/contact': typeof TemplateVendorIdContactRoute
   '/banners': typeof AuthenticatedBannersIndexRoute
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
@@ -280,6 +307,8 @@ export interface FileRoutesByFullPath {
   '/vendor-template-other': typeof AuthenticatedVendorTemplateOtherIndexRoute
   '/vendor-template': typeof AuthenticatedVendorTemplateIndexRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
+  '/template/$vendorId': typeof TemplateVendorIdIndexRoute
+  '/template/$vendorId/product/$productId': typeof TemplateVendorIdProductProductIdRoute
   '/category/create-category': typeof AuthenticatedCategoryCreateCategoryIndexRoute
   '/products/admin-products': typeof AuthenticatedProductsAdminProductsIndexRoute
   '/products/create-products': typeof AuthenticatedProductsCreateProductsIndexRoute
@@ -300,6 +329,8 @@ export interface FileRoutesByTo {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/template/$vendorId/about': typeof TemplateVendorIdAboutRoute
+  '/template/$vendorId/contact': typeof TemplateVendorIdContactRoute
   '/banners': typeof AuthenticatedBannersIndexRoute
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
@@ -316,6 +347,8 @@ export interface FileRoutesByTo {
   '/vendor-template-other': typeof AuthenticatedVendorTemplateOtherIndexRoute
   '/vendor-template': typeof AuthenticatedVendorTemplateIndexRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
+  '/template/$vendorId': typeof TemplateVendorIdIndexRoute
+  '/template/$vendorId/product/$productId': typeof TemplateVendorIdProductProductIdRoute
   '/category/create-category': typeof AuthenticatedCategoryCreateCategoryIndexRoute
   '/products/admin-products': typeof AuthenticatedProductsAdminProductsIndexRoute
   '/products/create-products': typeof AuthenticatedProductsCreateProductsIndexRoute
@@ -340,6 +373,8 @@ export interface FileRoutesById {
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/template/$vendorId/about': typeof TemplateVendorIdAboutRoute
+  '/template/$vendorId/contact': typeof TemplateVendorIdContactRoute
   '/_authenticated/banners/': typeof AuthenticatedBannersIndexRoute
   '/_authenticated/category/': typeof AuthenticatedCategoryIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
@@ -356,6 +391,8 @@ export interface FileRoutesById {
   '/_authenticated/vendor-template-other/': typeof AuthenticatedVendorTemplateOtherIndexRoute
   '/_authenticated/vendor-template/': typeof AuthenticatedVendorTemplateIndexRoute
   '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
+  '/template/$vendorId/': typeof TemplateVendorIdIndexRoute
+  '/template/$vendorId/product/$productId': typeof TemplateVendorIdProductProductIdRoute
   '/_authenticated/category/create-category/': typeof AuthenticatedCategoryCreateCategoryIndexRoute
   '/_authenticated/products/admin-products/': typeof AuthenticatedProductsAdminProductsIndexRoute
   '/_authenticated/products/create-products/': typeof AuthenticatedProductsCreateProductsIndexRoute
@@ -378,6 +415,8 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
+    | '/template/$vendorId/about'
+    | '/template/$vendorId/contact'
     | '/banners'
     | '/category'
     | '/chats'
@@ -394,6 +433,8 @@ export interface FileRouteTypes {
     | '/vendor-template-other'
     | '/vendor-template'
     | '/vendor'
+    | '/template/$vendorId'
+    | '/template/$vendorId/product/$productId'
     | '/category/create-category'
     | '/products/admin-products'
     | '/products/create-products'
@@ -414,6 +455,8 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
+    | '/template/$vendorId/about'
+    | '/template/$vendorId/contact'
     | '/banners'
     | '/category'
     | '/chats'
@@ -430,6 +473,8 @@ export interface FileRouteTypes {
     | '/vendor-template-other'
     | '/vendor-template'
     | '/vendor'
+    | '/template/$vendorId'
+    | '/template/$vendorId/product/$productId'
     | '/category/create-category'
     | '/products/admin-products'
     | '/products/create-products'
@@ -453,6 +498,8 @@ export interface FileRouteTypes {
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
+    | '/template/$vendorId/about'
+    | '/template/$vendorId/contact'
     | '/_authenticated/banners/'
     | '/_authenticated/category/'
     | '/_authenticated/chats/'
@@ -469,6 +516,8 @@ export interface FileRouteTypes {
     | '/_authenticated/vendor-template-other/'
     | '/_authenticated/vendor-template/'
     | '/_authenticated/vendor/'
+    | '/template/$vendorId/'
+    | '/template/$vendorId/product/$productId'
     | '/_authenticated/category/create-category/'
     | '/_authenticated/products/admin-products/'
     | '/_authenticated/products/create-products/'
@@ -486,6 +535,10 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
+  TemplateVendorIdAboutRoute: typeof TemplateVendorIdAboutRoute
+  TemplateVendorIdContactRoute: typeof TemplateVendorIdContactRoute
+  TemplateVendorIdIndexRoute: typeof TemplateVendorIdIndexRoute
+  TemplateVendorIdProductProductIdRoute: typeof TemplateVendorIdProductProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -587,6 +640,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/clerk'
       preLoaderRoute: typeof ClerkauthRouteRouteImport
       parentRoute: typeof ClerkRouteRoute
+    }
+    '/template/$vendorId/': {
+      id: '/template/$vendorId/'
+      path: '/template/$vendorId'
+      fullPath: '/template/$vendorId'
+      preLoaderRoute: typeof TemplateVendorIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/vendor/': {
       id: '/_authenticated/vendor/'
@@ -700,6 +760,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBannersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/template/$vendorId/contact': {
+      id: '/template/$vendorId/contact'
+      path: '/template/$vendorId/contact'
+      fullPath: '/template/$vendorId/contact'
+      preLoaderRoute: typeof TemplateVendorIdContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/template/$vendorId/about': {
+      id: '/template/$vendorId/about'
+      path: '/template/$vendorId/about'
+      fullPath: '/template/$vendorId/about'
+      preLoaderRoute: typeof TemplateVendorIdAboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clerk/_authenticated/user-management': {
       id: '/clerk/_authenticated/user-management'
       path: '/user-management'
@@ -748,6 +822,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/category/create-category'
       preLoaderRoute: typeof AuthenticatedCategoryCreateCategoryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/template/$vendorId/product/$productId': {
+      id: '/template/$vendorId/product/$productId'
+      path: '/template/$vendorId/product/$productId'
+      fullPath: '/template/$vendorId/product/$productId'
+      preLoaderRoute: typeof TemplateVendorIdProductProductIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -865,6 +946,10 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
+  TemplateVendorIdAboutRoute: TemplateVendorIdAboutRoute,
+  TemplateVendorIdContactRoute: TemplateVendorIdContactRoute,
+  TemplateVendorIdIndexRoute: TemplateVendorIdIndexRoute,
+  TemplateVendorIdProductProductIdRoute: TemplateVendorIdProductProductIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

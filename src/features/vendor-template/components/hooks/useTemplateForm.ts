@@ -62,7 +62,7 @@ export function useTemplateForm() {
   }
 
   // Save template
-  const handleSubmit = async () => {
+  const handleSubmit = async (sectionOrder?: string[]) => {
     setIsSubmitting(true)
     setSubmitStatus('idle')
 
@@ -70,9 +70,10 @@ export function useTemplateForm() {
       const payload = {
         vendor_id,
         components: data.components,
+        section_order: sectionOrder,
       }
 
-      const res = await axios.put(`${BASE_URL}/templates/home`, payload)
+      const res = await axios.put(`${BASE_URL}/v1/templates/home`, payload)
 
       if (res.status === 200 || res.status === 201) {
         setSubmitStatus('success')
@@ -107,7 +108,7 @@ export function useTemplateForm() {
     toast.loading('Starting deployment...', { id: 'deploy' })
     try {
       const response = await axios.post(
-        `${BASE_URL}/templates/deploy`,
+        `${BASE_URL}/v1/templates/deploy`,
         {
           projectName: `sellerslogin-${vendor_id}`,
           templatePath: `../vendor-template`,
@@ -146,7 +147,7 @@ export function useTemplateForm() {
   // Cancel Deployment
   const handleCancel = async () => {
     try {
-      await axios.post(`${BASE_URL}/templates/deploy/cancel`)
+      await axios.post(`${BASE_URL}/v1/templates/deploy/cancel`)
       toast.success('Deployment canceled')
     } catch {
       toast.error('Cancel failed')
