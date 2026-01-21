@@ -32,7 +32,7 @@ export function TemplatePageLayout({
       <div className='absolute -left-20 top-10 h-64 w-64 rounded-full bg-gradient-to-br from-amber-200/30 via-white/0 to-transparent blur-3xl' />
       <div className='absolute -right-16 bottom-16 h-72 w-72 rounded-full bg-gradient-to-br from-teal-200/40 via-white/0 to-transparent blur-3xl' />
 
-      <div className='relative mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8'>
+      <div className='relative mx-auto flex max-w-[1400px] flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8'>
         <header className='rounded-3xl border border-white/60 bg-white/80 p-6 shadow-[0_20px_60px_-35px_rgba(15,23,42,0.35)] backdrop-blur'>
           <div className='flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between'>
             <div>
@@ -67,11 +67,16 @@ export function TemplatePageLayout({
           </div>
         </header>
 
-        <div className='grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]'>
-          <div className='space-y-6'>{children}</div>
+        <div className='grid gap-6 lg:grid-cols-[520px_minmax(0,1fr)] xl:grid-cols-[600px_minmax(0,1fr)]'>
           {preview ? (
             <div className='lg:sticky lg:top-6'>{preview}</div>
           ) : null}
+          <div
+            className='space-y-6 rounded-3xl border border-white/70 bg-white/70 p-4 shadow-sm lg:max-h-[calc(100vh-240px)] lg:overflow-y-auto lg:pr-3'
+            data-editor-scroll-container='true'
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>

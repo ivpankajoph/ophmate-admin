@@ -294,6 +294,7 @@ export function TemplateForm() {
                     )
                   }
                   isFileInput={true}
+                  dimensions='1920 x 1080'
                 />
                 {isUploadingPreview && (
                   <div className='text-muted-foreground mt-2 flex items-center text-sm'>
@@ -314,6 +315,7 @@ export function TemplateForm() {
                     handleImageChange(['components', 'logo'], file)
                   }
                   isFileInput={true}
+                  dimensions='600 x 600'
                 />
                 {isUploadingLogo && (
                   <div className='text-muted-foreground mt-2 flex items-center text-sm'>

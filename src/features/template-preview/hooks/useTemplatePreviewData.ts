@@ -21,6 +21,11 @@ interface PreviewResult {
   products: Product[]
   sectionOrder: string[]
   categoryMap: Record<string, string>
+  subcategories: Array<{
+    _id?: string
+    name?: string
+    category_id?: { _id?: string; name?: string } | string
+  }>
   loading: boolean
   error: string | null
 }
@@ -103,6 +108,13 @@ export function useTemplatePreviewData(
   const [products, setProducts] = useState<Product[]>([])
   const [sectionOrder, setSectionOrder] = useState<string[]>([])
   const [categoryMap, setCategoryMap] = useState<Record<string, string>>({})
+  const [subcategories, setSubcategories] = useState<
+    Array<{
+      _id?: string
+      name?: string
+      category_id?: { _id?: string; name?: string } | string
+    }>
+  >([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -191,14 +203,36 @@ export function useTemplatePreviewData(
       }
     }
 
+    const loadSubcategories = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/v1/subcategories/getall`, {
+          headers,
+        })
+        return Array.isArray(res.data?.data) ? res.data.data : []
+      } catch {
+        return []
+      }
+    }
+
     Promise.resolve().then(() => {
       if (!mounted) return
       setLoading(true)
       setError(null)
     })
 
-    Promise.all([loadTemplate(), loadProducts(), loadCategories()])
-      .then(([templateResult, productsResult, categoryResult]) => {
+    Promise.all([
+      loadTemplate(),
+      loadProducts(),
+      loadCategories(),
+      loadSubcategories(),
+    ])
+      .then(
+        ([
+          templateResult,
+          productsResult,
+          categoryResult,
+          subcategoryResult,
+        ]) => {
         if (!mounted) return
         if (templateResult) {
           setTemplate(templateResult.template)
@@ -206,6 +240,7 @@ export function useTemplatePreviewData(
         }
         setProducts(productsResult || [])
         setCategoryMap(categoryResult || {})
+        setSubcategories(subcategoryResult || [])
       })
       .catch(() => {
         if (!mounted) return
@@ -221,5 +256,13 @@ export function useTemplatePreviewData(
     }
   }, [vendorId, page, headers])
 
-  return { template, products, sectionOrder, categoryMap, loading, error }
+  return {
+    template,
+    products,
+    sectionOrder,
+    categoryMap,
+    subcategories,
+    loading,
+    error,
+  }
 }

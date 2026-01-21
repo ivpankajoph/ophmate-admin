@@ -17,8 +17,10 @@ export function useTemplateForm() {
   const [open, setOpen] = useState(false)
   const [isDeploying, setIsDeploying] = useState(false)
   const [deployMessage, setDeployMessage] = useState('Deploying website...')
+  const [loadedSectionOrder, setLoadedSectionOrder] = useState<string[]>([])
 
   const vendor_id = useSelector((s: any) => s.auth?.user?.id)
+  const token = useSelector((s: any) => s.auth?.token)
   const vendor_weburl = useSelector(
     (s: any) => s.vendorprofile?.profile?.vendor?.bound_url
   )
@@ -27,6 +29,106 @@ export function useTemplateForm() {
   useEffect(() => {
     dispatch(fetchVendorProfile())
   }, [dispatch])
+
+  useEffect(() => {
+    if (!vendor_id) return
+
+    const pickArray = (value: unknown): string[] =>
+      Array.isArray(value) ? (value as string[]) : []
+
+    const firstNonEmpty = (...values: string[][]) =>
+      values.find((value) => value.length > 0) || []
+
+    const mergeTemplate = (payload: Record<string, unknown>) => {
+      const base = structuredClone(initialData)
+      const merged = {
+        ...base,
+        components: {
+          ...base.components,
+          ...(payload.components && typeof payload.components === 'object'
+            ? (payload.components as typeof base.components)
+            : {}),
+        },
+      }
+
+      merged.components.theme = {
+        ...base.components.theme,
+        ...(payload.components && typeof payload.components === 'object'
+          ? (payload.components as any).theme
+          : {}),
+        ...(payload.theme ? (payload.theme as typeof base.components.theme) : {}),
+      }
+
+      if (payload.logo) {
+        merged.components.logo = payload.logo as string
+      }
+      if (payload.home_page) {
+        merged.components.home_page =
+          payload.home_page as typeof base.components.home_page
+      }
+      if (payload.about_page) {
+        merged.components.about_page =
+          payload.about_page as typeof base.components.about_page
+      }
+      if (payload.contact_page) {
+        merged.components.contact_page =
+          payload.contact_page as typeof base.components.contact_page
+      }
+      if (payload.social_page) {
+        merged.components.social_page =
+          payload.social_page as typeof base.components.social_page
+      }
+
+      return merged
+    }
+
+    const endpoints = [
+      `${BASE_URL}/v1/templates/home?vendor_id=${vendor_id}`,
+      `${BASE_URL}/v1/templates/home/${vendor_id}`,
+      `${BASE_URL}/v1/templates/${vendor_id}`,
+    ]
+
+    const load = async () => {
+      for (const url of endpoints) {
+        try {
+          const res = await axios.get(url, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          })
+          const root = res.data as unknown
+          const record =
+            root && typeof root === 'object'
+              ? (root as Record<string, unknown>)
+              : null
+          const payload =
+            (record?.data as Record<string, unknown>) ||
+            (record?.template as Record<string, unknown>) ||
+            record
+
+          if (payload && typeof payload === 'object') {
+            const order = firstNonEmpty(
+              pickArray((payload as Record<string, unknown>).section_order),
+              pickArray((payload as Record<string, unknown>).sectionOrder),
+              pickArray(
+                (
+                  (payload as Record<string, unknown>).components as Record<
+                    string,
+                    unknown
+                  >
+                )?.section_order
+              )
+            )
+            setData(mergeTemplate(payload as Record<string, unknown>))
+            if (order.length) setLoadedSectionOrder(order)
+            return
+          }
+        } catch {
+          continue
+        }
+      }
+    }
+
+    load()
+  }, [vendor_id])
 
   // Update any nested value
   const updateField = (path: string[], value: any) => {
@@ -101,7 +203,7 @@ export function useTemplateForm() {
       toast.error('URL binding failed')
     }
   }
-  const token = useSelector((state: any) => state?.auth?.token)
+ 
 
   const handleDeploy = async () => {
     setIsDeploying(true)
@@ -171,5 +273,6 @@ export function useTemplateForm() {
     deployMessage,
     handleDeploy,
     handleCancel,
+    loadedSectionOrder,
   }
 }

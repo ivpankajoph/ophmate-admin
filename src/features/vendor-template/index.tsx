@@ -1,6 +1,6 @@
 'use client'
 
-import { JSX, useMemo, useState } from 'react'
+import { JSX, useEffect, useMemo, useState } from 'react'
 import { Link2, Rocket, Wand2 } from 'lucide-react'
 import { Toaster } from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,13 @@ import { DeploymentModal } from './components/form/DeploymentModal'
 import { DescriptionSection } from './components/form/DescriptionSection'
 import { HeroSection } from './components/form/HeroSection'
 import { SubmitSection } from './components/form/SubmitSection'
+import { ThemeSettingsSection } from './components/form/ThemeSettingsSection'
 import { useTemplateForm } from './components/hooks/useTemplateForm'
+import { Header } from '@/components/layout/header'
+import { Search } from '@/components/search'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { ConfigDrawer } from '@/components/config-drawer'
+import { ProfileDropdown } from '@/components/profile-dropdown'
 
 export default function TemplateForm() {
   const {
@@ -32,9 +38,11 @@ export default function TemplateForm() {
     isDeploying,
     deployMessage,
     handleCancel,
+    loadedSectionOrder,
   } = useTemplateForm()
 
   const [domainOpen, setDomainOpen] = useState(false)
+  const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [sectionOrder, setSectionOrder] = useState([
     'branding',
     'hero',
@@ -42,12 +50,43 @@ export default function TemplateForm() {
     'products',
   ])
 
+  useEffect(() => {
+    if (loadedSectionOrder.length) {
+      setSectionOrder(loadedSectionOrder)
+    }
+  }, [loadedSectionOrder])
+
+  useEffect(() => {
+    if (!selectedSection) return
+    const container = document.querySelector(
+      '[data-editor-scroll-container="true"]'
+    ) as HTMLElement | null
+    const target = document.querySelector(
+      `[data-editor-section="${selectedSection}"]`
+    ) as HTMLElement | null
+    if (container && target) {
+      const containerRect = container.getBoundingClientRect()
+      const targetRect = target.getBoundingClientRect()
+      const top =
+        targetRect.top - containerRect.top + container.scrollTop - 12
+      container.scrollTo({ top, behavior: 'smooth' })
+      return
+    }
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [selectedSection])
+
   const previewUrl = vendor_id ? `/template/${vendor_id}` : undefined
   const fullPreviewUrl = vendor_id
     ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
     : undefined
 
   const handleSubmitWithOrder = () => handleSubmit(sectionOrder)
+
+  const handleSelectSection = (sectionId: string) => {
+    setSelectedSection(sectionId)
+  }
 
   const sections = useMemo(
     () => [
@@ -115,10 +154,18 @@ export default function TemplateForm() {
 
   return (
     <>
+         <Header fixed>
+            <Search />
+            <div className='ms-auto flex items-center space-x-4'>
+              <ThemeSwitch />
+              <ConfigDrawer />
+              <ProfileDropdown />
+            </div>
+          </Header>
       <Toaster position='top-right' />
 
       <TemplatePageLayout
-        title='Homepage Builder'
+        title='Website Builder'
         description='Craft your storefront hero, brand story, and key metrics. Drag sections to reorder and sync to preview how products appear on your live template.'
         activeKey='home'
         actions={
@@ -150,7 +197,7 @@ export default function TemplateForm() {
         }
         preview={
           <TemplatePreviewPanel
-            title='Live Homepage Preview'
+            title='Live Website Preview'
             subtitle='Sync to refresh the right-side preview'
             src={previewUrl}
             fullPreviewUrl={fullPreviewUrl}
@@ -161,9 +208,12 @@ export default function TemplateForm() {
             page='home'
             previewData={data}
             sectionOrder={sectionOrder}
+            onSelectSection={handleSelectSection}
           />
         }
       >
+        <ThemeSettingsSection data={data} updateField={updateField} />
+
         <TemplateSectionOrder
           title='Home Sections'
           items={sections}
@@ -172,7 +222,17 @@ export default function TemplateForm() {
         />
 
         {sectionOrder.map((sectionId) => (
-          <div key={sectionId}>{sectionBlocks[sectionId]}</div>
+          <div
+            key={sectionId}
+            data-editor-section={sectionId}
+            className={
+              selectedSection === sectionId
+                ? 'rounded-3xl ring-2 ring-slate-900/15 ring-offset-2 ring-offset-slate-50'
+                : undefined
+            }
+          >
+            {sectionBlocks[sectionId]}
+          </div>
         ))}
 
         <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>

@@ -2,48 +2,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import axios from 'axios'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
+import { BASE_URL } from '@/store/slices/vendor/productSlice'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { debounce } from 'lodash'
 import { useSelector } from 'react-redux'
-import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ConfigDrawer } from '@/components/config-drawer'
+import { Header } from '@/components/layout/header'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Search } from '@/components/search'
+import { ThemeSwitch } from '@/components/theme-switch'
 import { TemplatePageLayout } from '../components/TemplatePageLayout'
 import { TemplatePreviewPanel } from '../components/TemplatePreviewPanel'
 import { TemplateSectionOrder } from '../components/TemplateSectionOrder'
 import { ImageInput } from '../components/form/ImageInput'
-import { ContactPageData } from './type/type'
-import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+import { ThemeSettingsSection } from '../components/form/ThemeSettingsSection'
+import { initialData, type TemplateData } from '../data'
 
 function VendorTemplateContact() {
-  const [data, setData] = useState<ContactPageData>({
-    components: {
-      contact_page: {
-        hero: {
-          backgroundImage: '',
-          title: '',
-          subtitle: '',
-        },
-        section_2: {
-          hero_title: '',
-          hero_subtitle: '',
-          hero_title2: '',
-          hero_subtitle2: '',
-          lat: '',
-          long: '',
-        },
-      },
-    },
-  })
+  const [data, setData] = useState<TemplateData>(initialData)
   const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
+  const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [isMapReady, setIsMapReady] = useState(false)
-  const [sectionOrder, setSectionOrder] = useState([
-    'hero',
-    'details',
-    'map',
-  ])
+  const [sectionOrder, setSectionOrder] = useState(['hero', 'details', 'map'])
   const mapRef = useRef<HTMLDivElement>(null)
   const leafletMapRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
@@ -53,6 +38,115 @@ function VendorTemplateContact() {
   >([])
 
   const vendor_id = useSelector((state: any) => state.auth?.user?.id)
+  const token = useSelector((state: any) => state.auth?.token)
+
+  useEffect(() => {
+    if (!vendor_id) return
+
+    const pickArray = (value: unknown): string[] =>
+      Array.isArray(value) ? (value as string[]) : []
+
+    const firstNonEmpty = (...values: string[][]) =>
+      values.find((value) => value.length > 0) || []
+
+    const mergeTemplate = (payload: Record<string, unknown>): TemplateData => {
+      const base = structuredClone(initialData)
+      const merged = {
+        ...base,
+        components: {
+          ...base.components,
+          ...(payload.components && typeof payload.components === 'object'
+            ? (payload.components as TemplateData['components'])
+            : {}),
+        },
+      }
+
+      merged.components.theme = {
+        ...base.components.theme,
+        ...(payload.components && typeof payload.components === 'object'
+          ? (payload.components as any).theme
+          : {}),
+        ...(payload.theme
+          ? (payload.theme as TemplateData['components']['theme'])
+          : {}),
+      }
+
+      if (payload.contact_page) {
+        merged.components.contact_page =
+          payload.contact_page as TemplateData['components']['contact_page']
+      }
+
+      return merged
+    }
+
+    const endpoints = [
+      `${BASE_URL}/v1/templates/contact?vendor_id=${vendor_id}`,
+      `${BASE_URL}/v1/templates/contact/${vendor_id}`,
+      `${BASE_URL}/v1/templates/${vendor_id}/contact`,
+      `${BASE_URL}/v1/templates/${vendor_id}`,
+    ]
+
+    const load = async () => {
+      for (const url of endpoints) {
+        try {
+          const res = await axios.get(url, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          })
+          const root = res.data as unknown
+          const record =
+            root && typeof root === 'object'
+              ? (root as Record<string, unknown>)
+              : null
+          const payload =
+            (record?.data as Record<string, unknown>) ||
+            (record?.template as Record<string, unknown>) ||
+            record
+
+          if (payload && typeof payload === 'object') {
+            const order = firstNonEmpty(
+              pickArray((payload as Record<string, unknown>).section_order),
+              pickArray((payload as Record<string, unknown>).sectionOrder),
+              pickArray(
+                (
+                  (payload as Record<string, unknown>).components as Record<
+                    string,
+                    unknown
+                  >
+                )?.section_order
+              )
+            )
+            setData(mergeTemplate(payload as Record<string, unknown>))
+            if (order.length) setSectionOrder(order)
+            return
+          }
+        } catch {
+          continue
+        }
+      }
+    }
+
+    load()
+  }, [vendor_id, token])
+
+  useEffect(() => {
+    if (!selectedSection) return
+    const container = document.querySelector(
+      '[data-editor-scroll-container="true"]'
+    ) as HTMLElement | null
+    const target = document.querySelector(
+      `[data-editor-section="${selectedSection}"]`
+    ) as HTMLElement | null
+    if (container && target) {
+      const containerRect = container.getBoundingClientRect()
+      const targetRect = target.getBoundingClientRect()
+      const top = targetRect.top - containerRect.top + container.scrollTop - 12
+      container.scrollTo({ top, behavior: 'smooth' })
+      return
+    }
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [selectedSection])
 
   const fetchSuggestions = async (query: string) => {
     if (!query.trim()) {
@@ -106,7 +200,8 @@ function VendorTemplateContact() {
         L.Icon.Default.mergeOptions({
           iconRetinaUrl:
             'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+          iconUrl:
+            'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
           shadowUrl:
             'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
         })
@@ -206,7 +301,7 @@ function VendorTemplateContact() {
   async function uploadImage(file: File): Promise<string | null> {
     try {
       const { data: signatureData } = await axios.get(
-        `${BASE_URL}/cloudinary/signature`
+        `${BASE_URL}/v1/cloudinary/signature?folder=template_images`
       )
       const formData = new FormData()
       formData.append('file', file)
@@ -268,6 +363,7 @@ function VendorTemplateContact() {
       await axios.put(`${BASE_URL}/v1/templates/contact`, {
         vendor_id,
         components: data.components.contact_page,
+        theme: data.components.theme,
         section_order: sectionOrder,
       })
       alert('Contact page saved successfully!')
@@ -318,9 +414,12 @@ function VendorTemplateContact() {
                 )
               }
               isFileInput={true}
+              dimensions='1920 x 900'
             />
             {uploadingPaths.has(
-              ['components', 'contact_page', 'hero', 'backgroundImage'].join('.')
+              ['components', 'contact_page', 'hero', 'backgroundImage'].join(
+                '.'
+              )
             ) && <p className='text-sm text-slate-500'>Uploading...</p>}
           </div>
 
@@ -465,45 +564,68 @@ function VendorTemplateContact() {
   }
 
   return (
-    <TemplatePageLayout
-      title='Contact Page Builder'
-      description='Configure contact hero content, location messaging, and pin placement. Sync to preview how customers will reach you.'
-      activeKey='contact'
-      actions={
-        <Button
-          onClick={handleSave}
-          disabled={uploadingPaths.size > 0}
-          className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
-        >
-          {uploadingPaths.size > 0 ? 'Uploading...' : 'Save Contact Page'}
-        </Button>
-      }
-      preview={
-        <TemplatePreviewPanel
-          title='Live Contact Preview'
-          subtitle='Sync to refresh the right-side preview'
-          src={previewUrl}
-          fullPreviewUrl={fullPreviewUrl}
-          onSync={handleSave}
-          syncDisabled={uploadingPaths.size > 0}
-          vendorId={vendor_id}
-          page='contact'
-          previewData={data}
-          sectionOrder={sectionOrder}
-        />
-      }
-    >
-      <TemplateSectionOrder
-        title='Contact Page Sections'
-        items={sections}
-        order={sectionOrder}
-        setOrder={setSectionOrder}
-      />
+    <>
+      <Header fixed>
+        <Search />
+        <div className='ms-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ConfigDrawer />
+          <ProfileDropdown />
+        </div>
+      </Header>
+      <TemplatePageLayout
+        title='Contact Page Builder'
+        description='Configure contact hero content, location messaging, and pin placement. Sync to preview how customers will reach you.'
+        activeKey='contact'
+        actions={
+          <Button
+            onClick={handleSave}
+            disabled={uploadingPaths.size > 0}
+            className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
+          >
+            {uploadingPaths.size > 0 ? 'Uploading...' : 'Save Contact Page'}
+          </Button>
+        }
+        preview={
+          <TemplatePreviewPanel
+            title='Live Contact Preview'
+            subtitle='Sync to refresh the right-side preview'
+            src={previewUrl}
+            fullPreviewUrl={fullPreviewUrl}
+            onSync={handleSave}
+            syncDisabled={uploadingPaths.size > 0}
+            vendorId={vendor_id}
+            page='contact'
+            previewData={data}
+            sectionOrder={sectionOrder}
+            onSelectSection={setSelectedSection}
+          />
+        }
+      >
+        <ThemeSettingsSection data={data} updateField={updateField} />
 
-      {sectionOrder.map((sectionId) => (
-        <div key={sectionId}>{sectionBlocks[sectionId]}</div>
-      ))}
-    </TemplatePageLayout>
+        <TemplateSectionOrder
+          title='Contact Page Sections'
+          items={sections}
+          order={sectionOrder}
+          setOrder={setSectionOrder}
+        />
+
+        {sectionOrder.map((sectionId) => (
+          <div
+            key={sectionId}
+            data-editor-section={sectionId}
+            className={
+              selectedSection === sectionId
+                ? 'rounded-3xl ring-2 ring-slate-900/15 ring-offset-2 ring-offset-slate-50'
+                : undefined
+            }
+          >
+            {sectionBlocks[sectionId]}
+          </div>
+        ))}
+      </TemplatePageLayout>
+    </>
   )
 }
 

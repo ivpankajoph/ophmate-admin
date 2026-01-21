@@ -10,10 +10,8 @@ export const Route = createFileRoute('/template/$vendorId/about')({
 
 function TemplateAboutPreviewRoute() {
   const { vendorId } = Route.useParams()
-  const { template, sectionOrder, loading, error } = useTemplatePreviewData(
-    vendorId,
-    'about'
-  )
+  const { template, sectionOrder, loading, error, categoryMap, subcategories } =
+    useTemplatePreviewData(vendorId, 'about')
   const live = useLiveTemplatePreview(
     vendorId,
     'about',
@@ -47,9 +45,19 @@ function TemplateAboutPreviewRoute() {
       vendorId={vendorId}
       logoUrl={template.components.logo}
       buttonLabel={template.components.home_page.button_header}
+      theme={live.template.components.theme}
+      categories={Object.entries(categoryMap).map(([id, name]) => ({
+        _id: id,
+        name,
+      }))}
+      subcategories={subcategories}
       active='about'
     >
-      <AboutPreview template={live.template} sectionOrder={live.sectionOrder} />
+      <AboutPreview
+        template={live.template}
+        sectionOrder={live.sectionOrder}
+        vendorId={vendorId}
+      />
     </PreviewChrome>
   )
 }

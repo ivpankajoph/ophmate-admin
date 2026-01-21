@@ -6,7 +6,7 @@ export async function uploadImage(file: File, folder: string): Promise<string | 
   try {
     // Step 1: Request signature for chosen folder
     const { data } = await axios.get(
-      `${BASE_URL}/cloudinary/signature?folder=${folder}`
+      `${BASE_URL}/v1/cloudinary/signature?folder=${folder}`
     );
 
     const formData = new FormData();

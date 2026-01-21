@@ -20,6 +20,7 @@ interface TemplatePreviewPanelProps {
   page?: 'home' | 'about' | 'contact' | 'full'
   previewData?: unknown
   sectionOrder?: string[]
+  onSelectSection?: (sectionId: string) => void
 }
 
 export function TemplatePreviewPanel({
@@ -34,6 +35,7 @@ export function TemplatePreviewPanel({
   page = 'full',
   previewData,
   sectionOrder,
+  onSelectSection,
 }: TemplatePreviewPanelProps) {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
   const [frameKey, setFrameKey] = useState(0)
@@ -68,8 +70,30 @@ export function TemplatePreviewPanel({
     return () => window.clearTimeout(timeout)
   }, [previewData, sectionOrder, vendorId, page])
 
+  useEffect(() => {
+    if (!onSelectSection) return
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return
+      const data = event.data as {
+        type?: string
+        vendorId?: string
+        page?: string
+        sectionId?: string
+      }
+      if (data?.type !== 'template-editor-select') return
+      if (vendorId && data.vendorId && data.vendorId !== vendorId) return
+      if (data.page && page && data.page !== page) return
+      if (!data.sectionId) return
+      onSelectSection(data.sectionId)
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [onSelectSection, vendorId, page])
+
   return (
-    <div className='rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-[0_30px_60px_-45px_rgba(15,23,42,0.4)] backdrop-blur'>
+    <div className='rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-[0_30px_60px_-45px_rgba(15,23,42,0.4)] backdrop-blur'>
       <div className='flex flex-col gap-3'>
         <div className='flex items-start justify-between gap-3'>
           <div>
@@ -149,8 +173,8 @@ export function TemplatePreviewPanel({
                 title='Template preview'
                 src={src}
                 className={cn(
-                  'h-[620px] w-full border-0',
-                  device === 'mobile' && 'rounded-[32px]'
+                  'w-full border-0',
+                  device === 'mobile' ? 'h-[640px] rounded-[32px]' : 'h-[720px]'
                 )}
                 ref={iframeRef}
               />

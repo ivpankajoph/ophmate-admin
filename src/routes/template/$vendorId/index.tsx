@@ -12,8 +12,15 @@ type FaqItem = { question?: string }
 
 function TemplateHomePreviewRoute() {
   const { vendorId } = Route.useParams()
-  const { template, products, sectionOrder, categoryMap, loading, error } =
-    useTemplatePreviewData(vendorId, 'home')
+  const {
+    template,
+    products,
+    sectionOrder,
+    categoryMap,
+    subcategories,
+    loading,
+    error,
+  } = useTemplatePreviewData(vendorId, 'home')
   const live = useLiveTemplatePreview(
     vendorId,
     'home',
@@ -47,6 +54,12 @@ function TemplateHomePreviewRoute() {
       vendorId={vendorId}
       logoUrl={template.components.logo}
       buttonLabel={template.components.home_page.button_header}
+      theme={live.template.components.theme}
+      categories={Object.entries(categoryMap).map(([id, name]) => ({
+        _id: id,
+        name,
+      }))}
+      subcategories={subcategories}
       active='home'
       footer={
         <div className='grid gap-6 md:grid-cols-[1.2fr_0.8fr]'>

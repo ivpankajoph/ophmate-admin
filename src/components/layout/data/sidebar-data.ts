@@ -130,25 +130,11 @@ export const sidebarData: any = {
           roles: [ROLES.VENDOR],
           items: [
             {
-              title: 'Home Page Template',
+              title: 'Create Your Template',
               url: '/vendor-template',
               roles: [ROLES.VENDOR],
             },
-            {
-              title: 'About Page Template',
-              url: '/vendor-template-about',
-              roles: [ROLES.VENDOR],
-            },
-            {
-              title: 'Contact Page Template',
-              url: '/vendor-template-contact',
-              roles: [ROLES.VENDOR],
-            },
-            {
-              title: 'Social Links and FAQs',
-              url: '/vendor-template-other',
-              roles: [ROLES.VENDOR],
-            },
+           
           ],
         },
       ],

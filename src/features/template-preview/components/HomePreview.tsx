@@ -1,6 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 import { type TemplateData } from '@/features/vendor-template/data'
-import { JSX } from 'react'
+import { JSX, useMemo } from 'react'
 
 interface Product {
   _id?: string
@@ -41,7 +41,7 @@ const getCategoryLabel = (
     const fallback = categoryMap[product.productCategory]
     if (fallback) return fallback
     if (/^[a-f\d]{24}$/i.test(product.productCategory)) {
-      return 'Uncategorized'
+      return ''
     }
     return product.productCategory
   }
@@ -50,8 +50,27 @@ const getCategoryLabel = (
     product.productCategory?.name ||
     product.productCategory?.title ||
     product.productCategory?.categoryName ||
-    'Uncategorized'
+    ''
   )
+}
+
+const toCategorySlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+
+const getCategoryId = (product: Product, categoryMap: Record<string, string>) => {
+  if (typeof product.productCategory === 'string') {
+    if (categoryMap[product.productCategory]) return product.productCategory
+    if (/^[a-f\d]{24}$/i.test(product.productCategory)) {
+      return product.productCategory
+    }
+    return undefined
+  }
+  const id = product.productCategory?._id
+  return id || undefined
 }
 
 export function HomePreview({
@@ -63,10 +82,62 @@ export function HomePreview({
 }: HomePreviewProps) {
   const hero = template.components.home_page
   const desc = template.components.home_page.description
+  const theme = template.components.theme
+  const accent = theme?.templateColor || '#0f172a'
+  const bannerColor = theme?.bannerColor || '#0f172a'
+
+  const categoryEntries = useMemo(() => {
+    const map = new Map<string, { label: string; id?: string }>()
+    products.forEach((product) => {
+      const label = getCategoryLabel(product, categoryMap)
+      if (!label) return
+      const id = getCategoryId(product, categoryMap)
+      const key = id || label
+      if (!map.has(key)) map.set(key, { label, id })
+    })
+    return Array.from(map.values())
+  }, [products, categoryMap])
+
+  const emitSelect = (sectionId: string) => {
+    if (typeof window === 'undefined') return
+    window.parent?.postMessage(
+      {
+        type: 'template-editor-select',
+        vendorId,
+        page: 'home',
+        sectionId,
+      },
+      window.location.origin
+    )
+  }
+
+  const wrapSection = (sectionId: string, content: JSX.Element) => (
+    <div
+      className='group cursor-pointer rounded-3xl transition hover:ring-2 hover:ring-slate-900/15'
+      onClickCapture={(event) => {
+        if (
+          sectionId === 'products' &&
+          (event.target as HTMLElement | null)?.closest?.('a[href]')
+        ) {
+          return
+        }
+        event.preventDefault()
+        event.stopPropagation()
+        emitSelect(sectionId)
+      }}
+    >
+      {content}
+    </div>
+  )
 
   const sections: Record<string, JSX.Element> = {
-    hero: (
-      <section className='relative overflow-hidden rounded-3xl border border-white/70 bg-slate-900 text-white shadow-[0_20px_60px_-40px_rgba(15,23,42,0.5)]'>
+    hero: wrapSection(
+      'hero',
+      (
+      <section
+        className='relative overflow-hidden rounded-3xl border border-white/70 bg-slate-900 text-white shadow-[0_20px_60px_-40px_rgba(15,23,42,0.5)]'
+        style={{ backgroundColor: bannerColor }}
+      >
         <div className='absolute inset-0 opacity-40'>
           {hero.backgroundImage ? (
             <img
@@ -75,9 +146,16 @@ export function HomePreview({
               className='h-full w-full object-cover'
             />
           ) : (
-            <div className='h-full w-full bg-gradient-to-br from-slate-800 via-slate-900 to-black' />
+            <div
+              className='h-full w-full'
+              style={{ backgroundColor: bannerColor }}
+            />
           )}
         </div>
+        <div
+          className='absolute inset-0 opacity-30'
+          style={{ backgroundColor: bannerColor }}
+        />
         <div className='relative z-10 grid gap-6 px-6 py-12 sm:px-10 lg:grid-cols-[1.2fr_0.8fr]'>
           <div className='space-y-4'>
             <p className='text-xs font-semibold uppercase tracking-[0.34em] text-white/70'>
@@ -91,7 +169,10 @@ export function HomePreview({
                 'Showcase your products with cinematic layouts and a story-first approach.'}
             </p>
             <div className='flex flex-wrap gap-3'>
-              <div className='inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900'>
+              <div
+                className='inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-white'
+                style={{ backgroundColor: accent }}
+              >
                 {hero.button_header || 'Explore Products'}
                 <ArrowUpRight className='h-4 w-4' />
               </div>
@@ -118,14 +199,20 @@ export function HomePreview({
           </div>
         </div>
       </section>
+      )
     ),
-    description: (
+    description: wrapSection(
+      'description',
+      (
       <section className='grid gap-6 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm lg:grid-cols-[1.2fr_0.8fr]'>
         <div className='space-y-4'>
           <p className='text-xs font-semibold uppercase tracking-[0.32em] text-slate-400'>
             Brand Story
           </p>
-          <h2 className='text-2xl font-semibold text-slate-900 sm:text-3xl'>
+          <h2
+            className='text-2xl font-semibold text-slate-900 sm:text-3xl'
+            style={{ color: 'var(--template-accent)' }}
+          >
             {desc.large_text || 'A storefront built for modern shoppers.'}
           </h2>
           <p className='text-sm text-slate-600 sm:text-base'>
@@ -159,15 +246,21 @@ export function HomePreview({
           </div>
         </div>
       </section>
+      )
     ),
-    products: (
+    products: wrapSection(
+      'products',
+      (
       <section className='space-y-4'>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between'>
           <div>
             <p className='text-xs font-semibold uppercase tracking-[0.32em] text-slate-400'>
               Catalog
             </p>
-            <h3 className='text-2xl font-semibold text-slate-900'>
+            <h3
+              className='text-2xl font-semibold text-slate-900'
+              style={{ color: 'var(--template-accent)' }}
+            >
               Products in this template
             </h3>
           </div>
@@ -176,16 +269,26 @@ export function HomePreview({
           </p>
         </div>
         <div className='flex flex-wrap gap-2'>
-          {Array.from(new Set(products.map((product) => getCategoryLabel(product, categoryMap))))
-            .filter((label) => label && label !== 'Uncategorized')
-            .map((label) => (
-              <span
-                key={label}
-                className='rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600'
+          <a
+            href={`/template/${vendorId}`}
+            className='rounded-full border bg-white px-3 py-1 text-xs font-semibold transition'
+            style={{ borderColor: accent, color: accent }}
+          >
+            All
+          </a>
+          {categoryEntries.map((entry) => {
+            const slug = entry.id ? entry.id : toCategorySlug(entry.label)
+            return (
+              <a
+                key={`${entry.label}-${slug}`}
+                href={`/template/${vendorId}/category/${slug}`}
+                className='rounded-full border bg-white px-3 py-1 text-xs font-semibold transition'
+                style={{ borderColor: accent, color: accent }}
               >
-                {label}
-              </span>
-            ))}
+                {entry.label}
+              </a>
+            )
+          })}
           {products.length === 0 && (
             <span className='rounded-full border border-dashed border-slate-300 bg-white px-3 py-1 text-xs text-slate-400'>
               No categories yet
@@ -217,9 +320,11 @@ export function HomePreview({
                 )}
               </div>
               <div className='space-y-2 p-4'>
-                <span className='text-xs font-semibold uppercase tracking-[0.2em] text-slate-400'>
-                  {getCategoryLabel(product, categoryMap)}
-                </span>
+                {getCategoryLabel(product, categoryMap) ? (
+                  <span className='text-xs font-semibold uppercase tracking-[0.2em] text-slate-400'>
+                    {getCategoryLabel(product, categoryMap)}
+                  </span>
+                ) : null}
                 <p className='text-sm font-semibold text-slate-900'>
                   {product.productName || 'Untitled Product'}
                 </p>
@@ -227,10 +332,18 @@ export function HomePreview({
                   {product.shortDescription || 'No description yet.'}
                 </p>
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-semibold text-slate-900'>
+                  <span
+                    className='text-sm font-semibold text-slate-900'
+                    style={{ color: 'var(--template-accent)' }}
+                  >
                     Rs. {getMinPrice(product.variants).toLocaleString()}
                   </span>
-                  <span className='text-xs text-slate-400'>View</span>
+                  <span
+                    className='text-xs'
+                    style={{ color: 'var(--template-accent)' }}
+                  >
+                    View
+                  </span>
                 </div>
               </div>
             </a>
@@ -242,6 +355,7 @@ export function HomePreview({
           )}
         </div>
       </section>
+      )
     ),
   }
 

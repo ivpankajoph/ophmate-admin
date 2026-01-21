@@ -28,6 +28,15 @@ interface ProductDetail {
   faqs?: Array<{ question?: string; answer?: string }>
 }
 
+interface TemplateMeta {
+  logo?: string
+  buttonLabel?: string
+  theme?: {
+    templateColor?: string
+    fontScale?: number
+  }
+}
+
 export const Route = createFileRoute('/template/$vendorId/product/$productId')({
   component: TemplateProductDetail,
 })
@@ -35,6 +44,7 @@ export const Route = createFileRoute('/template/$vendorId/product/$productId')({
 function TemplateProductDetail() {
   const { vendorId, productId } = Route.useParams()
   const [product, setProduct] = useState<ProductDetail | null>(null)
+  const [templateMeta, setTemplateMeta] = useState<TemplateMeta | null>(null)
   const [categoryMap, setCategoryMap] = useState<CategoryMap>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -67,6 +77,18 @@ function TemplateProductDetail() {
       }
     }
 
+    const loadTemplate = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/v1/templates/${vendorId}`, {
+          headers,
+        })
+        const payload = res.data?.data || res.data?.template || res.data
+        return payload as any
+      } catch {
+        return null
+      }
+    }
+
     const loadCategories = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/v1/categories/getall`, {
@@ -89,8 +111,8 @@ function TemplateProductDetail() {
     setLoading(true)
     setError(null)
 
-    Promise.all([loadProduct(), loadCategories()])
-      .then(([productResult, categoryResult]) => {
+    Promise.all([loadProduct(), loadCategories(), loadTemplate()])
+      .then(([productResult, categoryResult, templateResult]) => {
         if (!mounted) return
         if (!productResult) {
           setError('Product not found.')
@@ -98,6 +120,13 @@ function TemplateProductDetail() {
         }
         setProduct(productResult)
         setCategoryMap(categoryResult || {})
+        if (templateResult?.components) {
+          setTemplateMeta({
+            logo: templateResult.components.logo,
+            buttonLabel: templateResult.components.home_page?.button_header,
+            theme: templateResult.components.theme,
+          })
+        }
       })
       .catch(() => {
         if (!mounted) return
@@ -111,7 +140,7 @@ function TemplateProductDetail() {
     return () => {
       mounted = false
     }
-  }, [productId, headers])
+  }, [productId, headers, vendorId])
 
   if (loading) {
     return (
@@ -135,7 +164,13 @@ function TemplateProductDetail() {
   }
 
   return (
-    <PreviewChrome vendorId={vendorId} active='home'>
+    <PreviewChrome
+      vendorId={vendorId}
+      logoUrl={templateMeta?.logo}
+      buttonLabel={templateMeta?.buttonLabel}
+      theme={templateMeta?.theme}
+      active='home'
+    >
       <div className='flex items-center gap-3 text-sm text-slate-500'>
         <a
           href={`/template/${vendorId}`}
@@ -184,7 +219,10 @@ function TemplateProductDetail() {
             <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
               {productCategory}
             </p>
-            <h1 className='mt-2 text-3xl font-semibold text-slate-900'>
+            <h1
+              className='mt-2 text-3xl font-semibold text-slate-900'
+              style={{ color: 'var(--template-accent)' }}
+            >
               {product.productName}
             </h1>
             <p className='mt-2 text-sm text-slate-600'>
@@ -226,7 +264,10 @@ function TemplateProductDetail() {
                         )
                       )}
                     </div>
-                    <div className='text-sm font-semibold text-slate-900'>
+                    <div
+                      className='text-sm font-semibold text-slate-900'
+                      style={{ color: 'var(--template-accent)' }}
+                    >
                       Rs. {(variant.finalPrice || 0).toLocaleString()}
                     </div>
                   </div>

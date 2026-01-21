@@ -1,10 +1,24 @@
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { type TemplateData } from '@/features/vendor-template/data'
-import { JSX } from 'react'
+import { JSX, useMemo } from 'react'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
 
 interface ContactPreviewProps {
   template: TemplateData
   sectionOrder: string[]
+  vendorId: string
+  products: Array<{
+    _id?: string
+    productName?: string
+    productCategory?: {
+      _id?: string
+      name?: string
+      title?: string
+      categoryName?: string
+    } | any
+    productCategoryName?: string
+  }>
+  categoryMap?: Record<string, string>
 }
 
 const getMapEmbedUrl = (lat: string, lng: string) => {
@@ -23,8 +37,14 @@ const getMapEmbedUrl = (lat: string, lng: string) => {
 export function ContactPreview({
   template,
   sectionOrder,
+  vendorId,
+  products,
+  categoryMap = {},
 }: ContactPreviewProps) {
   const contact = template.components.contact_page
+  const theme = template.components.theme
+  const accent = theme?.templateColor || '#0f172a'
+  const bannerColor = theme?.bannerColor || '#0f172a'
   const section2 = contact.section_2 || {
     hero_title: '',
     hero_subtitle: '',
@@ -34,11 +54,98 @@ export function ContactPreview({
     long: '',
   }
 
+  const emitSelect = (sectionId: string) => {
+    if (typeof window === 'undefined') return
+    window.parent?.postMessage(
+      {
+        type: 'template-editor-select',
+        vendorId,
+        page: 'contact',
+        sectionId,
+      },
+      window.location.origin
+    )
+  }
+
+  const wrapSection = (sectionId: string, content: JSX.Element) => (
+    <div
+      className='group cursor-pointer rounded-3xl transition hover:ring-2 hover:ring-slate-900/15'
+      onClickCapture={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        emitSelect(sectionId)
+      }}
+    >
+      {content}
+    </div>
+  )
+
   const mapUrl = getMapEmbedUrl(section2.lat, section2.long)
+  const frontendBase = VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND || ''
+
+  const categories = useMemo(() => {
+    const map = new Map<string, { id: string; label: string; count: number }>()
+    const normalize = (value: unknown) =>
+      typeof value === 'string' ? value.trim() : ''
+
+    products.forEach((product) => {
+      const rawId =
+        product?.productCategory?._id ||
+        (typeof product?.productCategory === 'string'
+          ? product.productCategory
+          : '') ||
+        product?.productCategoryName
+
+      const categoryObject =
+        typeof product?.productCategory === 'string'
+          ? undefined
+          : product?.productCategory
+
+      const label =
+        normalize(product?.productCategoryName) ||
+        normalize(categoryObject?.name) ||
+        normalize(categoryObject?.title) ||
+        normalize(categoryObject?.categoryName) ||
+        normalize(
+          typeof product?.productCategory === 'string'
+            ? product.productCategory
+            : ''
+        ) ||
+        (rawId ? categoryMap[rawId] : '') ||
+        ''
+
+      const id = normalize(rawId) || label
+      if (!id) return
+
+      const existing = map.get(id)
+      if (existing) {
+        existing.count += 1
+        if (!existing.label && label) existing.label = label
+      } else {
+        map.set(id, {
+          id,
+          label: label || 'Category',
+          count: 1,
+        })
+      }
+    })
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.label.localeCompare(b.label)
+    )
+  }, [products, categoryMap])
+
+  const toCategorySlug = (value: string) =>
+    encodeURIComponent(value.toLowerCase().replace(/\s+/g, '-'))
 
   const sections: Record<string, JSX.Element> = {
-    hero: (
-      <section className='relative overflow-hidden rounded-3xl border border-white/60 bg-slate-900 text-white'>
+    hero: wrapSection(
+      'hero',
+      (
+      <section
+        className='relative overflow-hidden rounded-3xl border border-white/60 bg-slate-900 text-white'
+        style={{ backgroundColor: bannerColor }}
+      >
         <div className='absolute inset-0 opacity-40'>
           {contact.hero.backgroundImage ? (
             <img
@@ -47,9 +154,16 @@ export function ContactPreview({
               className='h-full w-full object-cover'
             />
           ) : (
-            <div className='h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-black' />
+            <div
+              className='h-full w-full'
+              style={{ backgroundColor: bannerColor }}
+            />
           )}
         </div>
+        <div
+          className='absolute inset-0 opacity-30'
+          style={{ backgroundColor: bannerColor }}
+        />
         <div className='relative z-10 space-y-4 px-8 py-16'>
           <p className='text-xs font-semibold uppercase tracking-[0.32em] text-white/70'>
             Contact
@@ -63,14 +177,20 @@ export function ContactPreview({
           </p>
         </div>
       </section>
+      )
     ),
-    details: (
+    details: wrapSection(
+      'details',
+      (
       <section className='grid gap-6 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm lg:grid-cols-[1.1fr_0.9fr]'>
         <div className='space-y-4'>
           <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
             Visit
           </p>
-          <h2 className='text-2xl font-semibold text-slate-900'>
+          <h2
+            className='text-2xl font-semibold text-slate-900'
+            style={{ color: 'var(--template-accent)' }}
+          >
             {section2.hero_title || 'Come visit our storefront.'}
           </h2>
           <p className='text-sm text-slate-600'>
@@ -102,7 +222,10 @@ export function ContactPreview({
                 ]
             ).map((item, idx) => (
               <div key={`${item.title}-${idx}`} className='flex items-start gap-3'>
-                <div className='mt-1 h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs'>
+                <div
+                  className='mt-1 flex h-8 w-8 items-center justify-center rounded-full text-xs text-white'
+                  style={{ backgroundColor: accent }}
+                >
                   {item.icon?.toString().slice(0, 2).toUpperCase() || 'IN'}
                 </div>
                 <div>
@@ -118,8 +241,11 @@ export function ContactPreview({
           </div>
         </div>
       </section>
+      )
     ),
-    map: (
+    map: wrapSection(
+      'map',
+      (
       <section className='grid gap-6 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm lg:grid-cols-[1.2fr_0.8fr]'>
         <div className='overflow-hidden rounded-2xl border border-slate-200 bg-slate-100'>
           {mapUrl ? (
@@ -159,7 +285,10 @@ export function ContactPreview({
                   {field.label}
                 </div>
               ))}
-              <div className='flex items-center gap-2 text-xs text-slate-500'>
+              <div
+                className='flex items-center gap-2 text-xs text-slate-500'
+                style={{ color: 'var(--template-accent)' }}
+              >
                 <Mail className='h-4 w-4' />
                 {contact.contactForm?.submitButtonText || 'Send Message'}
               </div>
@@ -167,6 +296,7 @@ export function ContactPreview({
           </div>
         </div>
       </section>
+      )
     ),
   }
 
@@ -175,6 +305,49 @@ export function ContactPreview({
 
   return (
     <div className='space-y-10'>
+      <div className='group fixed right-6 top-1/2 z-40 -translate-y-1/2'>
+        <button className='rounded-full border border-white/70 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700 shadow-lg transition hover:shadow-xl'>
+          Categories
+        </button>
+        <div className='pointer-events-none absolute right-full top-1/2 mr-4 w-64 -translate-y-1/2 opacity-0 transition duration-200 group-hover:pointer-events-auto group-hover:opacity-100'>
+          <div className='max-h-80 overflow-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl'>
+            <p className='px-2 pb-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
+              Browse
+            </p>
+            <div className='flex flex-col gap-2'>
+              {categories.length > 0 ? (
+                categories.map((category) => {
+                  const isObjectId = /^[a-f\d]{24}$/i.test(category.id)
+                  const categoryPath = isObjectId
+                    ? category.id
+                    : toCategorySlug(category.label)
+                  const href = frontendBase
+                    ? `${frontendBase}/template/${vendorId}/category/${categoryPath}`
+                    : `/template/${vendorId}/category/${categoryPath}`
+                  return (
+                    <a
+                      key={category.id}
+                      href={href}
+                      target='_blank'
+                      rel='noreferrer'
+                      className='flex items-center justify-between rounded-xl border border-transparent px-3 py-2 text-sm text-slate-700 transition hover:border-slate-200 hover:bg-slate-50'
+                    >
+                      <span className='truncate'>{category.label}</span>
+                      <span className='text-xs text-slate-400'>
+                        {category.count}
+                      </span>
+                    </a>
+                  )
+                })
+              ) : (
+                <div className='rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center text-xs uppercase tracking-[0.3em] text-slate-400'>
+                  No categories
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
       {order.map((key) => (
         <div key={key}>{sections[key] || null}</div>
       ))}

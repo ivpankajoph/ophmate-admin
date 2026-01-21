@@ -1,23 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { JSX, useMemo, useState } from 'react'
+import { JSX, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
+import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
+import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { useSelector } from 'react-redux'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { BASE_URL } from '@/store/slices/vendor/productSlice'
-import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
+import { ConfigDrawer } from '@/components/config-drawer'
+import { Header } from '@/components/layout/header'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Search } from '@/components/search'
+import { ThemeSwitch } from '@/components/theme-switch'
 import { TemplatePageLayout } from '../components/TemplatePageLayout'
 import { TemplatePreviewPanel } from '../components/TemplatePreviewPanel'
 import { TemplateSectionOrder } from '../components/TemplateSectionOrder'
 import { ArrayField } from '../components/form/ArrayField'
 import { ImageInput } from '../components/form/ImageInput'
+import { ThemeSettingsSection } from '../components/form/ThemeSettingsSection'
 import { initialData, TemplateData } from '../data'
+import { uploadImage } from '../helper/fileupload'
 
 function VendorTemplateAbout() {
   const [data, setData] = useState<TemplateData>(initialData)
   const [uploadingPaths, setUploadingPaths] = useState<Set<string>>(new Set())
+  const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [sectionOrder, setSectionOrder] = useState([
     'hero',
     'story',
@@ -27,31 +35,115 @@ function VendorTemplateAbout() {
   ])
 
   const vendor_id = useSelector((state: any) => state.auth.user.id)
+  const token = useSelector((state: any) => state.auth?.token)
 
-  async function uploadImage(file: File): Promise<string | null> {
-    try {
-      const { data: signatureData } = await axios.get(
-        `${BASE_URL}/cloudinary/signature`
-      )
+  useEffect(() => {
+    if (!vendor_id) return
 
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('api_key', signatureData.apiKey)
-      formData.append('timestamp', signatureData.timestamp)
-      formData.append('signature', signatureData.signature)
-      formData.append('folder', 'ecommerce')
+    const pickArray = (value: unknown): string[] =>
+      Array.isArray(value) ? (value as string[]) : []
 
-      const uploadRes = await axios.post(
-        `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
-        formData
-      )
+    const firstNonEmpty = (...values: string[][]) =>
+      values.find((value) => value.length > 0) || []
 
-      return uploadRes.data.secure_url
-    } catch {
-      alert('Failed to upload image. Please try again.')
-      return null
+    const mergeTemplate = (payload: Record<string, unknown>): TemplateData => {
+      const base = structuredClone(initialData)
+      const merged = {
+        ...base,
+        components: {
+          ...base.components,
+          ...(payload.components && typeof payload.components === 'object'
+            ? (payload.components as TemplateData['components'])
+            : {}),
+        },
+      }
+
+      merged.components.theme = {
+        ...base.components.theme,
+        ...(payload.components && typeof payload.components === 'object'
+          ? (payload.components as any).theme
+          : {}),
+        ...(payload.theme
+          ? (payload.theme as TemplateData['components']['theme'])
+          : {}),
+      }
+
+      if (payload.about_page) {
+        merged.components.about_page =
+          payload.about_page as TemplateData['components']['about_page']
+      }
+
+      return merged
     }
-  }
+
+    const endpoints = [
+      `${BASE_URL}/v1/templates/about?vendor_id=${vendor_id}`,
+      `${BASE_URL}/v1/templates/about/${vendor_id}`,
+      `${BASE_URL}/v1/templates/${vendor_id}/about`,
+      `${BASE_URL}/v1/templates/${vendor_id}`,
+    ]
+
+    const load = async () => {
+      for (const url of endpoints) {
+        try {
+          const res = await axios.get(url, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          })
+          const root = res.data as unknown
+          const record =
+            root && typeof root === 'object'
+              ? (root as Record<string, unknown>)
+              : null
+          const payload =
+            (record?.data as Record<string, unknown>) ||
+            (record?.template as Record<string, unknown>) ||
+            record
+
+          if (payload && typeof payload === 'object') {
+            const order = firstNonEmpty(
+              pickArray((payload as Record<string, unknown>).section_order),
+              pickArray((payload as Record<string, unknown>).sectionOrder),
+              pickArray(
+                (
+                  (payload as Record<string, unknown>).components as Record<
+                    string,
+                    unknown
+                  >
+                )?.section_order
+              )
+            )
+            setData(mergeTemplate(payload as Record<string, unknown>))
+            if (order.length) setSectionOrder(order)
+            return
+          }
+        } catch {
+          continue
+        }
+      }
+    }
+
+    load()
+  }, [vendor_id, token])
+
+  useEffect(() => {
+    if (!selectedSection) return
+    const container = document.querySelector(
+      '[data-editor-scroll-container="true"]'
+    ) as HTMLElement | null
+    const target = document.querySelector(
+      `[data-editor-section="${selectedSection}"]`
+    ) as HTMLElement | null
+    if (container && target) {
+      const containerRect = container.getBoundingClientRect()
+      const targetRect = target.getBoundingClientRect()
+      const top = targetRect.top - containerRect.top + container.scrollTop - 12
+      container.scrollTo({ top, behavior: 'smooth' })
+      return
+    }
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [selectedSection])
 
   const updateField = (path: string[], value: any) => {
     setData((prev) => {
@@ -81,7 +173,7 @@ function VendorTemplateAbout() {
     setUploadingPaths((prev) => new Set(prev).add(pathKey))
 
     try {
-      const imageUrl = await uploadImage(file)
+      const imageUrl = await uploadImage(file, 'template_images')
       updateField(path, imageUrl || '')
     } finally {
       setUploadingPaths((prev) => {
@@ -97,6 +189,7 @@ function VendorTemplateAbout() {
       await axios.put(`${BASE_URL}/v1/templates/about`, {
         vendor_id,
         components: data.components.about_page,
+        theme: data.components.theme,
         section_order: sectionOrder,
       })
       alert('About page saved successfully!')
@@ -157,6 +250,7 @@ function VendorTemplateAbout() {
                 )
               }
               isFileInput={true}
+              dimensions='1920 x 900'
             />
             {uploadingPaths.has(
               ['components', 'about_page', 'hero', 'backgroundImage'].join('.')
@@ -222,7 +316,9 @@ function VendorTemplateAbout() {
                 <Textarea
                   value={item}
                   onChange={(e) => {
-                    const list = [...data.components.about_page.story.paragraphs]
+                    const list = [
+                      ...data.components.about_page.story.paragraphs,
+                    ]
                     list[idx] = e.target.value
                     updateField(
                       ['components', 'about_page', 'story', 'paragraphs'],
@@ -246,6 +342,7 @@ function VendorTemplateAbout() {
                 )
               }
               isFileInput={true}
+              dimensions='1200 x 800'
             />
             {uploadingPaths.has(
               ['components', 'about_page', 'story', 'image'].join('.')
@@ -315,7 +412,10 @@ function VendorTemplateAbout() {
           onAdd={() =>
             updateField(
               ['components', 'about_page', 'team'],
-              [...data.components.about_page.team, { name: '', role: '', image: '' }]
+              [
+                ...data.components.about_page.team,
+                { name: '', role: '', image: '' },
+              ]
             )
           }
           onRemove={(i) => {
@@ -350,14 +450,27 @@ function VendorTemplateAbout() {
                   value={item.image}
                   onChange={(file) => {
                     handleImageChange(
-                      ['components', 'about_page', 'team', idx.toString(), 'image'],
+                      [
+                        'components',
+                        'about_page',
+                        'team',
+                        idx.toString(),
+                        'image',
+                      ],
                       file
                     )
                   }}
                   isFileInput={true}
+                  dimensions='600 x 600'
                 />
                 {uploadingPaths.has(
-                  ['components', 'about_page', 'team', idx.toString(), 'image'].join('.')
+                  [
+                    'components',
+                    'about_page',
+                    'team',
+                    idx.toString(),
+                    'image',
+                  ].join('.')
                 ) && <p className='text-sm text-slate-500'>Uploading...</p>}
               </div>
             </div>
@@ -409,45 +522,68 @@ function VendorTemplateAbout() {
   }
 
   return (
-    <TemplatePageLayout
-      title='About Page Builder'
-      description='Tell your story, highlight your values, and introduce the team. Reorder sections to control how the narrative flows.'
-      activeKey='about'
-      actions={
-        <Button
-          onClick={handleSave}
-          disabled={uploadingPaths.size > 0}
-          className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
-        >
-          {uploadingPaths.size > 0 ? 'Uploading...' : 'Save About Page'}
-        </Button>
-      }
-      preview={
-        <TemplatePreviewPanel
-          title='Live About Preview'
-          subtitle='Sync to refresh the right-side preview'
-          src={previewUrl}
-          fullPreviewUrl={fullPreviewUrl}
-          onSync={handleSave}
-          syncDisabled={uploadingPaths.size > 0}
-          vendorId={vendor_id}
-          page='about'
-          previewData={data}
-          sectionOrder={sectionOrder}
-        />
-      }
-    >
-      <TemplateSectionOrder
-        title='About Page Sections'
-        items={sections}
-        order={sectionOrder}
-        setOrder={setSectionOrder}
-      />
+    <>
+      <Header fixed>
+        <Search />
+        <div className='ms-auto flex items-center space-x-4'>
+          <ThemeSwitch />
+          <ConfigDrawer />
+          <ProfileDropdown />
+        </div>
+      </Header>
+      <TemplatePageLayout
+        title='About Page Builder'
+        description='Tell your story, highlight your values, and introduce the team. Reorder sections to control how the narrative flows.'
+        activeKey='about'
+        actions={
+          <Button
+            onClick={handleSave}
+            disabled={uploadingPaths.size > 0}
+            className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
+          >
+            {uploadingPaths.size > 0 ? 'Uploading...' : 'Save About Page'}
+          </Button>
+        }
+        preview={
+          <TemplatePreviewPanel
+            title='Live About Preview'
+            subtitle='Sync to refresh the right-side preview'
+            src={previewUrl}
+            fullPreviewUrl={fullPreviewUrl}
+            onSync={handleSave}
+            syncDisabled={uploadingPaths.size > 0}
+            vendorId={vendor_id}
+            page='about'
+            previewData={data}
+            sectionOrder={sectionOrder}
+            onSelectSection={setSelectedSection}
+          />
+        }
+      >
+        <ThemeSettingsSection data={data} updateField={updateField} />
 
-      {sectionOrder.map((sectionId) => (
-        <div key={sectionId}>{sectionBlocks[sectionId]}</div>
-      ))}
-    </TemplatePageLayout>
+        <TemplateSectionOrder
+          title='About Page Sections'
+          items={sections}
+          order={sectionOrder}
+          setOrder={setSectionOrder}
+        />
+
+        {sectionOrder.map((sectionId) => (
+          <div
+            key={sectionId}
+            data-editor-section={sectionId}
+            className={
+              selectedSection === sectionId
+                ? 'rounded-3xl ring-2 ring-slate-900/15 ring-offset-2 ring-offset-slate-50'
+                : undefined
+            }
+          >
+            {sectionBlocks[sectionId]}
+          </div>
+        ))}
+      </TemplatePageLayout>
+    </>
   )
 }
 

@@ -4,6 +4,11 @@ export type TemplateData = {
   components: {
     social_page: any
     logo: string // ImageKit URL
+    theme: {
+      templateColor: string
+      bannerColor: string
+      fontScale: number
+    }
     home_page: {
       header_text: string
       header_text_small: string
@@ -78,6 +83,11 @@ export const initialData: TemplateData = {
 
   components: {
     logo: '',
+    theme: {
+      templateColor: '#0f172a',
+      bannerColor: '#0f172a',
+      fontScale: 1,
+    },
     home_page: {
       header_text: '',
       header_text_small: '',
@@ -162,7 +172,14 @@ export const initialData: TemplateData = {
         whatsapp: 'string',
         twitter: 'string',
       },
-      section_2: undefined
+      section_2: {
+        hero_title: '',
+        hero_subtitle: '',
+        hero_title2: '',
+        hero_subtitle2: '',
+        lat: '',
+        long: '',
+      },
     },
     social_page: undefined
   },
