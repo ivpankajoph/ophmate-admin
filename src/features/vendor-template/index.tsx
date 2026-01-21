@@ -171,6 +171,13 @@ export default function TemplateForm() {
         actions={
           <>
             <Button
+              onClick={handleSubmitWithOrder}
+              disabled={isSubmitting || uploadingPaths.size > 0}
+              className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
+            >
+              {isSubmitting ? 'Saving...' : 'Save Template'}
+            </Button>
+            <Button
               onClick={() => setOpen(true)}
               className='rounded-full bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
             >
@@ -212,6 +219,15 @@ export default function TemplateForm() {
           />
         }
       >
+        <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
+          <SubmitSection
+            submitStatus={submitStatus}
+            isSubmitting={isSubmitting}
+            uploadingPaths={uploadingPaths}
+            handleSubmit={handleSubmitWithOrder}
+          />
+        </div>
+
         <ThemeSettingsSection data={data} updateField={updateField} />
 
         <TemplateSectionOrder
@@ -234,15 +250,6 @@ export default function TemplateForm() {
             {sectionBlocks[sectionId]}
           </div>
         ))}
-
-        <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
-          <SubmitSection
-            submitStatus={submitStatus}
-            isSubmitting={isSubmitting}
-            uploadingPaths={uploadingPaths}
-            handleSubmit={handleSubmitWithOrder}
-          />
-        </div>
       </TemplatePageLayout>
 
       <DeploymentModal

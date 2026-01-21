@@ -69,10 +69,12 @@ export function TemplatePageLayout({
 
         <div className='grid gap-6 lg:grid-cols-[520px_minmax(0,1fr)] xl:grid-cols-[600px_minmax(0,1fr)]'>
           {preview ? (
-            <div className='lg:sticky lg:top-6'>{preview}</div>
+            <div className='lg:sticky lg:top-6 lg:h-[calc(100vh-180px)]'>
+              {preview}
+            </div>
           ) : null}
           <div
-            className='space-y-6 rounded-3xl border border-white/70 bg-white/70 p-4 shadow-sm lg:max-h-[calc(100vh-240px)] lg:overflow-y-auto lg:pr-3'
+            className='space-y-6 rounded-3xl border border-white/70 bg-white/70 p-4 shadow-sm lg:h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-3'
             data-editor-scroll-container='true'
           >
             {children}
