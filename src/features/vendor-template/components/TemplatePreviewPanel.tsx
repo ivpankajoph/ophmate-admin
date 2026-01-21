@@ -39,6 +39,7 @@ export function TemplatePreviewPanel({
 }: TemplatePreviewPanelProps) {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
   const [frameKey, setFrameKey] = useState(0)
+  const [iframeHeight, setIframeHeight] = useState<number | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const handleRefresh = () => setFrameKey((prev) => prev + 1)
@@ -50,6 +51,22 @@ export function TemplatePreviewPanel({
     }
     await onSync()
     handleRefresh()
+  }
+
+  const updateIframeHeight = () => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    try {
+      const doc = iframe.contentWindow?.document
+      if (!doc) return
+      const height = Math.max(
+        doc.body?.scrollHeight || 0,
+        doc.documentElement?.scrollHeight || 0
+      )
+      if (height) setIframeHeight(height)
+    } catch {
+      return
+    }
   }
 
   useEffect(() => {
@@ -69,6 +86,14 @@ export function TemplatePreviewPanel({
 
     return () => window.clearTimeout(timeout)
   }, [previewData, sectionOrder, vendorId, page])
+
+  useEffect(() => {
+    if (!src) return
+    const timeout = window.setTimeout(() => {
+      updateIframeHeight()
+    }, 300)
+    return () => window.clearTimeout(timeout)
+  }, [frameKey, device, previewData, sectionOrder, src])
 
   useEffect(() => {
     if (!onSelectSection) return
@@ -174,9 +199,20 @@ export function TemplatePreviewPanel({
                 src={src}
                 className={cn(
                   'w-full border-0',
-                  device === 'mobile' ? 'h-[640px] rounded-[32px]' : 'h-[720px]'
+                  device === 'mobile' ? 'rounded-[32px]' : ''
                 )}
+                style={{
+                  minHeight: device === 'mobile' ? 620 : 720,
+                  height:
+                    iframeHeight && iframeHeight > 0
+                      ? `${Math.max(
+                          iframeHeight,
+                          device === 'mobile' ? 620 : 720
+                        )}px`
+                      : undefined,
+                }}
                 ref={iframeRef}
+                onLoad={updateIframeHeight}
               />
             </div>
           ) : (

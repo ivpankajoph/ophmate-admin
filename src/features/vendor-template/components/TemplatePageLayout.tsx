@@ -69,7 +69,7 @@ export function TemplatePageLayout({
 
         <div className='grid gap-6 lg:grid-cols-[520px_minmax(0,1fr)] xl:grid-cols-[600px_minmax(0,1fr)]'>
           {preview ? (
-            <div className='lg:sticky lg:top-6 lg:h-[calc(100vh-180px)]'>
+            <div className='lg:sticky lg:top-6 lg:h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2'>
               {preview}
             </div>
           ) : null}
