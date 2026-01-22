@@ -57,8 +57,15 @@ const getProductSubcategoryIds = (product: Product) => {
 
 function TemplateSubcategoryRoute() {
   const { vendorId, subcategoryId } = Route.useParams()
-  const { template, products, categoryMap, subcategories, loading, error } =
-    useTemplatePreviewData(vendorId, 'home')
+  const {
+    template,
+    products,
+    categoryMap,
+    subcategories,
+    vendorName,
+    loading,
+    error,
+  } = useTemplatePreviewData(vendorId, 'home')
 
   const isObjectId = /^[a-f\d]{24}$/i.test(subcategoryId)
   const normalizedSlug = toSlug(subcategoryId)
@@ -112,8 +119,13 @@ function TemplateSubcategoryRoute() {
     <PreviewChrome
       vendorId={vendorId}
       logoUrl={template.components.logo}
+      vendorName={vendorName || undefined}
       buttonLabel={template.components.home_page.button_header}
+      buttonColor={
+        template.components.home_page.hero_style?.primaryButtonColor || undefined
+      }
       theme={template.components.theme}
+      customPages={template.components.custom_pages || []}
       categories={Object.entries(categoryMap).map(([id, name]) => ({
         _id: id,
         name,

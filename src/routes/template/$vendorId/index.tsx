@@ -18,6 +18,7 @@ function TemplateHomePreviewRoute() {
     sectionOrder,
     categoryMap,
     subcategories,
+    vendorName,
     loading,
     error,
   } = useTemplatePreviewData(vendorId, 'home')
@@ -53,8 +54,13 @@ function TemplateHomePreviewRoute() {
     <PreviewChrome
       vendorId={vendorId}
       logoUrl={template.components.logo}
+      vendorName={vendorName || undefined}
       buttonLabel={template.components.home_page.button_header}
+      buttonColor={
+        template.components.home_page.hero_style?.primaryButtonColor || undefined
+      }
       theme={live.template.components.theme}
+      customPages={template.components.custom_pages || []}
       categories={Object.entries(categoryMap).map(([id, name]) => ({
         _id: id,
         name,

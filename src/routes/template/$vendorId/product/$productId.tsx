@@ -35,6 +35,15 @@ interface TemplateMeta {
     templateColor?: string
     fontScale?: number
   }
+  customPages?: Array<{
+    id?: string
+    title?: string
+    slug?: string
+    isPublished?: boolean
+  }>
+  heroStyle?: {
+    primaryButtonColor?: string
+  }
 }
 
 export const Route = createFileRoute('/template/$vendorId/product/$productId')({
@@ -46,6 +55,7 @@ function TemplateProductDetail() {
   const [product, setProduct] = useState<ProductDetail | null>(null)
   const [templateMeta, setTemplateMeta] = useState<TemplateMeta | null>(null)
   const [categoryMap, setCategoryMap] = useState<CategoryMap>({})
+  const [vendorName, setVendorName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const token = useSelector((state: { auth?: { token?: string } }) => state?.auth?.token)
@@ -108,11 +118,28 @@ function TemplateProductDetail() {
       }
     }
 
+    const loadVendorProfile = async () => {
+      try {
+        const res = await axios.get(
+          `${BASE_URL}/v1/vendors/vendorprofile?id=${vendorId}`
+        )
+        const vendor = res.data?.vendor
+        return (
+          vendor?.name ||
+          vendor?.businessName ||
+          vendor?.storeName ||
+          null
+        )
+      } catch {
+        return null
+      }
+    }
+
     setLoading(true)
     setError(null)
 
-    Promise.all([loadProduct(), loadCategories(), loadTemplate()])
-      .then(([productResult, categoryResult, templateResult]) => {
+    Promise.all([loadProduct(), loadCategories(), loadTemplate(), loadVendorProfile()])
+      .then(([productResult, categoryResult, templateResult, vendorNameResult]) => {
         if (!mounted) return
         if (!productResult) {
           setError('Product not found.')
@@ -120,11 +147,14 @@ function TemplateProductDetail() {
         }
         setProduct(productResult)
         setCategoryMap(categoryResult || {})
+        setVendorName(vendorNameResult || null)
         if (templateResult?.components) {
           setTemplateMeta({
             logo: templateResult.components.logo,
             buttonLabel: templateResult.components.home_page?.button_header,
             theme: templateResult.components.theme,
+            customPages: templateResult.components.custom_pages || [],
+            heroStyle: templateResult.components.home_page?.hero_style || {},
           })
         }
       })
@@ -167,8 +197,11 @@ function TemplateProductDetail() {
     <PreviewChrome
       vendorId={vendorId}
       logoUrl={templateMeta?.logo}
+      vendorName={vendorName || undefined}
       buttonLabel={templateMeta?.buttonLabel}
+      buttonColor={templateMeta?.heroStyle?.primaryButtonColor}
       theme={templateMeta?.theme}
+      customPages={templateMeta?.customPages || []}
       active='home'
     >
       <div className='flex items-center gap-3 text-sm text-slate-500'>

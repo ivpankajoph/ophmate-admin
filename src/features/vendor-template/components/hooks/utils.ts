@@ -6,7 +6,11 @@ export function updateFieldImmutable(obj: any, path: string[], value: any) {
   let current = clone;
 
   for (let i = 0; i < path.length - 1; i++) {
-    current = current[path[i]];
+    const key = path[i];
+    if (current[key] === undefined || current[key] === null) {
+      current[key] = {};
+    }
+    current = current[key];
   }
 
   current[path[path.length - 1]] = value;

@@ -16,6 +16,7 @@ export function AboutPreview({
   const theme = template.components?.theme
   const accent = theme?.templateColor || '#0f172a'
   const bannerColor = theme?.bannerColor || '#0f172a'
+  const heroStyle = about?.hero_style || {}
 
   const emitSelect = (sectionId: string) => {
     if (typeof window === 'undefined') return
@@ -77,10 +78,26 @@ export function AboutPreview({
           <p className='text-xs font-semibold uppercase tracking-[0.32em] text-white/70'>
             About Us
           </p>
-          <h1 className='text-3xl font-semibold sm:text-5xl'>
+          <h1
+            className='text-3xl font-semibold sm:text-5xl'
+            style={{
+              color: heroStyle.titleColor || undefined,
+              fontSize: heroStyle.titleSize
+                ? `${heroStyle.titleSize}px`
+                : undefined,
+            }}
+          >
             {about.hero?.title || 'We craft products with purpose.'}
           </h1>
-          <p className='max-w-2xl text-base text-white/80'>
+          <p
+            className='max-w-2xl text-base text-white/80'
+            style={{
+              color: heroStyle.subtitleColor || undefined,
+              fontSize: heroStyle.subtitleSize
+                ? `${heroStyle.subtitleSize}px`
+                : undefined,
+            }}
+          >
             {about.hero?.subtitle ||
               'Share the story behind your brand and highlight what makes you different.'}
           </p>

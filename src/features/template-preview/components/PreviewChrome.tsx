@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils'
 interface PreviewChromeProps {
   vendorId: string
   logoUrl?: string
+  vendorName?: string
   buttonLabel?: string
+  buttonColor?: string
   theme?: {
     templateColor?: string
     bannerColor?: string
@@ -19,6 +21,12 @@ interface PreviewChromeProps {
     name?: string
     category_id?: { _id?: string; name?: string } | string
   }>
+  customPages?: Array<{
+    id?: string
+    title?: string
+    slug?: string
+    isPublished?: boolean
+  }>
   active: 'home' | 'about' | 'contact'
   children: ReactNode
   footer?: ReactNode
@@ -27,10 +35,13 @@ interface PreviewChromeProps {
 export function PreviewChrome({
   vendorId,
   logoUrl,
+  vendorName,
   buttonLabel,
+  buttonColor,
   theme,
   categories = [],
   subcategories = [],
+  customPages = [],
   active,
   children,
   footer,
@@ -66,6 +77,13 @@ export function PreviewChrome({
     { key: 'about', label: 'About', href: `/template/${vendorId}/about` },
     { key: 'contact', label: 'Contact', href: `/template/${vendorId}/contact` },
   ] as const
+  const pageLinks = customPages
+    .filter((page) => page?.isPublished !== false)
+    .map((page) => ({
+      key: page?.id || page?.slug || page?.title || 'page',
+      label: page?.title || 'Page',
+      href: `/template/${vendorId}/page/${page?.slug || page?.id}`,
+    }))
 
   const accent = theme?.templateColor || '#0f172a'
   const fontScale = theme?.fontScale || 1
@@ -135,7 +153,7 @@ export function PreviewChrome({
                 Storefront Preview
               </p>
               <p className='text-lg font-semibold text-slate-900'>
-                Vendor Template
+                {vendorName || 'Vendor Template'}
               </p>
             </div>
           </div>
@@ -158,6 +176,15 @@ export function PreviewChrome({
                 }
               >
                 {item.label}
+              </a>
+            ))}
+            {pageLinks.map((page) => (
+              <a
+                key={page.key}
+                href={page.href}
+                className='rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900'
+              >
+                {page.label}
               </a>
             ))}
 
@@ -234,7 +261,10 @@ export function PreviewChrome({
 
           <div
             className='rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold shadow-sm'
-            style={{ borderColor: accent, color: accent }}
+            style={{
+              borderColor: buttonColor || accent,
+              color: buttonColor || accent,
+            }}
             onClickCapture={(event) => {
               if (active !== 'home') return
               event.preventDefault()

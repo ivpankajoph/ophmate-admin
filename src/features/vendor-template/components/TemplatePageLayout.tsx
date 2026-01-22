@@ -6,6 +6,7 @@ const navItems = [
   { key: 'home', label: 'Home', to: '/vendor-template' },
   { key: 'about', label: 'About', to: '/vendor-template-about' },
   { key: 'contact', label: 'Contact', to: '/vendor-template-contact' },
+  { key: 'pages', label: 'Pages', to: '/vendor-template-pages' },
   { key: 'other', label: 'Social + FAQ', to: '/vendor-template-other' },
 ]
 

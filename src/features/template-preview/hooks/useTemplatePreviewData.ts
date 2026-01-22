@@ -26,6 +26,7 @@ interface PreviewResult {
     name?: string
     category_id?: { _id?: string; name?: string } | string
   }>
+  vendorName: string | null
   loading: boolean
   error: string | null
 }
@@ -115,6 +116,7 @@ export function useTemplatePreviewData(
       category_id?: { _id?: string; name?: string } | string
     }>
   >([])
+  const [vendorName, setVendorName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -214,6 +216,23 @@ export function useTemplatePreviewData(
       }
     }
 
+    const loadVendorProfile = async () => {
+      try {
+        const res = await axios.get(
+          `${BASE_URL}/v1/vendors/vendorprofile?id=${vendorId}`
+        )
+        const vendor = res.data?.vendor
+        return (
+          vendor?.name ||
+          vendor?.businessName ||
+          vendor?.storeName ||
+          null
+        )
+      } catch {
+        return null
+      }
+    }
+
     Promise.resolve().then(() => {
       if (!mounted) return
       setLoading(true)
@@ -225,6 +244,7 @@ export function useTemplatePreviewData(
       loadProducts(),
       loadCategories(),
       loadSubcategories(),
+      loadVendorProfile(),
     ])
       .then(
         ([
@@ -232,16 +252,18 @@ export function useTemplatePreviewData(
           productsResult,
           categoryResult,
           subcategoryResult,
+          vendorNameResult,
         ]) => {
-        if (!mounted) return
-        if (templateResult) {
-          setTemplate(templateResult.template)
-          setSectionOrder(templateResult.sectionOrder)
-        }
-        setProducts(productsResult || [])
-        setCategoryMap(categoryResult || {})
-        setSubcategories(subcategoryResult || [])
-      })
+          if (!mounted) return
+          if (templateResult) {
+            setTemplate(templateResult.template)
+            setSectionOrder(templateResult.sectionOrder)
+          }
+          setProducts(productsResult || [])
+          setCategoryMap(categoryResult || {})
+          setSubcategories(subcategoryResult || [])
+          setVendorName(vendorNameResult || null)
+        })
       .catch(() => {
         if (!mounted) return
         setError('Failed to load preview data.')
@@ -262,6 +284,7 @@ export function useTemplatePreviewData(
     sectionOrder,
     categoryMap,
     subcategories,
+    vendorName,
     loading,
     error,
   }

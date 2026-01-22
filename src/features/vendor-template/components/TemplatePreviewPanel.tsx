@@ -20,7 +20,7 @@ interface TemplatePreviewPanelProps {
   page?: 'home' | 'about' | 'contact' | 'full'
   previewData?: unknown
   sectionOrder?: string[]
-  onSelectSection?: (sectionId: string) => void
+  onSelectSection?: (sectionId: string, componentId?: string) => void
 }
 
 export function TemplatePreviewPanel({
@@ -105,12 +105,13 @@ export function TemplatePreviewPanel({
         vendorId?: string
         page?: string
         sectionId?: string
+        componentId?: string
       }
       if (data?.type !== 'template-editor-select') return
       if (vendorId && data.vendorId && data.vendorId !== vendorId) return
       if (data.page && page && data.page !== page) return
       if (!data.sectionId) return
-      onSelectSection(data.sectionId)
+      onSelectSection(data.sectionId, data.componentId)
     }
 
     window.addEventListener('message', handleMessage)

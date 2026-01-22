@@ -18,6 +18,7 @@ function TemplateContactPreviewRoute() {
     products,
     categoryMap,
     subcategories,
+    vendorName,
   } = useTemplatePreviewData(vendorId, 'contact')
   const live = useLiveTemplatePreview(
     vendorId,
@@ -51,8 +52,13 @@ function TemplateContactPreviewRoute() {
     <PreviewChrome
       vendorId={vendorId}
       logoUrl={template.components.logo}
+      vendorName={vendorName || undefined}
       buttonLabel={template.components.home_page.button_header}
+      buttonColor={
+        template.components.home_page.hero_style?.primaryButtonColor || undefined
+      }
       theme={live.template.components.theme}
+      customPages={template.components.custom_pages || []}
       categories={Object.entries(categoryMap).map(([id, name]) => ({
         _id: id,
         name,

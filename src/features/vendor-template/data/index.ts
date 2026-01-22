@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type TemplateData = {
+  custom_pages?: Array<{
+    id: string
+    title: string
+    slug: string
+    isPublished?: boolean
+    sections: Array<{
+      id: string
+      type: string
+      data: Record<string, unknown>
+    }>
+  }>
 
   components: {
     social_page: any
@@ -10,10 +21,32 @@ export type TemplateData = {
       fontScale: number
     }
     home_page: {
+      hero_kicker?: string
+      badge_text?: string
       header_text: string
       header_text_small: string
       backgroundImage:string
       button_header: string
+      button_secondary?: string
+      hero_style?: {
+        titleColor?: string
+        titleSize?: number
+        subtitleColor?: string
+        subtitleSize?: number
+        badgeColor?: string
+        badgeSize?: number
+        primaryButtonColor?: string
+        secondaryButtonColor?: string
+      }
+      products_heading?: string
+      products_kicker?: string
+      products_subtitle?: string
+      products_style?: {
+        titleColor?: string
+        titleSize?: number
+        kickerColor?: string
+        kickerSize?: number
+      }
       description: {
         large_text: string
         summary: string
@@ -26,6 +59,12 @@ export type TemplateData = {
         backgroundImage: string // ImageKit URL
         title: string
         subtitle: string
+      }
+      hero_style?: {
+        titleColor?: string
+        titleSize?: number
+        subtitleColor?: string
+        subtitleSize?: number
       }
       story: {
         heading: string
@@ -42,6 +81,12 @@ export type TemplateData = {
         backgroundImage: string // ImageKit URL
         title: string
         subtitle: string
+      }
+      hero_style?: {
+        titleColor?: string
+        titleSize?: number
+        subtitleColor?: string
+        subtitleSize?: number
       }
       contactInfo: Array<{ icon: string; title: string; details: string }>
       contactForm: {
@@ -75,6 +120,17 @@ export type TemplateData = {
         twitter: string
       }
     }
+    custom_pages?: Array<{
+      id: string
+      title: string
+      slug: string
+      isPublished?: boolean
+      sections: Array<{
+        id: string
+        type: string
+        data: Record<string, unknown>
+      }>
+    }>
   }
 }
 
@@ -89,10 +145,32 @@ export const initialData: TemplateData = {
       fontScale: 1,
     },
     home_page: {
+      hero_kicker: '',
+      badge_text: '',
       header_text: '',
       header_text_small: '',
       backgroundImage:'',
       button_header: '',
+      button_secondary: '',
+      hero_style: {
+        titleColor: '',
+        titleSize: 0,
+        subtitleColor: '',
+        subtitleSize: 0,
+        badgeColor: '',
+        badgeSize: 0,
+        primaryButtonColor: '',
+        secondaryButtonColor: '',
+      },
+      products_heading: '',
+      products_kicker: '',
+      products_subtitle: '',
+      products_style: {
+        titleColor: '',
+        titleSize: 0,
+        kickerColor: '',
+        kickerSize: 0,
+      },
       description: {
         large_text: '',
         summary: '',
@@ -105,6 +183,12 @@ export const initialData: TemplateData = {
         backgroundImage: '',
         title: '',
         subtitle: '',
+      },
+      hero_style: {
+        titleColor: '',
+        titleSize: 0,
+        subtitleColor: '',
+        subtitleSize: 0,
       },
       story: {
         heading: '',
@@ -120,6 +204,12 @@ export const initialData: TemplateData = {
         backgroundImage: '',
         title: '',
         subtitle: '',
+      },
+      hero_style: {
+        titleColor: '',
+        titleSize: 0,
+        subtitleColor: '',
+        subtitleSize: 0,
       },
       contactInfo: [
         { icon: 'map-pin', title: 'Visit Us', details: '' },
@@ -182,5 +272,7 @@ export const initialData: TemplateData = {
       },
     },
     social_page: undefined
+    ,
+    custom_pages: []
   },
 }

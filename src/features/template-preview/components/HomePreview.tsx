@@ -85,6 +85,8 @@ export function HomePreview({
   const theme = template.components.theme
   const accent = theme?.templateColor || '#0f172a'
   const bannerColor = theme?.bannerColor || '#0f172a'
+  const heroStyle = hero.hero_style || {}
+  const productStyle = hero.products_style || {}
 
   const categoryEntries = useMemo(() => {
     const map = new Map<string, { label: string; id?: string }>()
@@ -98,7 +100,7 @@ export function HomePreview({
     return Array.from(map.values())
   }, [products, categoryMap])
 
-  const emitSelect = (sectionId: string) => {
+  const emitSelect = (sectionId: string, componentId?: string) => {
     if (typeof window === 'undefined') return
     window.parent?.postMessage(
       {
@@ -106,6 +108,7 @@ export function HomePreview({
         vendorId,
         page: 'home',
         sectionId,
+        componentId,
       },
       window.location.origin
     )
@@ -158,26 +161,83 @@ export function HomePreview({
         />
         <div className='relative z-10 grid gap-6 px-6 py-12 sm:px-10 lg:grid-cols-[1.2fr_0.8fr]'>
           <div className='space-y-4'>
-            <p className='text-xs font-semibold uppercase tracking-[0.34em] text-white/70'>
-              Featured Collection
+            <p
+              className='text-xs font-semibold uppercase tracking-[0.34em] text-white/70'
+              onClickCapture={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                emitSelect('hero', 'hero.kicker')
+              }}
+              style={{
+                color: heroStyle.badgeColor || undefined,
+                fontSize: heroStyle.badgeSize
+                  ? `${heroStyle.badgeSize}px`
+                  : undefined,
+              }}
+            >
+              {hero.hero_kicker || 'Featured Collection'}
             </p>
-            <h1 className='text-3xl font-semibold leading-tight sm:text-5xl'>
+            <h1
+              className='text-3xl font-semibold leading-tight sm:text-5xl'
+              onClickCapture={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                emitSelect('hero', 'hero.title')
+              }}
+              style={{
+                color: heroStyle.titleColor || undefined,
+                fontSize: heroStyle.titleSize
+                  ? `${heroStyle.titleSize}px`
+                  : undefined,
+              }}
+            >
               {hero.header_text || 'Build a storefront that feels alive.'}
             </h1>
-            <p className='max-w-xl text-base text-white/80'>
+            <p
+              className='max-w-xl text-base text-white/80'
+              onClickCapture={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                emitSelect('hero', 'hero.subtitle')
+              }}
+              style={{
+                color: heroStyle.subtitleColor || undefined,
+                fontSize: heroStyle.subtitleSize
+                  ? `${heroStyle.subtitleSize}px`
+                  : undefined,
+              }}
+            >
               {hero.header_text_small ||
                 'Showcase your products with cinematic layouts and a story-first approach.'}
             </p>
             <div className='flex flex-wrap gap-3'>
               <div
                 className='inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-white'
-                style={{ backgroundColor: accent }}
+                onClickCapture={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  emitSelect('hero', 'hero.primaryButton')
+                }}
+                style={{
+                  backgroundColor: heroStyle.primaryButtonColor || accent,
+                }}
               >
                 {hero.button_header || 'Explore Products'}
                 <ArrowUpRight className='h-4 w-4' />
               </div>
-              <div className='inline-flex items-center gap-2 rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white/80'>
-                New arrivals weekly
+              <div
+                className='inline-flex items-center gap-2 rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white/80'
+                onClickCapture={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  emitSelect('hero', 'hero.secondaryButton')
+                }}
+                style={{
+                  borderColor: heroStyle.secondaryButtonColor || undefined,
+                  color: heroStyle.badgeColor || undefined,
+                }}
+              >
+                {hero.button_secondary || hero.badge_text || 'New arrivals weekly'}
               </div>
             </div>
           </div>
@@ -254,18 +314,42 @@ export function HomePreview({
       <section className='space-y-4'>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between'>
           <div>
-            <p className='text-xs font-semibold uppercase tracking-[0.32em] text-slate-400'>
-              Catalog
+          <p
+            className='text-xs font-semibold uppercase tracking-[0.32em] text-slate-400'
+            onClickCapture={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              emitSelect('products', 'products.kicker')
+            }}
+            style={{
+              color: productStyle.kickerColor || undefined,
+              fontSize: productStyle.kickerSize
+                ? `${productStyle.kickerSize}px`
+                : undefined,
+            }}
+          >
+              {hero.products_kicker || 'Catalog'}
             </p>
             <h3
               className='text-2xl font-semibold text-slate-900'
-              style={{ color: 'var(--template-accent)' }}
+              onClickCapture={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                emitSelect('products', 'products.heading')
+              }}
+              style={{
+                color: productStyle.titleColor || 'var(--template-accent)',
+                fontSize: productStyle.titleSize
+                  ? `${productStyle.titleSize}px`
+                  : undefined,
+              }}
             >
-              Products in this template
+              {hero.products_heading || 'Products in this template'}
             </h3>
           </div>
           <p className='text-sm text-slate-500'>
-            {products.length} products available
+            {hero.products_subtitle ||
+              `${products.length} products available`}
           </p>
         </div>
         <div className='flex flex-wrap gap-2'>

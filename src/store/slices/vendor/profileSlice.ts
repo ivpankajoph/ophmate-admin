@@ -8,7 +8,7 @@ export const fetchVendorProfile = createAsyncThunk(
     try {
       const state: any = getState()
       const token = state?.auth?.token
-      const res = await axios.get(`${BASE_URL}/vendor/profile`, {
+      const res = await axios.get(`${BASE_URL}/v1/vendors/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

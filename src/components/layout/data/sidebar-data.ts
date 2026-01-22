@@ -134,6 +134,11 @@ export const sidebarData: any = {
               url: '/vendor-template',
               roles: [ROLES.VENDOR],
             },
+            {
+              title: 'Custom Pages',
+              url: '/vendor-template-pages',
+              roles: [ROLES.VENDOR],
+            },
            
           ],
         },

@@ -45,6 +45,7 @@ export function ContactPreview({
   const theme = template.components.theme
   const accent = theme?.templateColor || '#0f172a'
   const bannerColor = theme?.bannerColor || '#0f172a'
+  const heroStyle = contact.hero_style || {}
   const section2 = contact.section_2 || {
     hero_title: '',
     hero_subtitle: '',
@@ -168,10 +169,26 @@ export function ContactPreview({
           <p className='text-xs font-semibold uppercase tracking-[0.32em] text-white/70'>
             Contact
           </p>
-          <h1 className='text-3xl font-semibold sm:text-5xl'>
+          <h1
+            className='text-3xl font-semibold sm:text-5xl'
+            style={{
+              color: heroStyle.titleColor || undefined,
+              fontSize: heroStyle.titleSize
+                ? `${heroStyle.titleSize}px`
+                : undefined,
+            }}
+          >
             {contact.hero.title || 'Reach out to our team.'}
           </h1>
-          <p className='max-w-2xl text-base text-white/80'>
+          <p
+            className='max-w-2xl text-base text-white/80'
+            style={{
+              color: heroStyle.subtitleColor || undefined,
+              fontSize: heroStyle.subtitleSize
+                ? `${heroStyle.subtitleSize}px`
+                : undefined,
+            }}
+          >
             {contact.hero.subtitle ||
               'Let customers know the best way to get in touch.'}
           </p>

@@ -443,6 +443,78 @@ function VendorTemplateContact() {
               )
             }
           />
+          <div className='grid gap-4 md:grid-cols-2'>
+            <div className='space-y-2'>
+              <Label>Hero Title Color</Label>
+              <Input
+                type='color'
+                value={
+                  data.components.contact_page.hero_style?.titleColor ||
+                  '#0f172a'
+                }
+                onChange={(e) =>
+                  updateField(
+                    ['components', 'contact_page', 'hero_style', 'titleColor'],
+                    e.target.value
+                  )
+                }
+              />
+            </div>
+            <div className='space-y-2'>
+              <Label>
+                Hero Title Size{' '}
+                {data.components.contact_page.hero_style?.titleSize || 48}
+              </Label>
+              <Input
+                type='range'
+                min='20'
+                max='72'
+                value={data.components.contact_page.hero_style?.titleSize || 48}
+                onChange={(e) =>
+                  updateField(
+                    ['components', 'contact_page', 'hero_style', 'titleSize'],
+                    Number(e.target.value || 0)
+                  )
+                }
+              />
+            </div>
+            <div className='space-y-2'>
+              <Label>Hero Subtitle Color</Label>
+              <Input
+                type='color'
+                value={
+                  data.components.contact_page.hero_style?.subtitleColor ||
+                  '#64748b'
+                }
+                onChange={(e) =>
+                  updateField(
+                    ['components', 'contact_page', 'hero_style', 'subtitleColor'],
+                    e.target.value
+                  )
+                }
+              />
+            </div>
+            <div className='space-y-2'>
+              <Label>
+                Hero Subtitle Size{' '}
+                {data.components.contact_page.hero_style?.subtitleSize || 18}
+              </Label>
+              <Input
+                type='range'
+                min='12'
+                max='32'
+                value={
+                  data.components.contact_page.hero_style?.subtitleSize || 18
+                }
+                onChange={(e) =>
+                  updateField(
+                    ['components', 'contact_page', 'hero_style', 'subtitleSize'],
+                    Number(e.target.value || 0)
+                  )
+                }
+              />
+            </div>
+          </div>
         </div>
       </div>
     ),
@@ -598,7 +670,7 @@ function VendorTemplateContact() {
             page='contact'
             previewData={data}
             sectionOrder={sectionOrder}
-            onSelectSection={setSelectedSection}
+            onSelectSection={(sectionId) => setSelectedSection(sectionId)}
           />
         }
       >

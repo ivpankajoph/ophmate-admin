@@ -13,7 +13,7 @@ import { BasicInfoSection } from './components/form/BasicInfoSection'
 import { DeploymentModal } from './components/form/DeploymentModal'
 import { DescriptionSection } from './components/form/DescriptionSection'
 import { HeroSection } from './components/form/HeroSection'
-import { SubmitSection } from './components/form/SubmitSection'
+
 import { ThemeSettingsSection } from './components/form/ThemeSettingsSection'
 import { useTemplateForm } from './components/hooks/useTemplateForm'
 import { Header } from '@/components/layout/header'
@@ -30,7 +30,7 @@ export default function TemplateForm() {
     handleSubmit,
     vendor_id,
     uploadingPaths,
-    submitStatus,
+  
     isSubmitting,
     open,
     setOpen,
@@ -43,6 +43,7 @@ export default function TemplateForm() {
 
   const [domainOpen, setDomainOpen] = useState(false)
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
+  const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
   const [sectionOrder, setSectionOrder] = useState([
     'branding',
     'hero',
@@ -84,8 +85,9 @@ export default function TemplateForm() {
 
   const handleSubmitWithOrder = () => handleSubmit(sectionOrder)
 
-  const handleSelectSection = (sectionId: string) => {
+  const handleSelectSection = (sectionId: string, componentId?: string) => {
     setSelectedSection(sectionId)
+    setSelectedComponent(componentId || null)
   }
 
   const sections = useMemo(
@@ -126,7 +128,11 @@ export default function TemplateForm() {
     ),
     hero: (
       <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
-        <HeroSection data={data} updateField={updateField} />
+        <HeroSection
+          data={data}
+          updateField={updateField}
+          selectedComponent={selectedComponent}
+        />
       </div>
     ),
     description: (
@@ -136,13 +142,147 @@ export default function TemplateForm() {
     ),
     products: (
       <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
-        <div className='space-y-2'>
+        {selectedComponent ? (
+          <p className='mb-3 text-xs text-slate-500'>
+            Selected component: {selectedComponent}
+          </p>
+        ) : null}
+        <div className='space-y-4'>
           <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
             Products
           </p>
           <h3 className='text-lg font-semibold text-slate-900'>
-            Product grid is auto-populated
+            Product grid settings
           </h3>
+          <div className='grid gap-4 md:grid-cols-2'>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-gray-700'>
+                Products Kicker
+              </label>
+              <input
+                className='h-12 w-full rounded-md border border-slate-200 px-3'
+                value={data.components.home_page.products_kicker || ''}
+                onChange={(e) =>
+                  updateField(
+                    ['components', 'home_page', 'products_kicker'],
+                    e.target.value
+                  )
+                }
+                placeholder='Catalog'
+              />
+            </div>
+            <div className='space-y-2'>
+              <label className='text-sm font-medium text-gray-700'>
+                Products Heading
+              </label>
+              <input
+                className='h-12 w-full rounded-md border border-slate-200 px-3'
+                value={data.components.home_page.products_heading || ''}
+                onChange={(e) =>
+                  updateField(
+                    ['components', 'home_page', 'products_heading'],
+                    e.target.value
+                  )
+                }
+                placeholder='Products in this template'
+              />
+            </div>
+          </div>
+          <div className='space-y-2'>
+            <label className='text-sm font-medium text-gray-700'>
+              Products Subtitle
+            </label>
+            <input
+              className='h-12 w-full rounded-md border border-slate-200 px-3'
+              value={data.components.home_page.products_subtitle || ''}
+              onChange={(e) =>
+                updateField(
+                  ['components', 'home_page', 'products_subtitle'],
+                  e.target.value
+                )
+              }
+              placeholder='Auto-populated from your dashboard inventory.'
+            />
+          </div>
+          <div className='rounded-2xl border border-slate-200 bg-slate-50 p-4'>
+            <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-500'>
+              Products Style
+            </p>
+            <div className='mt-4 grid gap-4 md:grid-cols-2'>
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Heading Color
+                </label>
+                <input
+                  type='color'
+                  className='h-10 w-full rounded-md border border-slate-200 px-3'
+                  value={
+                    data.components.home_page.products_style?.titleColor || '#0f172a'
+                  }
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'products_style', 'titleColor'],
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Heading Font Size
+                </label>
+                <input
+                  type='range'
+                  min='16'
+                  max='36'
+                  className='h-10 w-full rounded-md border border-slate-200 px-3'
+                  value={data.components.home_page.products_style?.titleSize || 24}
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'products_style', 'titleSize'],
+                      Number(e.target.value || 0)
+                    )
+                  }
+                />
+              </div>
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Kicker Color
+                </label>
+                <input
+                  type='color'
+                  className='h-10 w-full rounded-md border border-slate-200 px-3'
+                  value={
+                    data.components.home_page.products_style?.kickerColor || '#94a3b8'
+                  }
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'products_style', 'kickerColor'],
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700'>
+                  Kicker Font Size
+                </label>
+                <input
+                  type='range'
+                  min='10'
+                  max='20'
+                  className='h-10 w-full rounded-md border border-slate-200 px-3'
+                  value={data.components.home_page.products_style?.kickerSize || 12}
+                  onChange={(e) =>
+                    updateField(
+                      ['components', 'home_page', 'products_style', 'kickerSize'],
+                      Number(e.target.value || 0)
+                    )
+                  }
+                />
+              </div>
+            </div>
+          </div>
           <p className='text-sm text-slate-600'>
             Upload products from your dashboard to show them in the live
             template preview.
@@ -219,14 +359,6 @@ export default function TemplateForm() {
           />
         }
       >
-        <div className='rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm'>
-          <SubmitSection
-            submitStatus={submitStatus}
-            isSubmitting={isSubmitting}
-            uploadingPaths={uploadingPaths}
-            handleSubmit={handleSubmitWithOrder}
-          />
-        </div>
 
         <ThemeSettingsSection data={data} updateField={updateField} />
 
