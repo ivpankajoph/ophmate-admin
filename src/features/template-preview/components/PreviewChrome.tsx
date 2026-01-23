@@ -1,5 +1,11 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { VITE_PUBLIC_API_URL, VITE_PUBLIC_API_URL_BANNERS } from '@/config'
+import {
+  clearTemplateAuth,
+  getTemplateAuth,
+} from '@/features/template-preview/utils/templateAuth'
+import { useLocation } from '@tanstack/react-router'
 
 interface PreviewChromeProps {
   vendorId: string
@@ -36,8 +42,7 @@ export function PreviewChrome({
   vendorId,
   logoUrl,
   vendorName,
-  buttonLabel,
-  buttonColor,
+  
   theme,
   categories = [],
   subcategories = [],
@@ -46,7 +51,23 @@ export function PreviewChrome({
   children,
   footer,
 }: PreviewChromeProps) {
+  const API_BASE = VITE_PUBLIC_API_URL?.endsWith('/v1')
+    ? VITE_PUBLIC_API_URL
+    : `${VITE_PUBLIC_API_URL}/v1`
+  const analyticsUrl = `${API_BASE}/analytics/track`
+  const assetBase = VITE_PUBLIC_API_URL_BANNERS || VITE_PUBLIC_API_URL || ''
+  const resolvedLogoUrl =
+    logoUrl && !logoUrl.startsWith('http')
+      ? `${assetBase.replace(/\/$/, '')}/${logoUrl.replace(/^\//, '')}`
+      : logoUrl
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
+  const [cartCount, setCartCount] = useState(0)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const location = useLocation()
+  const lastPageRef = useRef<{ path: string; startedAt: number } | null>(null)
+  const visitorIdRef = useRef<string>('')
+  const sessionIdRef = useRef<string>('')
+  const clientIpRef = useRef<string>('')
 
   const subcategoriesByCategory = useMemo(() => {
     return subcategories.reduce<Record<string, typeof subcategories>>(
@@ -100,6 +121,141 @@ export function PreviewChrome({
     }
   }, [fontScale, accent])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const key = `tpl_vis_${vendorId}`
+    const sessionKey = `tpl_sess_${vendorId}`
+    const existingVisitor = localStorage.getItem(key)
+    if (existingVisitor) {
+      visitorIdRef.current = existingVisitor
+    } else {
+      const generated = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`
+      visitorIdRef.current = generated
+      localStorage.setItem(key, generated)
+    }
+    const existingSession = sessionStorage.getItem(sessionKey)
+    if (existingSession) {
+      sessionIdRef.current = existingSession
+    } else {
+      const generated = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`
+      sessionIdRef.current = generated
+      sessionStorage.setItem(sessionKey, generated)
+    }
+  }, [vendorId])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    fetch('https://api.ipify.org?format=json')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.ip) clientIpRef.current = data.ip
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!vendorId) return
+    const path = `${location.pathname}${location.search || ''}`
+    const now = Date.now()
+    const auth = getTemplateAuth(String(vendorId))
+
+    const sendEvent = (payload: Record<string, unknown>) => {
+      fetch(analyticsUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch(() => {})
+    }
+
+    const prev = lastPageRef.current
+    if (prev && prev.path !== path) {
+      sendEvent({
+        eventType: 'page_duration',
+        path: prev.path,
+        fullUrl: prev.path,
+        vendorId: String(vendorId),
+        userId: auth?.user?.id,
+        sessionId: sessionIdRef.current,
+        visitorId: visitorIdRef.current,
+        clientIp: clientIpRef.current,
+        clientUserAgent: navigator.userAgent,
+        clientDevice:
+          'userAgentData' in navigator && (navigator as any).userAgentData?.mobile
+            ? 'mobile'
+            : 'desktop',
+        durationMs: Math.max(0, now - prev.startedAt),
+      })
+    }
+
+    sendEvent({
+      eventType: 'page_view',
+      path,
+      fullUrl: window.location.href,
+      title: document.title,
+      referrer: document.referrer || '',
+      vendorId: String(vendorId),
+      userId: auth?.user?.id,
+      sessionId: sessionIdRef.current,
+      visitorId: visitorIdRef.current,
+      clientIp: clientIpRef.current,
+      clientUserAgent: navigator.userAgent,
+      clientDevice:
+        'userAgentData' in navigator && (navigator as any).userAgentData?.mobile
+          ? 'mobile'
+          : 'desktop',
+      screen: { width: window.screen.width, height: window.screen.height },
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    })
+
+    lastPageRef.current = { path, startedAt: now }
+
+    return () => {
+      const last = lastPageRef.current
+      if (!last) return
+      sendEvent({
+        eventType: 'page_duration',
+        path: last.path,
+        fullUrl: last.path,
+        vendorId: String(vendorId),
+        userId: auth?.user?.id,
+        sessionId: sessionIdRef.current,
+        visitorId: visitorIdRef.current,
+        clientIp: clientIpRef.current,
+        clientUserAgent: navigator.userAgent,
+        clientDevice:
+          'userAgentData' in navigator && (navigator as any).userAgentData?.mobile
+            ? 'mobile'
+            : 'desktop',
+        durationMs: Math.max(0, Date.now() - last.startedAt),
+      })
+    }
+  }, [vendorId, location.pathname, location.search])
+
+  useEffect(() => {
+    const auth = getTemplateAuth(String(vendorId))
+    setIsLoggedIn(!!auth?.token)
+    if (!auth?.token) {
+      setCartCount(0)
+      return
+    }
+    fetch(`${API_BASE}/template-users/cart`, {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setCartCount(data?.cart?.total_quantity || 0)
+      })
+      .catch(() => {
+        setCartCount(0)
+      })
+  }, [vendorId])
+
   const emitSelect = (sectionId: string) => {
     if (typeof window === 'undefined') return
     window.parent?.postMessage(
@@ -136,9 +292,9 @@ export function PreviewChrome({
             }}
           >
             <div className='h-10 w-10 overflow-hidden rounded-full border border-white bg-slate-900 text-white shadow'>
-              {logoUrl ? (
+              {resolvedLogoUrl ? (
                 <img
-                  src={logoUrl}
+                  src={resolvedLogoUrl}
                   alt='Brand logo'
                   className='h-full w-full object-cover'
                 />
@@ -187,6 +343,51 @@ export function PreviewChrome({
                 {page.label}
               </a>
             ))}
+            <a
+              href={`/template/${vendorId}/cart`}
+              className='relative rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900'
+            >
+              Cart
+              {cartCount > 0 && (
+                <span className='absolute -right-1 -top-1 rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-semibold text-white'>
+                  {cartCount}
+                </span>
+              )}
+            </a>
+            {isLoggedIn ? (
+              <>
+                <a
+                  href={`/template/${vendorId}/orders`}
+                  className='rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900'
+                >
+                  Orders
+                </a>
+                <a
+                  href={`/template/${vendorId}/profile`}
+                  className='rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900'
+                >
+                  Profile
+                </a>
+                <button
+                  type='button'
+                  onClick={() => {
+                    clearTemplateAuth(String(vendorId))
+                    setIsLoggedIn(false)
+                    setCartCount(0)
+                  }}
+                  className='rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 transition hover:bg-white hover:text-slate-900'
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <a
+                href={`/template/${vendorId}/login`}
+                className='rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900'
+              >
+                Login
+              </a>
+            )}
 
             <div
               className='relative z-40 group'
@@ -259,20 +460,8 @@ export function PreviewChrome({
             </div>
           </nav>
 
-          <div
-            className='rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold shadow-sm'
-            style={{
-              borderColor: buttonColor || accent,
-              color: buttonColor || accent,
-            }}
-            onClickCapture={(event) => {
-              if (active !== 'home') return
-              event.preventDefault()
-              event.stopPropagation()
-              emitSelect('hero')
-            }}
-          >
-            {buttonLabel || 'Shop Now'}
+          <div className='rounded-full border border-transparent px-4 py-2 text-sm font-semibold text-transparent'>
+            .
           </div>
         </div>
       </header>

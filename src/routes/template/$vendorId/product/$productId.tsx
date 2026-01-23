@@ -5,6 +5,10 @@ import { BadgeCheck, ChevronLeft, Package, Tag } from 'lucide-react'
 import { PreviewChrome } from '@/features/template-preview/components/PreviewChrome'
 import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { useSelector } from 'react-redux'
+import {
+  getTemplateAuth,
+  templateApiFetch,
+} from '@/features/template-preview/utils/templateAuth'
 
 type CategoryMap = Record<string, string>
 
@@ -17,6 +21,7 @@ interface ProductDetail {
   productCategory?: string
   defaultImages?: Array<{ url: string }>
   variants?: Array<{
+    _id?: string
     variantSku?: string
     actualPrice?: number
     finalPrice?: number
@@ -58,6 +63,8 @@ function TemplateProductDetail() {
   const [vendorName, setVendorName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
   const token = useSelector((state: { auth?: { token?: string } }) => state?.auth?.token)
 
   const headers = useMemo(() => {
@@ -270,6 +277,54 @@ function TemplateProductDetail() {
                 <BadgeCheck className='h-4 w-4' />
                 Verified Listing
               </span>
+            </div>
+            <div className='mt-5 flex flex-wrap items-center gap-3'>
+              <button
+                type='button'
+                onClick={async () => {
+                  setMessage(null)
+                  const auth = getTemplateAuth(String(vendorId))
+                  if (!auth) {
+                    window.location.href = `/template/${vendorId}/login?next=/template/${vendorId}/product/${productId}`
+                    return
+                  }
+                  const variantId = product?.variants?.[0]?._id
+                  if (!variantId) {
+                    setMessage('No variant available.')
+                    return
+                  }
+                  setAdding(true)
+                  try {
+                    await templateApiFetch(String(vendorId), '/cart', {
+                      method: 'POST',
+                      body: JSON.stringify({
+                        product_id: productId,
+                        variant_id: variantId,
+                        quantity: 1,
+                      }),
+                    })
+                    setMessage('Added to cart.')
+                  } catch (err: any) {
+                    setMessage(err?.message || 'Unable to add to cart.')
+                  } finally {
+                    setAdding(false)
+                  }
+                }}
+                className='rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition disabled:opacity-60'
+                style={{
+                  backgroundColor:
+                    templateMeta?.heroStyle?.primaryButtonColor ||
+                    'var(--template-accent)',
+                }}
+                disabled={adding}
+              >
+                {adding ? 'Adding...' : 'Add to cart'}
+              </button>
+              {message && (
+                <span className='text-xs font-semibold text-slate-500'>
+                  {message}
+                </span>
+              )}
             </div>
           </div>
 

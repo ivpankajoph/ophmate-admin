@@ -35,6 +35,18 @@ export const sidebarData: any = {
           roles: [ROLES.ADMIN,ROLES.VENDOR], // admin only
         },
         {
+          title: 'Analytics',
+          url: '/analytics',
+          icon: LayoutDashboard,
+          roles: [ROLES.ADMIN],
+        },
+        {
+          title: 'Storefront Analytics',
+          url: '/vendor-analytics',
+          icon: LayoutDashboard,
+          roles: [ROLES.VENDOR],
+        },
+        {
           title: 'Profile',
           url: '/profile',
           icon: Users,

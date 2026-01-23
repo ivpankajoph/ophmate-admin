@@ -1,7 +1,7 @@
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { type TemplateData } from '@/features/vendor-template/data'
-import { JSX, useMemo } from 'react'
-import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
+import { JSX, } from 'react'
+
 
 interface ContactPreviewProps {
   template: TemplateData
@@ -38,8 +38,7 @@ export function ContactPreview({
   template,
   sectionOrder,
   vendorId,
-  products,
-  categoryMap = {},
+
 }: ContactPreviewProps) {
   const contact = template.components.contact_page
   const theme = template.components.theme
@@ -82,62 +81,10 @@ export function ContactPreview({
   )
 
   const mapUrl = getMapEmbedUrl(section2.lat, section2.long)
-  const frontendBase = VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND || ''
 
-  const categories = useMemo(() => {
-    const map = new Map<string, { id: string; label: string; count: number }>()
-    const normalize = (value: unknown) =>
-      typeof value === 'string' ? value.trim() : ''
 
-    products.forEach((product) => {
-      const rawId =
-        product?.productCategory?._id ||
-        (typeof product?.productCategory === 'string'
-          ? product.productCategory
-          : '') ||
-        product?.productCategoryName
 
-      const categoryObject =
-        typeof product?.productCategory === 'string'
-          ? undefined
-          : product?.productCategory
 
-      const label =
-        normalize(product?.productCategoryName) ||
-        normalize(categoryObject?.name) ||
-        normalize(categoryObject?.title) ||
-        normalize(categoryObject?.categoryName) ||
-        normalize(
-          typeof product?.productCategory === 'string'
-            ? product.productCategory
-            : ''
-        ) ||
-        (rawId ? categoryMap[rawId] : '') ||
-        ''
-
-      const id = normalize(rawId) || label
-      if (!id) return
-
-      const existing = map.get(id)
-      if (existing) {
-        existing.count += 1
-        if (!existing.label && label) existing.label = label
-      } else {
-        map.set(id, {
-          id,
-          label: label || 'Category',
-          count: 1,
-        })
-      }
-    })
-
-    return Array.from(map.values()).sort((a, b) =>
-      a.label.localeCompare(b.label)
-    )
-  }, [products, categoryMap])
-
-  const toCategorySlug = (value: string) =>
-    encodeURIComponent(value.toLowerCase().replace(/\s+/g, '-'))
 
   const sections: Record<string, JSX.Element> = {
     hero: wrapSection(
@@ -322,49 +269,6 @@ export function ContactPreview({
 
   return (
     <div className='space-y-10'>
-      <div className='group fixed right-6 top-1/2 z-40 -translate-y-1/2'>
-        <button className='rounded-full border border-white/70 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700 shadow-lg transition hover:shadow-xl'>
-          Categories
-        </button>
-        <div className='pointer-events-none absolute right-full top-1/2 mr-4 w-64 -translate-y-1/2 opacity-0 transition duration-200 group-hover:pointer-events-auto group-hover:opacity-100'>
-          <div className='max-h-80 overflow-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl'>
-            <p className='px-2 pb-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
-              Browse
-            </p>
-            <div className='flex flex-col gap-2'>
-              {categories.length > 0 ? (
-                categories.map((category) => {
-                  const isObjectId = /^[a-f\d]{24}$/i.test(category.id)
-                  const categoryPath = isObjectId
-                    ? category.id
-                    : toCategorySlug(category.label)
-                  const href = frontendBase
-                    ? `${frontendBase}/template/${vendorId}/category/${categoryPath}`
-                    : `/template/${vendorId}/category/${categoryPath}`
-                  return (
-                    <a
-                      key={category.id}
-                      href={href}
-                      target='_blank'
-                      rel='noreferrer'
-                      className='flex items-center justify-between rounded-xl border border-transparent px-3 py-2 text-sm text-slate-700 transition hover:border-slate-200 hover:bg-slate-50'
-                    >
-                      <span className='truncate'>{category.label}</span>
-                      <span className='text-xs text-slate-400'>
-                        {category.count}
-                      </span>
-                    </a>
-                  )
-                })
-              ) : (
-                <div className='rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center text-xs uppercase tracking-[0.3em] text-slate-400'>
-                  No categories
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
       {order.map((key) => (
         <div key={key}>{sections[key] || null}</div>
       ))}

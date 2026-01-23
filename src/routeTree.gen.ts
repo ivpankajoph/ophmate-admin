@@ -30,6 +30,7 @@ import { Route as AuthenticatedVendorTemplatePagesIndexRouteImport } from './rou
 import { Route as AuthenticatedVendorTemplateOtherIndexRouteImport } from './routes/_authenticated/vendor-template-other/index'
 import { Route as AuthenticatedVendorTemplateContactIndexRouteImport } from './routes/_authenticated/vendor-template-contact/index'
 import { Route as AuthenticatedVendorTemplateAboutIndexRouteImport } from './routes/_authenticated/vendor-template-about/index'
+import { Route as AuthenticatedVendorAnalyticsIndexRouteImport } from './routes/_authenticated/vendor-analytics/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedUploadProductsIndexRouteImport } from './routes/_authenticated/upload-products/index'
 import { Route as AuthenticatedSubcategoryIndexRouteImport } from './routes/_authenticated/subcategory/index'
@@ -41,7 +42,14 @@ import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedCategoryIndexRouteImport } from './routes/_authenticated/category/index'
 import { Route as AuthenticatedBannersIndexRouteImport } from './routes/_authenticated/banners/index'
+import { Route as AuthenticatedAnalyticsIndexRouteImport } from './routes/_authenticated/analytics/index'
+import { Route as TemplateVendorIdRegisterRouteImport } from './routes/template/$vendorId/register'
+import { Route as TemplateVendorIdProfileRouteImport } from './routes/template/$vendorId/profile'
+import { Route as TemplateVendorIdOrdersRouteImport } from './routes/template/$vendorId/orders'
+import { Route as TemplateVendorIdLoginRouteImport } from './routes/template/$vendorId/login'
 import { Route as TemplateVendorIdContactRouteImport } from './routes/template/$vendorId/contact'
+import { Route as TemplateVendorIdCheckoutRouteImport } from './routes/template/$vendorId/checkout'
+import { Route as TemplateVendorIdCartRouteImport } from './routes/template/$vendorId/cart'
 import { Route as TemplateVendorIdAboutRouteImport } from './routes/template/$vendorId/about'
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
@@ -163,6 +171,12 @@ const AuthenticatedVendorTemplateAboutIndexRoute =
     path: '/vendor-template-about/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVendorAnalyticsIndexRoute =
+  AuthenticatedVendorAnalyticsIndexRouteImport.update({
+    id: '/vendor-analytics/',
+    path: '/vendor-analytics/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -226,9 +240,47 @@ const AuthenticatedBannersIndexRoute =
     path: '/banners/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAnalyticsIndexRoute =
+  AuthenticatedAnalyticsIndexRouteImport.update({
+    id: '/analytics/',
+    path: '/analytics/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const TemplateVendorIdRegisterRoute =
+  TemplateVendorIdRegisterRouteImport.update({
+    id: '/template/$vendorId/register',
+    path: '/template/$vendorId/register',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const TemplateVendorIdProfileRoute = TemplateVendorIdProfileRouteImport.update({
+  id: '/template/$vendorId/profile',
+  path: '/template/$vendorId/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplateVendorIdOrdersRoute = TemplateVendorIdOrdersRouteImport.update({
+  id: '/template/$vendorId/orders',
+  path: '/template/$vendorId/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplateVendorIdLoginRoute = TemplateVendorIdLoginRouteImport.update({
+  id: '/template/$vendorId/login',
+  path: '/template/$vendorId/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplateVendorIdContactRoute = TemplateVendorIdContactRouteImport.update({
   id: '/template/$vendorId/contact',
   path: '/template/$vendorId/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplateVendorIdCheckoutRoute =
+  TemplateVendorIdCheckoutRouteImport.update({
+    id: '/template/$vendorId/checkout',
+    path: '/template/$vendorId/checkout',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const TemplateVendorIdCartRoute = TemplateVendorIdCartRouteImport.update({
+  id: '/template/$vendorId/cart',
+  path: '/template/$vendorId/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TemplateVendorIdAboutRoute = TemplateVendorIdAboutRouteImport.update({
@@ -318,7 +370,14 @@ export interface FileRoutesByFullPath {
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
   '/template/$vendorId/about': typeof TemplateVendorIdAboutRoute
+  '/template/$vendorId/cart': typeof TemplateVendorIdCartRoute
+  '/template/$vendorId/checkout': typeof TemplateVendorIdCheckoutRoute
   '/template/$vendorId/contact': typeof TemplateVendorIdContactRoute
+  '/template/$vendorId/login': typeof TemplateVendorIdLoginRoute
+  '/template/$vendorId/orders': typeof TemplateVendorIdOrdersRoute
+  '/template/$vendorId/profile': typeof TemplateVendorIdProfileRoute
+  '/template/$vendorId/register': typeof TemplateVendorIdRegisterRoute
+  '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/banners': typeof AuthenticatedBannersIndexRoute
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
@@ -330,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
   '/upload-products': typeof AuthenticatedUploadProductsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/vendor-analytics': typeof AuthenticatedVendorAnalyticsIndexRoute
   '/vendor-template-about': typeof AuthenticatedVendorTemplateAboutIndexRoute
   '/vendor-template-contact': typeof AuthenticatedVendorTemplateContactIndexRoute
   '/vendor-template-other': typeof AuthenticatedVendorTemplateOtherIndexRoute
@@ -362,7 +422,14 @@ export interface FileRoutesByTo {
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
   '/template/$vendorId/about': typeof TemplateVendorIdAboutRoute
+  '/template/$vendorId/cart': typeof TemplateVendorIdCartRoute
+  '/template/$vendorId/checkout': typeof TemplateVendorIdCheckoutRoute
   '/template/$vendorId/contact': typeof TemplateVendorIdContactRoute
+  '/template/$vendorId/login': typeof TemplateVendorIdLoginRoute
+  '/template/$vendorId/orders': typeof TemplateVendorIdOrdersRoute
+  '/template/$vendorId/profile': typeof TemplateVendorIdProfileRoute
+  '/template/$vendorId/register': typeof TemplateVendorIdRegisterRoute
+  '/analytics': typeof AuthenticatedAnalyticsIndexRoute
   '/banners': typeof AuthenticatedBannersIndexRoute
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
@@ -374,6 +441,7 @@ export interface FileRoutesByTo {
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
   '/upload-products': typeof AuthenticatedUploadProductsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/vendor-analytics': typeof AuthenticatedVendorAnalyticsIndexRoute
   '/vendor-template-about': typeof AuthenticatedVendorTemplateAboutIndexRoute
   '/vendor-template-contact': typeof AuthenticatedVendorTemplateContactIndexRoute
   '/vendor-template-other': typeof AuthenticatedVendorTemplateOtherIndexRoute
@@ -410,7 +478,14 @@ export interface FileRoutesById {
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
   '/template/$vendorId/about': typeof TemplateVendorIdAboutRoute
+  '/template/$vendorId/cart': typeof TemplateVendorIdCartRoute
+  '/template/$vendorId/checkout': typeof TemplateVendorIdCheckoutRoute
   '/template/$vendorId/contact': typeof TemplateVendorIdContactRoute
+  '/template/$vendorId/login': typeof TemplateVendorIdLoginRoute
+  '/template/$vendorId/orders': typeof TemplateVendorIdOrdersRoute
+  '/template/$vendorId/profile': typeof TemplateVendorIdProfileRoute
+  '/template/$vendorId/register': typeof TemplateVendorIdRegisterRoute
+  '/_authenticated/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/_authenticated/banners/': typeof AuthenticatedBannersIndexRoute
   '/_authenticated/category/': typeof AuthenticatedCategoryIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
@@ -422,6 +497,7 @@ export interface FileRoutesById {
   '/_authenticated/subcategory/': typeof AuthenticatedSubcategoryIndexRoute
   '/_authenticated/upload-products/': typeof AuthenticatedUploadProductsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/vendor-analytics/': typeof AuthenticatedVendorAnalyticsIndexRoute
   '/_authenticated/vendor-template-about/': typeof AuthenticatedVendorTemplateAboutIndexRoute
   '/_authenticated/vendor-template-contact/': typeof AuthenticatedVendorTemplateContactIndexRoute
   '/_authenticated/vendor-template-other/': typeof AuthenticatedVendorTemplateOtherIndexRoute
@@ -456,7 +532,14 @@ export interface FileRouteTypes {
     | '/clerk/sign-up'
     | '/clerk/user-management'
     | '/template/$vendorId/about'
+    | '/template/$vendorId/cart'
+    | '/template/$vendorId/checkout'
     | '/template/$vendorId/contact'
+    | '/template/$vendorId/login'
+    | '/template/$vendorId/orders'
+    | '/template/$vendorId/profile'
+    | '/template/$vendorId/register'
+    | '/analytics'
     | '/banners'
     | '/category'
     | '/chats'
@@ -468,6 +551,7 @@ export interface FileRouteTypes {
     | '/subcategory'
     | '/upload-products'
     | '/users'
+    | '/vendor-analytics'
     | '/vendor-template-about'
     | '/vendor-template-contact'
     | '/vendor-template-other'
@@ -500,7 +584,14 @@ export interface FileRouteTypes {
     | '/clerk/sign-up'
     | '/clerk/user-management'
     | '/template/$vendorId/about'
+    | '/template/$vendorId/cart'
+    | '/template/$vendorId/checkout'
     | '/template/$vendorId/contact'
+    | '/template/$vendorId/login'
+    | '/template/$vendorId/orders'
+    | '/template/$vendorId/profile'
+    | '/template/$vendorId/register'
+    | '/analytics'
     | '/banners'
     | '/category'
     | '/chats'
@@ -512,6 +603,7 @@ export interface FileRouteTypes {
     | '/subcategory'
     | '/upload-products'
     | '/users'
+    | '/vendor-analytics'
     | '/vendor-template-about'
     | '/vendor-template-contact'
     | '/vendor-template-other'
@@ -547,7 +639,14 @@ export interface FileRouteTypes {
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
     | '/template/$vendorId/about'
+    | '/template/$vendorId/cart'
+    | '/template/$vendorId/checkout'
     | '/template/$vendorId/contact'
+    | '/template/$vendorId/login'
+    | '/template/$vendorId/orders'
+    | '/template/$vendorId/profile'
+    | '/template/$vendorId/register'
+    | '/_authenticated/analytics/'
     | '/_authenticated/banners/'
     | '/_authenticated/category/'
     | '/_authenticated/chats/'
@@ -559,6 +658,7 @@ export interface FileRouteTypes {
     | '/_authenticated/subcategory/'
     | '/_authenticated/upload-products/'
     | '/_authenticated/users/'
+    | '/_authenticated/vendor-analytics/'
     | '/_authenticated/vendor-template-about/'
     | '/_authenticated/vendor-template-contact/'
     | '/_authenticated/vendor-template-other/'
@@ -588,7 +688,13 @@ export interface RootRouteChildren {
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
   TemplateVendorIdAboutRoute: typeof TemplateVendorIdAboutRoute
+  TemplateVendorIdCartRoute: typeof TemplateVendorIdCartRoute
+  TemplateVendorIdCheckoutRoute: typeof TemplateVendorIdCheckoutRoute
   TemplateVendorIdContactRoute: typeof TemplateVendorIdContactRoute
+  TemplateVendorIdLoginRoute: typeof TemplateVendorIdLoginRoute
+  TemplateVendorIdOrdersRoute: typeof TemplateVendorIdOrdersRoute
+  TemplateVendorIdProfileRoute: typeof TemplateVendorIdProfileRoute
+  TemplateVendorIdRegisterRoute: typeof TemplateVendorIdRegisterRoute
   TemplateVendorIdIndexRoute: typeof TemplateVendorIdIndexRoute
   TemplateVendorIdCategoryCategoryIdRoute: typeof TemplateVendorIdCategoryCategoryIdRoute
   TemplateVendorIdPagePageSlugRoute: typeof TemplateVendorIdPagePageSlugRoute
@@ -745,6 +851,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendorTemplateAboutIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vendor-analytics/': {
+      id: '/_authenticated/vendor-analytics/'
+      path: '/vendor-analytics'
+      fullPath: '/vendor-analytics'
+      preLoaderRoute: typeof AuthenticatedVendorAnalyticsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -822,11 +935,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBannersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/analytics/': {
+      id: '/_authenticated/analytics/'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/template/$vendorId/register': {
+      id: '/template/$vendorId/register'
+      path: '/template/$vendorId/register'
+      fullPath: '/template/$vendorId/register'
+      preLoaderRoute: typeof TemplateVendorIdRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/template/$vendorId/profile': {
+      id: '/template/$vendorId/profile'
+      path: '/template/$vendorId/profile'
+      fullPath: '/template/$vendorId/profile'
+      preLoaderRoute: typeof TemplateVendorIdProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/template/$vendorId/orders': {
+      id: '/template/$vendorId/orders'
+      path: '/template/$vendorId/orders'
+      fullPath: '/template/$vendorId/orders'
+      preLoaderRoute: typeof TemplateVendorIdOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/template/$vendorId/login': {
+      id: '/template/$vendorId/login'
+      path: '/template/$vendorId/login'
+      fullPath: '/template/$vendorId/login'
+      preLoaderRoute: typeof TemplateVendorIdLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/template/$vendorId/contact': {
       id: '/template/$vendorId/contact'
       path: '/template/$vendorId/contact'
       fullPath: '/template/$vendorId/contact'
       preLoaderRoute: typeof TemplateVendorIdContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/template/$vendorId/checkout': {
+      id: '/template/$vendorId/checkout'
+      path: '/template/$vendorId/checkout'
+      fullPath: '/template/$vendorId/checkout'
+      preLoaderRoute: typeof TemplateVendorIdCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/template/$vendorId/cart': {
+      id: '/template/$vendorId/cart'
+      path: '/template/$vendorId/cart'
+      fullPath: '/template/$vendorId/cart'
+      preLoaderRoute: typeof TemplateVendorIdCartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/template/$vendorId/about': {
@@ -919,6 +1081,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
+  AuthenticatedAnalyticsIndexRoute: typeof AuthenticatedAnalyticsIndexRoute
   AuthenticatedBannersIndexRoute: typeof AuthenticatedBannersIndexRoute
   AuthenticatedCategoryIndexRoute: typeof AuthenticatedCategoryIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
@@ -930,6 +1093,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSubcategoryIndexRoute: typeof AuthenticatedSubcategoryIndexRoute
   AuthenticatedUploadProductsIndexRoute: typeof AuthenticatedUploadProductsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
+  AuthenticatedVendorAnalyticsIndexRoute: typeof AuthenticatedVendorAnalyticsIndexRoute
   AuthenticatedVendorTemplateAboutIndexRoute: typeof AuthenticatedVendorTemplateAboutIndexRoute
   AuthenticatedVendorTemplateContactIndexRoute: typeof AuthenticatedVendorTemplateContactIndexRoute
   AuthenticatedVendorTemplateOtherIndexRoute: typeof AuthenticatedVendorTemplateOtherIndexRoute
@@ -944,6 +1108,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
+  AuthenticatedAnalyticsIndexRoute: AuthenticatedAnalyticsIndexRoute,
   AuthenticatedBannersIndexRoute: AuthenticatedBannersIndexRoute,
   AuthenticatedCategoryIndexRoute: AuthenticatedCategoryIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
@@ -956,6 +1121,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSubcategoryIndexRoute: AuthenticatedSubcategoryIndexRoute,
   AuthenticatedUploadProductsIndexRoute: AuthenticatedUploadProductsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
+  AuthenticatedVendorAnalyticsIndexRoute:
+    AuthenticatedVendorAnalyticsIndexRoute,
   AuthenticatedVendorTemplateAboutIndexRoute:
     AuthenticatedVendorTemplateAboutIndexRoute,
   AuthenticatedVendorTemplateContactIndexRoute:
@@ -1033,7 +1200,13 @@ const rootRouteChildren: RootRouteChildren = {
   errors500Route: errors500Route,
   errors503Route: errors503Route,
   TemplateVendorIdAboutRoute: TemplateVendorIdAboutRoute,
+  TemplateVendorIdCartRoute: TemplateVendorIdCartRoute,
+  TemplateVendorIdCheckoutRoute: TemplateVendorIdCheckoutRoute,
   TemplateVendorIdContactRoute: TemplateVendorIdContactRoute,
+  TemplateVendorIdLoginRoute: TemplateVendorIdLoginRoute,
+  TemplateVendorIdOrdersRoute: TemplateVendorIdOrdersRoute,
+  TemplateVendorIdProfileRoute: TemplateVendorIdProfileRoute,
+  TemplateVendorIdRegisterRoute: TemplateVendorIdRegisterRoute,
   TemplateVendorIdIndexRoute: TemplateVendorIdIndexRoute,
   TemplateVendorIdCategoryCategoryIdRoute:
     TemplateVendorIdCategoryCategoryIdRoute,
