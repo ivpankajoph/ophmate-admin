@@ -42,7 +42,7 @@ export const sidebarData: any = {
         },
         {
           title: 'Storefront Analytics',
-          url: '/vendor-analytics',
+          url: '/analytics',
           icon: LayoutDashboard,
           roles: [ROLES.VENDOR],
         },

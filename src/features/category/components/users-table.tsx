@@ -121,8 +121,8 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
           },
         ]}
       />
-      <div className='overflow-hidden rounded-md border'>
-        <Table>
+      <div className='overflow-x-auto rounded-md border'>
+        <Table className='min-w-[900px]'>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className='group/row'>

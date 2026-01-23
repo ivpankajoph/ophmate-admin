@@ -1,7 +1,7 @@
 /* eslint-disable no-duplicate-imports */
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getRouteApi } from '@tanstack/react-router'
+
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -11,20 +11,23 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
-import { UsersTable } from './components/users-table'
+import { CategoryTree } from './components/category-tree'
 import { useEffect } from 'react'
 import { AppDispatch } from '@/store'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllCategories } from '@/store/slices/admin/categorySlice'
 
-const route = getRouteApi('/_authenticated/category/')
-
 export function Category() {
-  const search = route.useSearch()
-  const navigate = route.useNavigate()
   const dispatch = useDispatch<AppDispatch>()
 
   const { categories, loading, error } = useSelector((state: any) => state.categories)
+  const mainCategoryTotal = categories?.length
+    ? new Set(
+        categories.map(
+          (cat: any) => cat?.mainCategory?._id || cat?.mainCategory?.name || 'unassigned'
+        )
+      ).size
+    : 0
 
   useEffect(() => {
     dispatch(getAllCategories())
@@ -48,6 +51,9 @@ export function Category() {
             <p className='text-muted-foreground'>
               Manage your categories here.
             </p>
+            <p className='mt-1 text-sm text-muted-foreground'>
+              Total main categories: {mainCategoryTotal}
+            </p>
           </div>
           <UsersPrimaryButtons />
         </div>
@@ -60,7 +66,7 @@ export function Category() {
         ) : !categories || categories.length === 0 ? (
           <p className="text-center py-10 text-muted-foreground">No categories found.</p>
         ) : (
-          <UsersTable data={categories} search={search} navigate={navigate} />
+          <CategoryTree categories={categories} />
         )}
       </Main>
 

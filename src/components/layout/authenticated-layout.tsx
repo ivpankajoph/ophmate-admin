@@ -1,4 +1,4 @@
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useLocation } from '@tanstack/react-router'
 import { getCookie } from '@/lib/cookies'
 import { cn } from '@/lib/utils'
 import { LayoutProvider } from '@/context/layout-provider'
@@ -13,6 +13,21 @@ type AuthenticatedLayoutProps = {
 
 export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const defaultOpen = getCookie('sidebar_state') !== 'false'
+  const pathname = useLocation({ select: (location) => location.pathname })
+  const isAnalytics = pathname.startsWith('/analytics')
+
+  if (isAnalytics) {
+    return (
+      <SearchProvider>
+        <LayoutProvider>
+          <div className="min-h-svh w-full">
+            {children ?? <Outlet />}
+          </div>
+        </LayoutProvider>
+      </SearchProvider>
+    )
+  }
+
   return (
     <SearchProvider>
       <LayoutProvider>

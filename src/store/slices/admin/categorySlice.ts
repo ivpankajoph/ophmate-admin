@@ -7,12 +7,16 @@ interface CategoryState {
   loading: boolean
   error: string | null
   categories: any[]
+  uploadStatus: 'idle' | 'loading' | 'succeeded' | 'failed'
+  uploadError: string | null
 }
 
 const initialState: CategoryState = {
   loading: false,
   error: null,
   categories: [],
+  uploadStatus: 'idle',
+  uploadError: null,
 }
 
 const BASE_URL = VITE_PUBLIC_API_URL
@@ -25,7 +29,7 @@ export const createCategory = createAsyncThunk(
       const token = state?.auth?.token
 
       const res = await axios.post(
-        `${BASE_URL}/categories/create`,
+        `${BASE_URL}/v1/categories/create`,
         payload, // <-- JSON Data
         {
           headers: {
@@ -51,7 +55,7 @@ export const updateCategory = createAsyncThunk(
       const state: any = getState()
       const token = state?.auth?.token
       const response = await axios.put(
-        `${BASE_URL}/categories/update/${categoryData.id}`,
+        `${BASE_URL}/v1/categories/update/${categoryData.id}`,
         categoryData,
         {
           headers: {
@@ -93,7 +97,7 @@ export const uploadCategories = createAsyncThunk(
       formData.append('file', file)
 
       const response = await axios.post(
-        `${BASE_URL}/categories/import`,
+        `${BASE_URL}/v1/categories/import`,
         formData,
         {
           headers: {
@@ -157,6 +161,17 @@ const categorySlice = createSlice({
       .addCase(updateCategory.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
+      })
+      .addCase(uploadCategories.pending, (state) => {
+        state.uploadStatus = 'loading'
+        state.uploadError = null
+      })
+      .addCase(uploadCategories.fulfilled, (state) => {
+        state.uploadStatus = 'succeeded'
+      })
+      .addCase(uploadCategories.rejected, (state, action) => {
+        state.uploadStatus = 'failed'
+        state.uploadError = action.payload as string
       })
   },
 })

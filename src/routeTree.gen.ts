@@ -23,6 +23,7 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
+import { Route as AuthenticatedAnalyticsRouteRouteImport } from './routes/_authenticated/analytics/route'
 import { Route as TemplateVendorIdIndexRouteImport } from './routes/template/$vendorId/index'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedVendorTemplateIndexRouteImport } from './routes/_authenticated/vendor-template/index'
@@ -55,6 +56,11 @@ import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/c
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
+import { Route as AuthenticatedAnalyticsTrafficRouteImport } from './routes/_authenticated/analytics/traffic'
+import { Route as AuthenticatedAnalyticsReportsRouteImport } from './routes/_authenticated/analytics/reports'
+import { Route as AuthenticatedAnalyticsFunnelRouteImport } from './routes/_authenticated/analytics/funnel'
+import { Route as AuthenticatedAnalyticsEcommerceRouteImport } from './routes/_authenticated/analytics/ecommerce'
+import { Route as AuthenticatedAnalyticsBehaviorRouteImport } from './routes/_authenticated/analytics/behavior'
 import { Route as AuthenticatedProductsCreateProductsIndexRouteImport } from './routes/_authenticated/products/create-products/index'
 import { Route as AuthenticatedProductsAdminProductsIndexRouteImport } from './routes/_authenticated/products/admin-products/index'
 import { Route as AuthenticatedCategoryCreateCategoryIndexRouteImport } from './routes/_authenticated/category/create-category/index'
@@ -130,6 +136,12 @@ const ClerkauthRouteRoute = ClerkauthRouteRouteImport.update({
   id: '/(auth)',
   getParentRoute: () => ClerkRouteRoute,
 } as any)
+const AuthenticatedAnalyticsRouteRoute =
+  AuthenticatedAnalyticsRouteRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const TemplateVendorIdIndexRoute = TemplateVendorIdIndexRouteImport.update({
   id: '/template/$vendorId/',
   path: '/template/$vendorId/',
@@ -242,9 +254,9 @@ const AuthenticatedBannersIndexRoute =
   } as any)
 const AuthenticatedAnalyticsIndexRoute =
   AuthenticatedAnalyticsIndexRouteImport.update({
-    id: '/analytics/',
-    path: '/analytics/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAnalyticsRouteRoute,
   } as any)
 const TemplateVendorIdRegisterRoute =
   TemplateVendorIdRegisterRouteImport.update({
@@ -310,6 +322,36 @@ const AuthenticatedErrorsErrorRoute =
     path: '/errors/$error',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAnalyticsTrafficRoute =
+  AuthenticatedAnalyticsTrafficRouteImport.update({
+    id: '/traffic',
+    path: '/traffic',
+    getParentRoute: () => AuthenticatedAnalyticsRouteRoute,
+  } as any)
+const AuthenticatedAnalyticsReportsRoute =
+  AuthenticatedAnalyticsReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAnalyticsRouteRoute,
+  } as any)
+const AuthenticatedAnalyticsFunnelRoute =
+  AuthenticatedAnalyticsFunnelRouteImport.update({
+    id: '/funnel',
+    path: '/funnel',
+    getParentRoute: () => AuthenticatedAnalyticsRouteRoute,
+  } as any)
+const AuthenticatedAnalyticsEcommerceRoute =
+  AuthenticatedAnalyticsEcommerceRouteImport.update({
+    id: '/ecommerce',
+    path: '/ecommerce',
+    getParentRoute: () => AuthenticatedAnalyticsRouteRoute,
+  } as any)
+const AuthenticatedAnalyticsBehaviorRoute =
+  AuthenticatedAnalyticsBehaviorRouteImport.update({
+    id: '/behavior',
+    path: '/behavior',
+    getParentRoute: () => AuthenticatedAnalyticsRouteRoute,
+  } as any)
 const AuthenticatedProductsCreateProductsIndexRoute =
   AuthenticatedProductsCreateProductsIndexRouteImport.update({
     id: '/products/create-products/',
@@ -355,6 +397,7 @@ const TemplateVendorIdCategoryCategoryIdRoute =
 
 export interface FileRoutesByFullPath {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/analytics': typeof AuthenticatedAnalyticsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/sign-in': typeof authSignInRoute
   '/sign-in-2': typeof authSignIn2Route
@@ -365,6 +408,11 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/analytics/behavior': typeof AuthenticatedAnalyticsBehaviorRoute
+  '/analytics/ecommerce': typeof AuthenticatedAnalyticsEcommerceRoute
+  '/analytics/funnel': typeof AuthenticatedAnalyticsFunnelRoute
+  '/analytics/reports': typeof AuthenticatedAnalyticsReportsRoute
+  '/analytics/traffic': typeof AuthenticatedAnalyticsTrafficRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -377,7 +425,7 @@ export interface FileRoutesByFullPath {
   '/template/$vendorId/orders': typeof TemplateVendorIdOrdersRoute
   '/template/$vendorId/profile': typeof TemplateVendorIdProfileRoute
   '/template/$vendorId/register': typeof TemplateVendorIdRegisterRoute
-  '/analytics': typeof AuthenticatedAnalyticsIndexRoute
+  '/analytics/': typeof AuthenticatedAnalyticsIndexRoute
   '/banners': typeof AuthenticatedBannersIndexRoute
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
@@ -417,6 +465,11 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/analytics/behavior': typeof AuthenticatedAnalyticsBehaviorRoute
+  '/analytics/ecommerce': typeof AuthenticatedAnalyticsEcommerceRoute
+  '/analytics/funnel': typeof AuthenticatedAnalyticsFunnelRoute
+  '/analytics/reports': typeof AuthenticatedAnalyticsReportsRoute
+  '/analytics/traffic': typeof AuthenticatedAnalyticsTrafficRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -461,6 +514,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/clerk': typeof ClerkRouteRouteWithChildren
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
   '/clerk/_authenticated': typeof ClerkAuthenticatedRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
@@ -473,6 +527,11 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/analytics/behavior': typeof AuthenticatedAnalyticsBehaviorRoute
+  '/_authenticated/analytics/ecommerce': typeof AuthenticatedAnalyticsEcommerceRoute
+  '/_authenticated/analytics/funnel': typeof AuthenticatedAnalyticsFunnelRoute
+  '/_authenticated/analytics/reports': typeof AuthenticatedAnalyticsReportsRoute
+  '/_authenticated/analytics/traffic': typeof AuthenticatedAnalyticsTrafficRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
@@ -517,6 +576,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/clerk'
+    | '/analytics'
     | '/forgot-password'
     | '/sign-in'
     | '/sign-in-2'
@@ -527,6 +587,11 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/analytics/behavior'
+    | '/analytics/ecommerce'
+    | '/analytics/funnel'
+    | '/analytics/reports'
+    | '/analytics/traffic'
     | '/errors/$error'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -539,7 +604,7 @@ export interface FileRouteTypes {
     | '/template/$vendorId/orders'
     | '/template/$vendorId/profile'
     | '/template/$vendorId/register'
-    | '/analytics'
+    | '/analytics/'
     | '/banners'
     | '/category'
     | '/chats'
@@ -579,6 +644,11 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/analytics/behavior'
+    | '/analytics/ecommerce'
+    | '/analytics/funnel'
+    | '/analytics/reports'
+    | '/analytics/traffic'
     | '/errors/$error'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -622,6 +692,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/clerk'
+    | '/_authenticated/analytics'
     | '/clerk/(auth)'
     | '/clerk/_authenticated'
     | '/(auth)/forgot-password'
@@ -634,6 +705,11 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/analytics/behavior'
+    | '/_authenticated/analytics/ecommerce'
+    | '/_authenticated/analytics/funnel'
+    | '/_authenticated/analytics/reports'
+    | '/_authenticated/analytics/traffic'
     | '/_authenticated/errors/$error'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
@@ -802,6 +878,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClerkauthRouteRouteImport
       parentRoute: typeof ClerkRouteRoute
     }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/template/$vendorId/': {
       id: '/template/$vendorId/'
       path: '/template/$vendorId'
@@ -937,10 +1020,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/analytics/': {
       id: '/_authenticated/analytics/'
-      path: '/analytics'
-      fullPath: '/analytics'
+      path: '/'
+      fullPath: '/analytics/'
       preLoaderRoute: typeof AuthenticatedAnalyticsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAnalyticsRouteRoute
     }
     '/template/$vendorId/register': {
       id: '/template/$vendorId/register'
@@ -1026,6 +1109,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/analytics/traffic': {
+      id: '/_authenticated/analytics/traffic'
+      path: '/traffic'
+      fullPath: '/analytics/traffic'
+      preLoaderRoute: typeof AuthenticatedAnalyticsTrafficRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRouteRoute
+    }
+    '/_authenticated/analytics/reports': {
+      id: '/_authenticated/analytics/reports'
+      path: '/reports'
+      fullPath: '/analytics/reports'
+      preLoaderRoute: typeof AuthenticatedAnalyticsReportsRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRouteRoute
+    }
+    '/_authenticated/analytics/funnel': {
+      id: '/_authenticated/analytics/funnel'
+      path: '/funnel'
+      fullPath: '/analytics/funnel'
+      preLoaderRoute: typeof AuthenticatedAnalyticsFunnelRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRouteRoute
+    }
+    '/_authenticated/analytics/ecommerce': {
+      id: '/_authenticated/analytics/ecommerce'
+      path: '/ecommerce'
+      fullPath: '/analytics/ecommerce'
+      preLoaderRoute: typeof AuthenticatedAnalyticsEcommerceRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRouteRoute
+    }
+    '/_authenticated/analytics/behavior': {
+      id: '/_authenticated/analytics/behavior'
+      path: '/behavior'
+      fullPath: '/analytics/behavior'
+      preLoaderRoute: typeof AuthenticatedAnalyticsBehaviorRouteImport
+      parentRoute: typeof AuthenticatedAnalyticsRouteRoute
+    }
     '/_authenticated/products/create-products/': {
       id: '/_authenticated/products/create-products/'
       path: '/products/create-products'
@@ -1078,10 +1196,34 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAnalyticsRouteRouteChildren {
+  AuthenticatedAnalyticsBehaviorRoute: typeof AuthenticatedAnalyticsBehaviorRoute
+  AuthenticatedAnalyticsEcommerceRoute: typeof AuthenticatedAnalyticsEcommerceRoute
+  AuthenticatedAnalyticsFunnelRoute: typeof AuthenticatedAnalyticsFunnelRoute
+  AuthenticatedAnalyticsReportsRoute: typeof AuthenticatedAnalyticsReportsRoute
+  AuthenticatedAnalyticsTrafficRoute: typeof AuthenticatedAnalyticsTrafficRoute
+  AuthenticatedAnalyticsIndexRoute: typeof AuthenticatedAnalyticsIndexRoute
+}
+
+const AuthenticatedAnalyticsRouteRouteChildren: AuthenticatedAnalyticsRouteRouteChildren =
+  {
+    AuthenticatedAnalyticsBehaviorRoute: AuthenticatedAnalyticsBehaviorRoute,
+    AuthenticatedAnalyticsEcommerceRoute: AuthenticatedAnalyticsEcommerceRoute,
+    AuthenticatedAnalyticsFunnelRoute: AuthenticatedAnalyticsFunnelRoute,
+    AuthenticatedAnalyticsReportsRoute: AuthenticatedAnalyticsReportsRoute,
+    AuthenticatedAnalyticsTrafficRoute: AuthenticatedAnalyticsTrafficRoute,
+    AuthenticatedAnalyticsIndexRoute: AuthenticatedAnalyticsIndexRoute,
+  }
+
+const AuthenticatedAnalyticsRouteRouteWithChildren =
+  AuthenticatedAnalyticsRouteRoute._addFileChildren(
+    AuthenticatedAnalyticsRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnalyticsRouteRoute: typeof AuthenticatedAnalyticsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
-  AuthenticatedAnalyticsIndexRoute: typeof AuthenticatedAnalyticsIndexRoute
   AuthenticatedBannersIndexRoute: typeof AuthenticatedBannersIndexRoute
   AuthenticatedCategoryIndexRoute: typeof AuthenticatedCategoryIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
@@ -1106,9 +1248,10 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnalyticsRouteRoute:
+    AuthenticatedAnalyticsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
-  AuthenticatedAnalyticsIndexRoute: AuthenticatedAnalyticsIndexRoute,
   AuthenticatedBannersIndexRoute: AuthenticatedBannersIndexRoute,
   AuthenticatedCategoryIndexRoute: AuthenticatedCategoryIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,

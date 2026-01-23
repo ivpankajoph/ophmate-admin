@@ -50,6 +50,12 @@ export type Category = {
   slug: string
   description: string | null
   image_url: string | null
+  mainCategory?: {
+    _id?: string
+    name?: string
+    slug?: string
+    image_url?: string | null
+  }
   meta_title: string | null
   meta_description: string | null
   meta_keywords: string | null
@@ -61,10 +67,10 @@ export type Category = {
   updatedAt: string
   subcategories: {
     id: string
+    _id?: string
     name: string
     slug: string
     description?: string
-    image_url?: string
     is_active?: boolean
   }[]
 }
@@ -97,13 +103,65 @@ export const categoryColumns: ColumnDef<Category>[] = [
   },
 
   {
+    accessorKey: 'mainCategory',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Main Category' />
+    ),
+    cell: ({ row }) => {
+      const main = row.original.mainCategory
+      return (
+        <div className='flex items-center gap-2'>
+          {main?.image_url ? (
+            <Image
+              src={main.image_url}
+              alt={main.name || 'Main Category'}
+              width={28}
+              height={28}
+              className='h-7 w-7 rounded-md border object-cover'
+            />
+          ) : (
+            <div className='h-7 w-7 rounded-md border bg-muted/40' />
+          )}
+          <span className='text-sm font-medium'>{main?.name || '-'}</span>
+        </div>
+      )
+    },
+    meta: { className: 'min-w-[220px]' },
+  },
+
+  {
     accessorKey: 'name',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Category Name' />
     ),
     cell: ({ row }) => (
-      <LongText className='font-medium'>{row.getValue('name')}</LongText>
+      <LongText className='font-medium max-w-[180px]'>
+        {row.getValue('name')}
+      </LongText>
     ),
+    meta: { className: 'min-w-[180px]' },
+  },
+
+  {
+    accessorKey: 'image_url',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Category Image' />
+    ),
+    cell: ({ row }) => {
+      const imageUrl = row.original.image_url
+      return imageUrl ? (
+        <Image
+          src={imageUrl}
+          alt={row.original.name}
+          width={36}
+          height={36}
+          className='h-9 w-9 rounded-md border object-cover'
+        />
+      ) : (
+        <span className='text-xs text-muted-foreground'>No image</span>
+      )
+    },
+    meta: { className: 'min-w-[140px]' },
   },
 
   {
@@ -116,6 +174,44 @@ export const categoryColumns: ColumnDef<Category>[] = [
         {row.getValue('description') || '-'}
       </LongText>
     ),
+    meta: { className: 'min-w-[200px]' },
+  },
+
+  {
+    id: 'subcategories',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Subcategories' />
+    ),
+    cell: ({ row }) => {
+      const subs = row.original.subcategories || []
+      if (!subs.length) {
+        return (
+          <span className='text-muted-foreground text-sm italic'>None</span>
+        )
+      }
+
+      const preview = subs.slice(0, 3)
+      const remaining = subs.length - preview.length
+
+      return (
+        <div className='flex flex-wrap items-center gap-2'>
+          {preview.map((sub) => (
+            <div
+              key={sub.id || sub._id}
+              className='flex items-center gap-1 rounded-full border border-border bg-muted/20 px-2 py-1'
+            >
+              <span className='text-xs'>{sub.name}</span>
+            </div>
+          ))}
+          {remaining > 0 ? (
+            <Badge variant='secondary' className='text-xs'>
+              +{remaining} more
+            </Badge>
+          ) : null}
+        </div>
+      )
+    },
+    enableSorting: false,
   },
 
   // 🧩 Slug
@@ -278,6 +374,31 @@ export const categoryColumns: ColumnDef<Category>[] = [
               </div>
 
               <div className='col-span-2'>
+                <p className='font-medium'>Main Category:</p>
+                <div className='mt-2 flex items-center gap-3'>
+                  {row.original.mainCategory?.image_url ? (
+                    <Image
+                      src={row.original.mainCategory.image_url}
+                      alt={row.original.mainCategory?.name || 'Main Category'}
+                      width={200}
+                      height={200}
+                      className='h-16 w-16 rounded-md border object-cover'
+                    />
+                  ) : (
+                    <div className='h-16 w-16 rounded-md border bg-muted/40' />
+                  )}
+                  <div>
+                    <div className='text-sm font-medium'>
+                      {row.original.mainCategory?.name || '-'}
+                    </div>
+                    <div className='text-xs text-muted-foreground'>
+                      {row.original.mainCategory?.slug || ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className='col-span-2'>
                 <p className='font-medium'>Image:</p>
                 {row.original.image_url ? (
                   <div className='mt-2'>
@@ -297,11 +418,19 @@ export const categoryColumns: ColumnDef<Category>[] = [
               <div className='col-span-2'>
                 <p className='mb-1 font-medium'>Subcategories:</p>
                 {row.original.subcategories?.length ? (
-                  <div className='flex flex-wrap gap-1'>
+                  <div className='grid gap-2 sm:grid-cols-2'>
                     {row.original.subcategories.map((sub) => (
-                      <Badge key={sub.id} variant='secondary'>
-                        {sub.name}
-                      </Badge>
+                      <div
+                        key={sub.id || sub._id}
+                        className='flex items-center gap-2 rounded-md border border-border bg-muted/10 p-2'
+                      >
+                        <div>
+                          <div className='text-sm font-medium'>{sub.name}</div>
+                          <div className='text-xs text-muted-foreground'>
+                            {sub.slug || ''}
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (

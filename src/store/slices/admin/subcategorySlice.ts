@@ -137,12 +137,16 @@ interface SubcategoryState {
   subcategories: Subcategory[];
   loading: boolean;
   error: string | null;
+  uploadStatus: "idle" | "loading" | "succeeded" | "failed";
+  uploadError: string | null;
 }
 
 const initialState: SubcategoryState = {
   subcategories: [],
   loading: false,
   error: null,
+  uploadStatus: "idle",
+  uploadError: null,
 };
 
 const subcategorySlice = createSlice({
@@ -204,13 +208,18 @@ const subcategorySlice = createSlice({
       .addCase(importSubcategories.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.uploadStatus = "loading";
+        state.uploadError = null;
       })
       .addCase(importSubcategories.fulfilled, (state) => {
         state.loading = false;
+        state.uploadStatus = "succeeded";
       })
       .addCase(importSubcategories.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to import subcategories";
+        state.uploadStatus = "failed";
+        state.uploadError = action.payload || "Failed to import subcategories";
       });
   },
 });

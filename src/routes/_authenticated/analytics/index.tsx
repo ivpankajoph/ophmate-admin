@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Analytics from "@/features/analytics";
+import RealtimeDashboard from "@/features/analytics-hub/pages/realtime-dashboard";
 
 export const Route = createFileRoute("/_authenticated/analytics/")({
-  component: Analytics,
+  component: RealtimeDashboard,
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, DragEvent } from "react";
+import { useState, DragEvent, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,27 +23,26 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/store";
 import { uploadCategories } from "@/store/slices/admin/categorySlice";
+import { Progress } from "@/components/ui/progress";
 
 /* ================================
    Download CSV Template
 ================================ */
 const downloadCategoryTemplate = () => {
   const headers = [
-    "category_name",
-    "description",
-    "metaTitle",
-    "metaDescription",
-    "metaKeywords",
-    "image_url",
+    "main_category",
+    "categories_name",
+    "subcategories_name",
+    "main_category_image",
+    "categories_image",
   ];
 
   const sampleRow = [
     "Electronics",
-    "All electronic products",
-    "Electronics Store",
-    "Buy electronics online",
-    "electronics,gadgets",
-    "https://example.com/image.jpg",
+    "Mobiles & Accessories",
+    "Smartphones",
+    "https://example.com/main-category.jpg",
+    "https://example.com/category.jpg",
   ];
 
   const csvContent =
@@ -70,10 +69,29 @@ export default function UploadCategoryDialog() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [open, setOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSummary, setUploadSummary] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (uploadStatus !== "loading") {
+      setUploadProgress(0);
+      return;
+    }
+
+    let value = 12;
+    setUploadProgress(value);
+    const timer = setInterval(() => {
+      value = value >= 90 ? 20 : value + 8;
+      setUploadProgress(value);
+    }, 350);
+
+    return () => clearInterval(timer);
+  }, [uploadStatus]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
+      setUploadSummary(null);
     }
   };
 
@@ -84,6 +102,7 @@ export default function UploadCategoryDialog() {
 
     if (e.dataTransfer.files?.length > 0) {
       setFile(e.dataTransfer.files[0]);
+      setUploadSummary(null);
     }
   };
 
@@ -97,7 +116,7 @@ export default function UploadCategoryDialog() {
 
     if (res.meta.requestStatus === "fulfilled") {
       toast.success("Categories uploaded successfully!");
-      setOpen(false);
+      setUploadSummary(res.payload?.summary || null);
       setFile(null);
     } else {
       toast.error("Failed to upload file. Please try again.");
@@ -118,7 +137,7 @@ export default function UploadCategoryDialog() {
           <DialogTitle>Upload Category File</DialogTitle>
           <DialogDescription>
             Upload an <strong>Excel (.xlsx)</strong> or{" "}
-            <strong>CSV</strong> file with category data.
+            <strong>CSV</strong> file with category hierarchy data.
             <br />
             Download the template to ensure correct columns.
           </DialogDescription>
@@ -187,7 +206,10 @@ export default function UploadCategoryDialog() {
                 </span>
               </div>
               <button
-                onClick={() => setFile(null)}
+                onClick={() => {
+                  setFile(null);
+                  setUploadSummary(null);
+                }}
                 className="text-muted-foreground hover:text-destructive transition"
               >
                 <XCircle size={20} />
@@ -195,6 +217,72 @@ export default function UploadCategoryDialog() {
             </motion.div>
           )}
         </motion.div>
+
+        {uploadStatus === "loading" && (
+          <div className="mt-4 space-y-2">
+            <div className="text-xs text-muted-foreground">Uploading file...</div>
+            <Progress value={uploadProgress} />
+          </div>
+        )}
+        {uploadSummary && uploadStatus !== "loading" && (
+          <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3 text-sm">
+            <div className="flex items-center justify-between font-medium">
+              <span>Upload Summary</span>
+              <span>{uploadSummary.totalRows || 0} rows</span>
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Inserted {uploadSummary.mainCategories?.inserted || 0} main categories,
+              {uploadSummary.categories?.inserted || 0} categories,
+              {uploadSummary.subcategories?.inserted || 0} subcategories.
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+              <div>
+                <div className="font-medium text-foreground">
+                  {uploadSummary.mainCategories?.inserted || 0}
+                </div>
+                <div>Main categories</div>
+              </div>
+              <div>
+                <div className="font-medium text-foreground">
+                  {uploadSummary.categories?.inserted || 0}
+                </div>
+                <div>Categories</div>
+              </div>
+              <div>
+                <div className="font-medium text-foreground">
+                  {uploadSummary.subcategories?.inserted || 0}
+                </div>
+                <div>Subcategories</div>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span>Skipped</span>
+              <span>{uploadSummary.skippedRows?.length || 0}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span>Failed</span>
+              <span>{uploadSummary.failedRows?.length || 0}</span>
+            </div>
+            {uploadSummary.skippedRows?.length ? (
+              <div className="mt-2 max-h-24 overflow-auto text-xs text-amber-600">
+                {uploadSummary.skippedRows.map((row: any, idx: number) => (
+                  <div key={idx}>
+                    Row {row.row}: {row.reason}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {uploadSummary.failedRows?.length ? (
+              <div className="mt-2 max-h-24 overflow-auto text-xs text-red-500">
+                {uploadSummary.failedRows.map((row: any, idx: number) => (
+                  <div key={idx}>
+                    Row {row.row}: {row.reason}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )}
 
         <DialogFooter className="mt-6">
           <Button variant="outline" onClick={() => setOpen(false)}>
