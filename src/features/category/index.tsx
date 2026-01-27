@@ -12,15 +12,21 @@ import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
 import { CategoryTree } from './components/category-tree'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AppDispatch } from '@/store'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllCategories } from '@/store/slices/admin/categorySlice'
+import { Pagination } from '@/components/pagination'
 
 export function Category() {
   const dispatch = useDispatch<AppDispatch>()
 
-  const { categories, loading, error } = useSelector((state: any) => state.categories)
+  const { categories, loading, error, pagination } = useSelector(
+    (state: any) => state.categories
+  )
+  const totalPages = pagination?.totalPages || 1
+  const limit = 10
+  const [page, setPage] = useState(1)
   const mainCategoryTotal = categories?.length
     ? new Set(
         categories.map(
@@ -30,8 +36,13 @@ export function Category() {
     : 0
 
   useEffect(() => {
-    dispatch(getAllCategories())
-  }, [dispatch])
+    dispatch(getAllCategories({ page, limit }))
+  }, [dispatch, page, limit])
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <UsersProvider>
@@ -66,7 +77,15 @@ export function Category() {
         ) : !categories || categories.length === 0 ? (
           <p className="text-center py-10 text-muted-foreground">No categories found.</p>
         ) : (
-          <CategoryTree categories={categories} />
+          <>
+            <CategoryTree categories={categories} />
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              isLoading={loading}
+            />
+          </>
         )}
       </Main>
 

@@ -109,7 +109,7 @@ const AdminDashboard = () => {
             <CardTitle>Overview</CardTitle>
           </CardHeader>
           <CardContent className='ps-2'>
-            <Overview />
+            <Overview data={[]} />
           </CardContent>
         </Card>
         <Card className='col-span-1 lg:col-span-3'>
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
             <CardDescription>You made 265 sales this month.</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentSales />
+            <RecentSales items={[]} />
           </CardContent>
         </Card>
       </div>

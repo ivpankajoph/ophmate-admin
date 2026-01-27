@@ -7,6 +7,12 @@ interface CategoryState {
   loading: boolean
   error: string | null
   categories: any[]
+  pagination: {
+    page: number
+    totalPages: number
+    total: number
+    limit: number
+  }
   uploadStatus: 'idle' | 'loading' | 'succeeded' | 'failed'
   uploadError: string | null
 }
@@ -15,6 +21,12 @@ const initialState: CategoryState = {
   loading: false,
   error: null,
   categories: [],
+  pagination: {
+    page: 1,
+    totalPages: 1,
+    total: 0,
+    limit: 10,
+  },
   uploadStatus: 'idle',
   uploadError: null,
 }
@@ -75,10 +87,27 @@ export const updateCategory = createAsyncThunk(
 
 export const getAllCategories = createAsyncThunk(
   'categories/getAll',
-  async (_, { rejectWithValue }) => {
+  async (
+    { page, limit }: { page?: number; limit?: number } = {},
+    { rejectWithValue }
+  ) => {
     try {
-      const res = await axios.get(`${BASE_URL}/v1/categories/getall`, {})
-      return res.data.data
+      const params: Record<string, number> = {}
+      if (page) params.page = page
+      if (limit) params.limit = limit
+
+      const res = await axios.get(`${BASE_URL}/v1/categories/getall`, {
+        params,
+      })
+      return {
+        data: res.data?.data || [],
+        pagination: res.data?.pagination || {
+          page: page || 1,
+          limit: limit || (res.data?.data?.length || 10),
+          total: res.data?.data?.length || 0,
+          totalPages: 1,
+        },
+      }
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || 'Failed to fetch categories'
@@ -139,7 +168,11 @@ const categorySlice = createSlice({
       })
       .addCase(getAllCategories.fulfilled, (state, action) => {
         state.loading = false
-        state.categories = action.payload
+        state.categories = action.payload.data
+        state.pagination = {
+          ...state.pagination,
+          ...action.payload.pagination,
+        }
       })
       .addCase(getAllCategories.rejected, (state, action) => {
         state.loading = false

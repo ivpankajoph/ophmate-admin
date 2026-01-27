@@ -116,6 +116,28 @@ export const vendorColumns: ColumnDef<Vendor>[] = [
     cell: ({ row }) => <div>{row.getValue('business_type')}</div>,
   },
 
+  // ✅ Verification Status
+  {
+    accessorKey: 'is_verified',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Verified' />,
+    cell: ({ row }) => {
+      const isVerified = row.getValue('is_verified')
+      return (
+        <Badge
+          variant='outline'
+          className={cn(
+            'capitalize',
+            isVerified
+              ? 'border-green-400 text-green-600'
+              : 'border-amber-400 text-amber-600'
+          )}
+        >
+          {isVerified ? 'Verified' : 'Unverified'}
+        </Badge>
+      )
+    },
+  },
+
   // ✅ Active Status
   {
     accessorKey: 'is_active',

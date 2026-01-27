@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, ChevronDown, ChevronRight, AlertCircle, CheckCircle, XCircle, Search } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { Pagination } from '@/components/pagination';
 
 const InventoryDashboard = () => {
   type Category = {
@@ -13,6 +14,8 @@ const InventoryDashboard = () => {
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categoryTotalPages, setCategoryTotalPages] = useState(1);
 
   type Product = {
     _id: string;
@@ -39,6 +42,9 @@ const InventoryDashboard = () => {
   const [expandedProducts, setExpandedProducts] = useState(new Set<string>());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [productsPage, setProductsPage] = useState(1);
+  const [productsTotalPages, setProductsTotalPages] = useState(1);
+  const limit = 10;
 
   const API_BASE = `${import.meta.env.VITE_PUBLIC_API_URL}`;
   const token = useSelector((state: any) => state?.auth?.token);
@@ -46,7 +52,7 @@ const InventoryDashboard = () => {
   // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [categoryPage]);
 
   // Update filtered categories whenever categories or searchTerm changes
   useEffect(() => {
@@ -63,7 +69,9 @@ const InventoryDashboard = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/v1/categories/getall`, {
+      const response = await fetch(
+        `${API_BASE}/v1/categories/getall?page=${categoryPage}&limit=${limit}`,
+        {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -72,6 +80,7 @@ const InventoryDashboard = () => {
       if (data.success) {
         setCategories(data.data);
         setFilteredCategories(data.data); // Initialize filtered list
+        setCategoryTotalPages(data?.pagination?.totalPages || 1);
       }
     } catch (err: any) {
       setError('Failed to load categories');
@@ -80,11 +89,13 @@ const InventoryDashboard = () => {
     }
   };
 
-  const fetchProductsByCategory = async (categoryId: string) => {
+  const fetchProductsByCategory = async (categoryId: string, page = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_BASE}/v1/products/category/${categoryId}`, {
+      const response = await fetch(
+        `${API_BASE}/v1/products/category/${categoryId}?page=${page}&limit=${limit}`,
+        {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -93,6 +104,7 @@ const InventoryDashboard = () => {
       if (data.success) {
         setProducts(data.products || []);
         setSelectedCategory(categoryId);
+        setProductsTotalPages(data?.pagination?.totalPages || 1);
       }
     } catch (err) {
       setError('Failed to load products');
@@ -122,6 +134,18 @@ const InventoryDashboard = () => {
 
   const getTotalStock = (variants: Variant[]) => {
     return variants.reduce((sum, v) => sum + (v.stockQuantity || 0), 0);
+  };
+
+  const handleCategoryPageChange = (nextPage: number) => {
+    setCategoryPage(nextPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleProductsPageChange = (nextPage: number) => {
+    if (!selectedCategory) return;
+    setProductsPage(nextPage);
+    fetchProductsByCategory(selectedCategory, nextPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -166,7 +190,10 @@ const InventoryDashboard = () => {
                     filteredCategories.map((cat) => (
                       <button
                         key={cat._id}
-                        onClick={() => fetchProductsByCategory(cat._id)}
+                        onClick={() => {
+                          setProductsPage(1);
+                          fetchProductsByCategory(cat._id, 1);
+                        }}
                         className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                           selectedCategory === cat._id
                             ? 'bg-blue-50 text-blue-700 border border-blue-200'
@@ -188,6 +215,12 @@ const InventoryDashboard = () => {
                   )}
                 </div>
               )}
+              <Pagination
+                page={categoryPage}
+                totalPages={categoryTotalPages}
+                onPageChange={handleCategoryPageChange}
+                isLoading={loading}
+              />
             </div>
           </div>
 
@@ -383,6 +416,12 @@ const InventoryDashboard = () => {
                 })}
               </div>
             )}
+            <Pagination
+              page={productsPage}
+              totalPages={productsTotalPages}
+              onPageChange={handleProductsPageChange}
+              isLoading={loading}
+            />
           </div>
         </div>
       </div>

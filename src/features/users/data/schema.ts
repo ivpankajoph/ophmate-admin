@@ -9,6 +9,7 @@ const userStatusSchema = z.union([
 export type UserStatus = z.infer<typeof userStatusSchema>
 
 const userRoleSchema = z.union([
+  z.literal('customer'),
   z.literal('superadmin'),
   z.literal('admin'),
   z.literal('cashier'),

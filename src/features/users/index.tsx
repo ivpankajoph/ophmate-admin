@@ -9,13 +9,70 @@ import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
-import { users } from './data/users'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { VITE_PUBLIC_API_URL } from '@/config'
+import { useSelector } from 'react-redux'
+import { type User } from './data/schema'
 
 const route = getRouteApi('/_authenticated/users/')
 
 export function Users() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
+  const token = useSelector((state: any) => state.auth?.token)
+  const [data, setData] = useState<User[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!token) return
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await axios.get(`${VITE_PUBLIC_API_URL}/v1/users/getall`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        const users = res.data?.users ?? []
+        const mapped: User[] = users.map((user: any) => {
+          const name = String(user?.name || '').trim()
+          const nameParts = name.split(/\s+/).filter(Boolean)
+          const firstName = nameParts[0] || ''
+          const lastName = nameParts.slice(1).join(' ')
+          const email = String(user?.email || '')
+          const username = email ? email.split('@')[0] : firstName || 'user'
+          const status = user?.is_active ? 'active' : 'inactive'
+          const role = user?.role || 'customer'
+
+          return {
+            id: String(user?._id || user?.id || ''),
+            firstName,
+            lastName,
+            username,
+            email,
+            phoneNumber: String(user?.phone || ''),
+            status,
+            role,
+            createdAt: user?.createdAt || new Date().toISOString(),
+            updatedAt: user?.updatedAt || new Date().toISOString(),
+          }
+        })
+
+        setData(mapped)
+      } catch (err: any) {
+        setError(err?.response?.data?.message || 'Failed to load users')
+        setData([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUsers()
+  }, [token])
 
   return (
     <UsersProvider>
@@ -35,10 +92,14 @@ export function Users() {
             <p className='text-muted-foreground'>
               Manage your users and their roles here.
             </p>
+            {loading && (
+              <p className='text-sm text-muted-foreground'>Loading users...</p>
+            )}
+            {error && <p className='text-sm text-red-500'>{error}</p>}
           </div>
           <UsersPrimaryButtons />
         </div>
-        <UsersTable data={users} search={search} navigate={navigate} />
+        <UsersTable data={data} search={search} navigate={navigate} />
       </Main>
 
       <UsersDialogs />

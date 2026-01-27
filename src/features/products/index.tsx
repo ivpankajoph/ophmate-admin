@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Eye, Package, X, Box, Tag, TrendingUp } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { Pagination } from '@/components/pagination';
 
 interface Product {
   _id: string;
@@ -29,18 +30,23 @@ const VendorProductsTable = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const limit = 10;
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [page]);
 
   const vendorId = useSelector((state: any) => state.auth.user?.id);
   const token = useSelector((state: any) => state.auth.token);
 
   const fetchProducts = async () => {
     try {
+      setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/vendor/${vendorId}`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/vendor/${vendorId}?page=${page}&limit=${limit}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -55,11 +61,18 @@ const VendorProductsTable = () => {
       const data = await response.json();
       // Ensure products is always an array
       setProducts(Array.isArray(data.products) ? data.products : []);
+      setTotalPages(data?.pagination?.totalPages || 1);
+      setTotalProducts(data?.pagination?.total || 0);
       setLoading(false);
     } catch (err) {
       setError('Failed to fetch products');
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const getStatusColor = (status: string) => {
@@ -135,7 +148,7 @@ const VendorProductsTable = () => {
                   Total Products
                 </p>
                 <p className='mt-1 text-3xl font-bold text-slate-800'>
-                  {products.length}
+                  {totalProducts || products.length}
                 </p>
               </div>
               <div className='rounded-xl bg-indigo-100 p-4'>
@@ -292,6 +305,12 @@ const VendorProductsTable = () => {
             </table>
           </div>
         </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          isLoading={loading}
+        />
       </div>
 
       {/* Modal */}

@@ -63,7 +63,7 @@ const ProductCreateForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
 
   useEffect(() => {
-    dispatch(getAllCategories())
+    dispatch(getAllCategories({}))
   }, [dispatch])
 
   useEffect(() => {

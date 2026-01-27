@@ -24,7 +24,7 @@ export function useProductForm(dispatch: any, reset: any) {
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
-    dispatch(getAllCategories())
+    dispatch(getAllCategories({}))
   }, [dispatch])
 
   useEffect(() => {

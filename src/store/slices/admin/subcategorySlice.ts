@@ -34,13 +34,28 @@ export const createSubcategory = createAsyncThunk<
 
 // ✅ Fetch All Subcategories
 export const fetchSubcategories = createAsyncThunk<
-  Subcategory[],
-  void,
+  { data: Subcategory[]; pagination: any },
+  { page?: number; limit?: number } | void,
   { rejectValue: string }
->("subcategories/fetch", async (_, { rejectWithValue }) => {
+>("subcategories/fetch", async (args, { rejectWithValue }) => {
+  const { page, limit } = typeof args === "object" && args ? args : {};
   try {
-    const res = await axios.get(`${BASE_URL}/v1/subcategories/getall`);
-    return res.data?.data || [];
+    const params: Record<string, number> = {};
+    if (page) params.page = page;
+    if (limit) params.limit = limit;
+
+    const res = await axios.get(`${BASE_URL}/v1/subcategories/getall`, {
+      params,
+    });
+    return {
+      data: res.data?.data || [],
+      pagination: res.data?.pagination || {
+        page: page || 1,
+        limit: limit || (res.data?.data?.length || 10),
+        total: res.data?.data?.length || 0,
+        totalPages: 1,
+      },
+    };
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || "Failed to fetch subcategories");
   }
@@ -137,6 +152,12 @@ interface SubcategoryState {
   subcategories: Subcategory[];
   loading: boolean;
   error: string | null;
+  pagination: {
+    page: number;
+    totalPages: number;
+    total: number;
+    limit: number;
+  };
   uploadStatus: "idle" | "loading" | "succeeded" | "failed";
   uploadError: string | null;
 }
@@ -145,6 +166,12 @@ const initialState: SubcategoryState = {
   subcategories: [],
   loading: false,
   error: null,
+  pagination: {
+    page: 1,
+    totalPages: 1,
+    total: 0,
+    limit: 10,
+  },
   uploadStatus: "idle",
   uploadError: null,
 };
@@ -183,7 +210,11 @@ const subcategorySlice = createSlice({
       })
       .addCase(fetchSubcategories.fulfilled, (state, action) => {
         state.loading = false;
-        state.subcategories = action.payload;
+        state.subcategories = action.payload.data;
+        state.pagination = {
+          ...state.pagination,
+          ...action.payload.pagination,
+        };
       })
       .addCase(fetchSubcategories.rejected, (state, action) => {
         state.loading = false;

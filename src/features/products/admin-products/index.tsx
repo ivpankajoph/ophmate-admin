@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Eye, Package, X, Box, Tag, TrendingUp } from 'lucide-react'
 import { useSelector } from 'react-redux'
+import { Pagination } from '@/components/pagination'
 
 interface Product {
   _id: string
@@ -29,17 +30,22 @@ const AdminProductsTable = () => {
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalProducts, setTotalProducts] = useState(0)
+  const limit = 10
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [page])
 
   const token = useSelector((state: any) => state.auth.token)
 
   const fetchProducts = async () => {
     try {
+      setLoading(true)
       const response = await fetch(
-        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/all`,
+        `${import.meta.env.VITE_PUBLIC_API_URL}/v1/products/all?page=${page}&limit=${limit}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,12 +54,19 @@ const AdminProductsTable = () => {
       )
       const data = await response.json()
       setProducts(data?.products || [])
+      setTotalPages(data?.pagination?.totalPages || 1)
+      setTotalProducts(data?.pagination?.total || 0)
       setLoading(false)
       
     } catch (err) {
       setError('Failed to fetch products')
       setLoading(false)
     }
+  }
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const getStatusColor = (status: string) => {
@@ -114,7 +127,7 @@ const AdminProductsTable = () => {
               <div>
                 <p className='text-sm text-gray-600'>Total Products</p>
                 <p className='text-2xl font-bold text-gray-900'>
-                  {products?.length || 0}
+                  {totalProducts || products?.length || 0}
                 </p>
               </div>
             </div>
@@ -257,6 +270,12 @@ const AdminProductsTable = () => {
             </tbody>
           </table>
         </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          isLoading={loading}
+        />
       </div>
 
       {/* Modal */}

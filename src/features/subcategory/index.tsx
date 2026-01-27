@@ -10,12 +10,13 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { UsersDialogs } from './components/users-dialogs'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { type AppDispatch } from '@/store'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSubcategories } from '@/store/slices/admin/subcategorySlice'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { Loader2 } from 'lucide-react'
+import { Pagination } from '@/components/pagination'
 
 const route = getRouteApi('/_authenticated/subcategory/')
 
@@ -24,13 +25,21 @@ export function SubCategory() {
   const navigate = route.useNavigate()
   const dispatch = useDispatch<AppDispatch>()
 
-  const { subcategories, loading, error } = useSelector(
+  const { subcategories, loading, error, pagination } = useSelector(
     (state: any) => state.subcategories
   )
+  const totalPages = pagination?.totalPages || 1
+  const limit = 10
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    dispatch(fetchSubcategories())
-  }, [dispatch])
+    dispatch(fetchSubcategories({ page, limit }))
+  }, [dispatch, page, limit])
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <UsersProvider>
@@ -69,7 +78,15 @@ export function SubCategory() {
             No subcategories found. Try adding one.
           </div>
         ) : (
-          <UsersTable data={subcategories} search={search} navigate={navigate} />
+          <>
+            <UsersTable data={subcategories} search={search} navigate={navigate} />
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              isLoading={loading}
+            />
+          </>
         )}
       </Main>
 
