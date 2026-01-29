@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { PreviewChrome } from '@/features/template-preview/components/PreviewChrome'
 import { useTemplatePreviewData } from '@/features/template-preview/hooks/useTemplatePreviewData'
 import { useLiveTemplatePreview } from '@/features/template-preview/hooks/useLiveTemplatePreview'
+import { InlineEditableText } from '@/features/template-preview/components/InlineEditableText'
+import { TemplatePageSkeleton } from '@/features/template-preview/components/TemplatePageSkeleton'
 
 type Section = {
   id?: string
@@ -24,27 +26,19 @@ function TemplateCustomPageRoute() {
     loading,
     error,
   } = useTemplatePreviewData(vendorId, 'home')
-  const live = useLiveTemplatePreview(
-    vendorId,
-    'home',
-    template,
-    sectionOrder
-  )
+  const live = useLiveTemplatePreview(vendorId, 'home', template, sectionOrder)
 
   const pages = live.template.components.custom_pages || []
   const page =
     pages.find((item) => item.slug === pageSlug) ||
     pages.find((item) => item.id === pageSlug)
+  const pageIndex = Math.max(
+    pages.findIndex((item) => item.id === page?.id),
+    pages.findIndex((item) => item.slug === page?.slug)
+  )
 
   if (loading) {
-    return (
-      <div className='flex min-h-screen items-center justify-center bg-slate-950 text-white'>
-        <div className='text-center'>
-          <div className='mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white'></div>
-          <p className='mt-4 text-sm text-white/70'>Loading preview...</p>
-        </div>
-      </div>
-    )
+    return <TemplatePageSkeleton />
   }
 
   if (error) {
@@ -77,12 +71,15 @@ function TemplateCustomPageRoute() {
           <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
             Custom Page
           </p>
-          <h1
+          <InlineEditableText
+            as='h1'
+            value={page?.title}
+            fallback='Untitled Page'
+            path={['components', 'custom_pages', String(pageIndex), 'title']}
+            vendorId={vendorId}
+            page='home'
             className='mt-3 text-3xl font-semibold text-slate-900'
-            style={{ color: 'var(--template-accent)' }}
-          >
-            {page?.title || 'Untitled Page'}
-          </h1>
+          />
           <p className='mt-2 text-sm text-slate-600'>
             Customize sections from the Template Pages editor.
           </p>
@@ -93,6 +90,9 @@ function TemplateCustomPageRoute() {
             <CustomSectionRenderer
               key={section.id || `${section.type}-${index}`}
               section={section}
+              vendorId={vendorId}
+              pageIndex={pageIndex}
+              sectionIndex={index}
             />
           ))}
           {(page?.sections || []).length === 0 && (
@@ -106,7 +106,17 @@ function TemplateCustomPageRoute() {
   )
 }
 
-function CustomSectionRenderer({ section }: { section: Section }) {
+function CustomSectionRenderer({
+  section,
+  vendorId,
+  pageIndex,
+  sectionIndex,
+}: {
+  section: Section
+  vendorId: string
+  pageIndex: number
+  sectionIndex: number
+}) {
   const type = section.type || 'text'
   const data = section.data || {}
   const style = (data as { style?: Record<string, unknown> }).style || {}
@@ -114,6 +124,19 @@ function CustomSectionRenderer({ section }: { section: Section }) {
   const backgroundColor = style.backgroundColor as string | undefined
   const fontSize = Number(style.fontSize || 0) || undefined
   const buttonColor = style.buttonColor as string | undefined
+
+  const basePath = [
+    'components',
+    'custom_pages',
+    String(pageIndex),
+    'sections',
+    String(sectionIndex),
+    'data',
+  ]
+  const stylePath = [...basePath, 'style']
+  const textColorPath = [...stylePath, 'textColor']
+  const fontSizePath = [...stylePath, 'fontSize']
+  const buttonColorPath = [...stylePath, 'buttonColor']
 
   if (type === 'hero') {
     return (
@@ -125,39 +148,87 @@ function CustomSectionRenderer({ section }: { section: Section }) {
           className='px-6 py-12 text-center'
           style={textColor ? { color: textColor } : undefined}
         >
-          <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
-            {String(data.kicker || 'Highlight')}
-          </p>
-          <h2
+          <InlineEditableText
+            as='p'
+            value={data.kicker as string}
+            fallback='Highlight'
+            path={[...basePath, 'kicker']}
+            vendorId={vendorId}
+            page='home'
+            colorPath={textColorPath}
+            sizePath={fontSizePath}
+            color={textColor}
+            fontSize={fontSize}
+            className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'
+          />
+          <InlineEditableText
+            as='h2'
+            value={data.title as string}
+            fallback='Hero headline'
+            path={[...basePath, 'title']}
+            vendorId={vendorId}
+            page='home'
+            colorPath={textColorPath}
+            sizePath={fontSizePath}
+            color={textColor}
+            fontSize={fontSize}
             className='mt-3 text-3xl font-semibold text-slate-900'
-            style={{
-              color: textColor || 'var(--template-accent)',
-              fontSize: fontSize ? `${fontSize}px` : undefined,
-            }}
-          >
-            {String(data.title || 'Hero headline')}
-          </h2>
-          <p className='mt-3 text-sm text-slate-600'>
-            {String(data.subtitle || 'Describe the purpose of this page.')}
-          </p>
-          {(Array.isArray(data.buttons) && data.buttons.length) || data.buttonLabel ? (
+          />
+          <InlineEditableText
+            as='p'
+            value={data.subtitle as string}
+            fallback='Describe the purpose of this page.'
+            path={[...basePath, 'subtitle']}
+            vendorId={vendorId}
+            page='home'
+            colorPath={textColorPath}
+            sizePath={fontSizePath}
+            color={textColor}
+            fontSize={fontSize}
+            className='mt-3 text-sm text-slate-600'
+          />
+          {(Array.isArray(data.buttons) && data.buttons.length) ||
+          data.buttonLabel ? (
             <div className='mt-6 flex flex-wrap items-center justify-center gap-3'>
               {(Array.isArray(data.buttons) && data.buttons.length
                 ? data.buttons
-                : [{ label: data.buttonLabel, href: data.buttonHref }]).map(
-                (button: any, index: number) => (
-                  <a
-                    key={`${button.label}-${index}`}
-                    href={String(button.href || '#')}
-                    className='rounded-full px-5 py-2 text-sm font-semibold text-white'
-                    style={{
-                      backgroundColor: buttonColor || 'var(--template-accent)',
-                    }}
-                  >
-                    {String(button.label || 'Button')}
-                  </a>
-                )
-              )}
+                : [{ label: data.buttonLabel, href: data.buttonHref }]
+              ).map((button: any, index: number) => (
+                <a
+                  key={`${button.label}-${index}`}
+                  href={String(button.href || '#')}
+                  className='rounded-full px-5 py-2 text-sm font-semibold text-white'
+                  style={{
+                    backgroundColor: buttonColor || 'var(--template-accent)',
+                  }}
+                >
+                  <InlineEditableText
+                    value={button.label as string}
+                    fallback='Button'
+                    path={
+                      (
+                        [
+                          ...basePath,
+                          Array.isArray(data.buttons) && data.buttons.length
+                            ? 'buttons'
+                            : 'buttonLabel',
+                          Array.isArray(data.buttons) && data.buttons.length
+                            ? String(index)
+                            : '',
+                          Array.isArray(data.buttons) && data.buttons.length
+                            ? 'label'
+                            : '',
+                        ].filter(Boolean) as string[]
+                      )
+                    }
+                    vendorId={vendorId}
+                    page='home'
+                    colorPath={buttonColorPath}
+                    color={buttonColor}
+                    className='text-sm font-semibold text-white'
+                  />
+                </a>
+              ))}
             </div>
           ) : null}
         </div>
@@ -185,15 +256,19 @@ function CustomSectionRenderer({ section }: { section: Section }) {
           )}
         </div>
         {data.caption ? (
-          <div
+          <InlineEditableText
+            as='div'
+            value={data.caption as string}
+            fallback='Section caption'
+            path={[...basePath, 'caption']}
+            vendorId={vendorId}
+            page='home'
+            colorPath={textColorPath}
+            sizePath={fontSizePath}
+            color={textColor}
+            fontSize={fontSize}
             className='px-6 py-4 text-sm text-slate-600'
-            style={{
-              color: textColor,
-              fontSize: fontSize ? `${fontSize}px` : undefined,
-            }}
-          >
-            {String(data.caption)}
-          </div>
+          />
         ) : null}
       </section>
     )
@@ -206,27 +281,51 @@ function CustomSectionRenderer({ section }: { section: Section }) {
         className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'
         style={backgroundColor ? { backgroundColor } : undefined}
       >
-        <h3
+        <InlineEditableText
+          as='h3'
+          value={data.title as string}
+          fallback='Key highlights'
+          path={[...basePath, 'title']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
           className='text-lg font-semibold text-slate-900'
-          style={{
-            color: textColor,
-            fontSize: fontSize ? `${fontSize}px` : undefined,
-          }}
-        >
-          {String(data.title || 'Key highlights')}
-        </h3>
+        />
         <div className='mt-4 grid gap-4 md:grid-cols-3'>
           {items.map((item: any, index: number) => (
             <div
               key={`${item?.title}-${index}`}
               className='rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm'
             >
-              <p className='font-semibold text-slate-900' style={{ color: textColor }}>
-                {String(item?.title || 'Feature')}
-              </p>
-              <p className='mt-2 text-slate-600'>
-                {String(item?.description || 'Describe the benefit.')}
-              </p>
+              <InlineEditableText
+                as='p'
+                value={item?.title}
+                fallback='Feature'
+                path={[...basePath, 'items', String(index), 'title']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='font-semibold text-slate-900'
+              />
+              <InlineEditableText
+                as='p'
+                value={item?.description}
+                fallback='Describe the benefit.'
+                path={[...basePath, 'items', String(index), 'description']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='mt-2 text-slate-600'
+              />
             </div>
           ))}
           {items.length === 0 && (
@@ -245,40 +344,75 @@ function CustomSectionRenderer({ section }: { section: Section }) {
         className='rounded-3xl border border-slate-200 bg-slate-900 px-6 py-10 text-white shadow-sm'
         style={backgroundColor ? { backgroundColor } : undefined}
       >
-        <h3
+        <InlineEditableText
+          as='h3'
+          value={data.title as string}
+          fallback='Call to action'
+          path={[...basePath, 'title']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
           className='text-2xl font-semibold'
-          style={{
-            color: textColor || undefined,
-            fontSize: fontSize ? `${fontSize}px` : undefined,
-          }}
-        >
-          {String(data.title || 'Call to action')}
-        </h3>
-        <p
+        />
+        <InlineEditableText
+          as='p'
+          value={data.subtitle as string}
+          fallback='Encourage visitors to take an action.'
+          path={[...basePath, 'subtitle']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
           className='mt-3 text-sm text-white/80'
-          style={{ color: textColor }}
-        >
-          {String(data.subtitle || 'Encourage visitors to take an action.')}
-        </p>
-        {(Array.isArray(data.buttons) && data.buttons.length) || data.buttonLabel ? (
+        />
+        {(Array.isArray(data.buttons) && data.buttons.length) ||
+        data.buttonLabel ? (
           <div className='mt-6 flex flex-wrap gap-3'>
             {(Array.isArray(data.buttons) && data.buttons.length
               ? data.buttons
-              : [{ label: data.buttonLabel, href: data.buttonHref }]).map(
-              (button: any, index: number) => (
-                <a
-                  key={`${button.label}-${index}`}
-                  href={String(button.href || '#')}
-                  className='inline-flex rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900'
-                  style={{
-                    backgroundColor: buttonColor || undefined,
-                    color: buttonColor ? '#fff' : undefined,
-                  }}
-                >
-                  {String(button.label || 'Button')}
-                </a>
-              )
-            )}
+              : [{ label: data.buttonLabel, href: data.buttonHref }]
+            ).map((button: any, index: number) => (
+              <a
+                key={`${button.label}-${index}`}
+                href={String(button.href || '#')}
+                className='inline-flex rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900'
+                style={{
+                  backgroundColor: buttonColor || undefined,
+                  color: buttonColor ? '#fff' : undefined,
+                }}
+              >
+                <InlineEditableText
+                  value={button.label as string}
+                  fallback='Button'
+                  path={
+                    (
+                      [
+                        ...basePath,
+                        Array.isArray(data.buttons) && data.buttons.length
+                          ? 'buttons'
+                          : 'buttonLabel',
+                        Array.isArray(data.buttons) && data.buttons.length
+                          ? String(index)
+                          : '',
+                        Array.isArray(data.buttons) && data.buttons.length
+                          ? 'label'
+                          : '',
+                      ].filter(Boolean) as string[]
+                    )
+                  }
+                  vendorId={vendorId}
+                  page='home'
+                  colorPath={buttonColorPath}
+                  color={buttonColor}
+                  className='text-sm font-semibold text-white'
+                />
+              </a>
+            ))}
           </div>
         ) : null}
       </section>
@@ -292,12 +426,19 @@ function CustomSectionRenderer({ section }: { section: Section }) {
         className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'
         style={backgroundColor ? { backgroundColor } : undefined}
       >
-        <h3
+        <InlineEditableText
+          as='h3'
+          value={data.title as string}
+          fallback='Gallery'
+          path={[...basePath, 'title']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
           className='text-lg font-semibold text-slate-900'
-          style={{ color: textColor }}
-        >
-          {String(data.title || 'Gallery')}
-        </h3>
+        />
         <div className='mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           {images.map((image: string, index: number) => (
             <div
@@ -334,33 +475,99 @@ function CustomSectionRenderer({ section }: { section: Section }) {
         className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'
         style={backgroundColor ? { backgroundColor } : undefined}
       >
-        <h3
+        <InlineEditableText
+          as='h3'
+          value={data.title as string}
+          fallback='Pricing Plans'
+          path={[...basePath, 'title']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
           className='text-lg font-semibold text-slate-900'
-          style={{ color: textColor }}
-        >
-          {String(data.title || 'Pricing Plans')}
-        </h3>
-        <p className='mt-2 text-sm text-slate-600'>
-          {String(data.subtitle || 'Choose the plan that fits your goals.')}
-        </p>
+        />
+        <InlineEditableText
+          as='p'
+          value={data.subtitle as string}
+          fallback='Choose the plan that fits your goals.'
+          path={[...basePath, 'subtitle']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
+          className='mt-2 text-sm text-slate-600'
+        />
         <div className='mt-6 grid gap-4 md:grid-cols-2'>
           {plans.map((plan: any, index: number) => (
             <div
               key={`${plan.name}-${index}`}
               className='rounded-2xl border border-slate-200 bg-slate-50 p-5'
             >
-              <h4 className='text-lg font-semibold text-slate-900'>
-                {String(plan.name || 'Plan')}
-              </h4>
-              <p className='mt-2 text-2xl font-semibold text-slate-900'>
-                Rs. {String(plan.price || '0')}
-              </p>
-              <p className='mt-2 text-sm text-slate-600'>
-                {String(plan.description || '')}
-              </p>
+              <InlineEditableText
+                as='h4'
+                value={plan.name as string}
+                fallback='Plan'
+                path={[...basePath, 'plans', String(index), 'name']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='text-lg font-semibold text-slate-900'
+              />
+              <InlineEditableText
+                as='p'
+                value={plan.price as string}
+                fallback='0'
+                path={[...basePath, 'plans', String(index), 'price']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='mt-2 text-2xl font-semibold text-slate-900'
+              />
+              <InlineEditableText
+                as='p'
+                value={plan.description as string}
+                fallback='Plan details'
+                path={[...basePath, 'plans', String(index), 'description']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='mt-2 text-sm text-slate-600'
+              />
               <ul className='mt-4 space-y-2 text-sm text-slate-600'>
                 {(plan.features || []).map((feature: string, idx: number) => (
-                  <li key={`${feature}-${idx}`}>• {feature}</li>
+                  <InlineEditableText
+                    key={`${feature}-${idx}`}
+                    as='li'
+                    value={feature}
+                    fallback='Feature'
+                    path={[
+                      ...basePath,
+                      'plans',
+                      String(index),
+                      'features',
+                      String(idx),
+                    ]}
+                    vendorId={vendorId}
+                    page='home'
+                    colorPath={textColorPath}
+                    sizePath={fontSizePath}
+                    color={textColor}
+                    fontSize={fontSize}
+                    className='text-sm text-slate-600'
+                  />
                 ))}
               </ul>
               {plan.ctaLabel ? (
@@ -371,7 +578,16 @@ function CustomSectionRenderer({ section }: { section: Section }) {
                     backgroundColor: buttonColor || 'var(--template-accent)',
                   }}
                 >
-                  {String(plan.ctaLabel)}
+                  <InlineEditableText
+                    value={plan.ctaLabel as string}
+                    fallback='Button'
+                    path={[...basePath, 'plans', String(index), 'ctaLabel']}
+                    vendorId={vendorId}
+                    page='home'
+                    colorPath={buttonColorPath}
+                    color={buttonColor}
+                    className='text-sm font-semibold text-white'
+                  />
                 </button>
               ) : null}
             </div>
@@ -388,24 +604,64 @@ function CustomSectionRenderer({ section }: { section: Section }) {
         className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'
         style={backgroundColor ? { backgroundColor } : undefined}
       >
-        <h3 className='text-lg font-semibold text-slate-900'>
-          {String(data.title || 'FAQs')}
-        </h3>
-        <p className='mt-2 text-sm text-slate-600'>
-          {String(data.subtitle || '')}
-        </p>
+        <InlineEditableText
+          as='h3'
+          value={data.title as string}
+          fallback='FAQs'
+          path={[...basePath, 'title']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
+          className='text-lg font-semibold text-slate-900'
+        />
+        <InlineEditableText
+          as='p'
+          value={data.subtitle as string}
+          fallback='FAQ details'
+          path={[...basePath, 'subtitle']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
+          className='mt-2 text-sm text-slate-600'
+        />
         <div className='mt-4 space-y-3'>
           {items.map((item: any, index: number) => (
             <div
               key={`${item.question}-${index}`}
               className='rounded-2xl border border-slate-100 bg-slate-50 p-4'
             >
-              <p className='font-semibold text-slate-900'>
-                {String(item.question || 'Question')}
-              </p>
-              <p className='mt-2 text-sm text-slate-600'>
-                {String(item.answer || 'Answer')}
-              </p>
+              <InlineEditableText
+                as='p'
+                value={item.question as string}
+                fallback='Question'
+                path={[...basePath, 'items', String(index), 'question']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='font-semibold text-slate-900'
+              />
+              <InlineEditableText
+                as='p'
+                value={item.answer as string}
+                fallback='Answer'
+                path={[...basePath, 'items', String(index), 'answer']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='mt-2 text-sm text-slate-600'
+              />
             </div>
           ))}
           {items.length === 0 && (
@@ -425,27 +681,77 @@ function CustomSectionRenderer({ section }: { section: Section }) {
         className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'
         style={backgroundColor ? { backgroundColor } : undefined}
       >
-        <h3 className='text-lg font-semibold text-slate-900'>
-          {String(data.title || 'Testimonials')}
-        </h3>
-        <p className='mt-2 text-sm text-slate-600'>
-          {String(data.subtitle || '')}
-        </p>
+        <InlineEditableText
+          as='h3'
+          value={data.title as string}
+          fallback='Testimonials'
+          path={[...basePath, 'title']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
+          className='text-lg font-semibold text-slate-900'
+        />
+        <InlineEditableText
+          as='p'
+          value={data.subtitle as string}
+          fallback='Testimonials subtitle'
+          path={[...basePath, 'subtitle']}
+          vendorId={vendorId}
+          page='home'
+          colorPath={textColorPath}
+          sizePath={fontSizePath}
+          color={textColor}
+          fontSize={fontSize}
+          className='mt-2 text-sm text-slate-600'
+        />
         <div className='mt-4 grid gap-4 md:grid-cols-2'>
           {items.map((item: any, index: number) => (
             <div
               key={`${item.name}-${index}`}
               className='rounded-2xl border border-slate-100 bg-slate-50 p-4'
             >
-              <p className='text-sm text-slate-600'>
-                "{String(item.quote || 'Great experience!')}"
-              </p>
-              <p className='mt-3 text-sm font-semibold text-slate-900'>
-                {String(item.name || 'Customer')}
-              </p>
-              <p className='text-xs text-slate-500'>
-                {String(item.role || '')}
-              </p>
+              <InlineEditableText
+                as='p'
+                value={item.quote as string}
+                fallback='Great experience!'
+                path={[...basePath, 'items', String(index), 'quote']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='text-sm text-slate-600'
+              />
+              <InlineEditableText
+                as='p'
+                value={item.name as string}
+                fallback='Customer'
+                path={[...basePath, 'items', String(index), 'name']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='mt-3 text-sm font-semibold text-slate-900'
+              />
+              <InlineEditableText
+                as='p'
+                value={item.role as string}
+                fallback='Role'
+                path={[...basePath, 'items', String(index), 'role']}
+                vendorId={vendorId}
+                page='home'
+                colorPath={textColorPath}
+                sizePath={fontSizePath}
+                color={textColor}
+                fontSize={fontSize}
+                className='text-xs text-slate-500'
+              />
             </div>
           ))}
           {items.length === 0 && (
@@ -463,15 +769,32 @@ function CustomSectionRenderer({ section }: { section: Section }) {
       className='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'
       style={backgroundColor ? { backgroundColor } : undefined}
     >
-      <h3
+      <InlineEditableText
+        as='h3'
+        value={data.title as string}
+        fallback='Text block'
+        path={[...basePath, 'title']}
+        vendorId={vendorId}
+        page='home'
+        colorPath={textColorPath}
+        sizePath={fontSizePath}
+        color={textColor}
+        fontSize={fontSize}
         className='text-lg font-semibold text-slate-900'
-        style={{ color: textColor, fontSize: fontSize ? `${fontSize}px` : undefined }}
-      >
-        {String(data.title || 'Text block')}
-      </h3>
-      <p className='mt-2 text-sm text-slate-600' style={{ color: textColor }}>
-        {String(data.body || 'Add descriptive text for this section.')}
-      </p>
+      />
+      <InlineEditableText
+        as='p'
+        value={data.body as string}
+        fallback='Add descriptive text for this section.'
+        path={[...basePath, 'body']}
+        vendorId={vendorId}
+        page='home'
+        colorPath={textColorPath}
+        sizePath={fontSizePath}
+        color={textColor}
+        fontSize={fontSize}
+        className='mt-2 text-sm text-slate-600'
+      />
     </section>
   )
 }

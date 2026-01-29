@@ -13,8 +13,34 @@ import { Analytics } from './components/analytics'
 import { Notifications } from './components/notifications'
 
 import Reports from './components/reports'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import api from '@/lib/axios'
+import { setUser } from '@/store/slices/authSlice'
 
 export function Dashboard() {
+  const dispatch = useDispatch()
+  const user = useSelector((state: any) => state.auth.user)
+
+  useEffect(() => {
+    if (!user?.id) return
+    const loadProfile = async () => {
+      try {
+        const res = await api.get('/profile')
+        const fetched =
+          res.data?.user ||
+          res.data?.vendor ||
+          res.data?.data ||
+          res.data?.admin ||
+          res.data
+        if (fetched) dispatch(setUser({ ...user, ...fetched }))
+      } catch (error) {
+        console.error('Failed to load profile', error)
+      }
+    }
+    loadProfile()
+  }, [dispatch, user?.id])
+
   return (
     <>
       {/* ===== Top Heading ===== */}

@@ -23,7 +23,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { VITE_PUBLIC_STOREFRONT_URL } from "@/config";
+import { VITE_PUBLIC_STOREFRONT_URL, VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from "@/config";
 
 const dashboardItems = [
   { title: "Real-Time", url: "/analytics", icon: Activity, badge: "Live" },
@@ -40,6 +40,7 @@ const reportItems = [
 export function AnalyticsAppSidebar() {
   const location = useLocation({ select: (loc) => loc.pathname });
   const storefrontUrl = VITE_PUBLIC_STOREFRONT_URL || "";
+  const templateStorefrontUrl = VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND || "";
 
   return (
     <Sidebar>
@@ -117,6 +118,26 @@ export function AnalyticsAppSidebar() {
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <Store className="h-4 w-4" />
                       <span>Storefront URL missing</span>
+                    </span>
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={false}>
+                  {templateStorefrontUrl ? (
+                    <a
+                      href={templateStorefrontUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid="link-nav-template-storefront"
+                    >
+                      <Store className="h-4 w-4" />
+                      <span>Vendor Templates</span>
+                    </a>
+                  ) : (
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Store className="h-4 w-4" />
+                      <span>Template URL missing</span>
                     </span>
                   )}
                 </SidebarMenuButton>

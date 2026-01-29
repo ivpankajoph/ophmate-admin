@@ -13,7 +13,15 @@ type Order = {
   status: string
   total: number
   createdAt: string
-  items: Array<{ product_name: string; quantity: number }>
+  items: Array<{
+    _id?: string
+    product_id?: string
+    product_name: string
+    image_url?: string
+    variant_attributes?: Record<string, string>
+    quantity: number
+    total_price?: number
+  }>
 }
 
 export const Route = createFileRoute('/template/$vendorId/orders')({
@@ -29,6 +37,12 @@ function TemplateOrders() {
   const auth = getTemplateAuth(vendorId)
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const formatAttrs = (attrs?: Record<string, string>) => {
+    if (!attrs) return ''
+    return Object.values(attrs)
+      .filter((value) => value)
+      .join(' / ')
+  }
 
   useEffect(() => {
     if (!auth) {
@@ -87,8 +101,9 @@ function TemplateOrders() {
           </div>
 
           {loading ? (
-            <div className='rounded-lg bg-white p-6 text-center text-gray-500'>
-              Loading orders...
+            <div className='space-y-4'>
+              <div className='h-24 rounded-2xl bg-slate-200/60 animate-pulse' />
+              <div className='h-24 rounded-2xl bg-slate-200/60 animate-pulse' />
             </div>
           ) : orders.length ? (
             <div className='space-y-4'>
@@ -114,12 +129,40 @@ function TemplateOrders() {
                       ₹{order.total.toFixed(2)}
                     </div>
                   </div>
-                  <div className='mt-4 text-sm text-slate-600'>
+                  <div className='mt-4 grid gap-3 text-sm text-slate-600'>
                     {order.items.map((item, index) => (
-                      <span key={`${order._id}-${index}`}>
-                        {item.product_name} x{item.quantity}
-                        {index < order.items.length - 1 ? ', ' : ''}
-                      </span>
+                      <a
+                        key={`${order._id}-${item._id || index}`}
+                        href={
+                          item.product_id
+                            ? `/template/${vendorId}/product/${item.product_id}`
+                            : '#'
+                        }
+                        className='flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-slate-300'
+                      >
+                        <div className='flex items-start gap-3'>
+                          <img
+                            src={
+                              item.image_url ||
+                              'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=200&q=80'
+                            }
+                            alt={item.product_name}
+                            className='h-12 w-12 rounded-lg object-cover'
+                          />
+                          <div className='min-w-0'>
+                            <p className='text-sm font-semibold text-slate-900'>
+                              {item.product_name}
+                            </p>
+                            <p className='text-xs text-slate-500'>
+                              {formatAttrs(item.variant_attributes) || 'Default variant'}
+                            </p>
+                            <p className='text-xs text-slate-500'>Qty: {item.quantity}</p>
+                          </div>
+                        </div>
+                        <span className='text-sm font-semibold text-slate-900'>
+                          â‚¹{(item.total_price || 0).toFixed(2)}
+                        </span>
+                      </a>
                     ))}
                   </div>
                 </div>

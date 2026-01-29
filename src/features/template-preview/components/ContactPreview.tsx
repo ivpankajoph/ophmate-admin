@@ -1,6 +1,7 @@
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { type TemplateData } from '@/features/vendor-template/data'
-import { JSX, } from 'react'
+import { JSX } from 'react'
+import { InlineEditableText } from './InlineEditableText'
 
 
 interface ContactPreviewProps {
@@ -71,6 +72,13 @@ export function ContactPreview({
     <div
       className='group cursor-pointer rounded-3xl transition hover:ring-2 hover:ring-slate-900/15'
       onClickCapture={(event) => {
+        if (
+          (event.target as HTMLElement | null)?.closest?.(
+            '[data-inline-edit="true"]'
+          )
+        ) {
+          return
+        }
         event.preventDefault()
         event.stopPropagation()
         emitSelect(sectionId)
@@ -116,29 +124,42 @@ export function ContactPreview({
           <p className='text-xs font-semibold uppercase tracking-[0.32em] text-white/70'>
             Contact
           </p>
-          <h1
+          <InlineEditableText
+            as='h1'
+            value={contact.hero.title}
+            fallback='Reach out to our team.'
+            path={['components', 'contact_page', 'hero', 'title']}
+            vendorId={vendorId}
+            page='contact'
+            colorPath={['components', 'contact_page', 'hero_style', 'titleColor']}
+            sizePath={['components', 'contact_page', 'hero_style', 'titleSize']}
+            color={heroStyle.titleColor}
+            fontSize={heroStyle.titleSize}
             className='text-3xl font-semibold sm:text-5xl'
-            style={{
-              color: heroStyle.titleColor || undefined,
-              fontSize: heroStyle.titleSize
-                ? `${heroStyle.titleSize}px`
-                : undefined,
-            }}
-          >
-            {contact.hero.title || 'Reach out to our team.'}
-          </h1>
-          <p
+          />
+          <InlineEditableText
+            as='p'
+            value={contact.hero.subtitle}
+            fallback='Let customers know the best way to get in touch.'
+            path={['components', 'contact_page', 'hero', 'subtitle']}
+            vendorId={vendorId}
+            page='contact'
+            colorPath={[
+              'components',
+              'contact_page',
+              'hero_style',
+              'subtitleColor',
+            ]}
+            sizePath={[
+              'components',
+              'contact_page',
+              'hero_style',
+              'subtitleSize',
+            ]}
+            color={heroStyle.subtitleColor}
+            fontSize={heroStyle.subtitleSize}
             className='max-w-2xl text-base text-white/80'
-            style={{
-              color: heroStyle.subtitleColor || undefined,
-              fontSize: heroStyle.subtitleSize
-                ? `${heroStyle.subtitleSize}px`
-                : undefined,
-            }}
-          >
-            {contact.hero.subtitle ||
-              'Let customers know the best way to get in touch.'}
-          </p>
+          />
         </div>
       </section>
       )
@@ -151,24 +172,51 @@ export function ContactPreview({
           <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
             Visit
           </p>
-          <h2
+          <InlineEditableText
+            as='h2'
+            value={section2.hero_title}
+            fallback='Come visit our storefront.'
+            path={['components', 'contact_page', 'section_2', 'hero_title']}
+            vendorId={vendorId}
+            page='contact'
             className='text-2xl font-semibold text-slate-900'
-            style={{ color: 'var(--template-accent)' }}
-          >
-            {section2.hero_title || 'Come visit our storefront.'}
-          </h2>
-          <p className='text-sm text-slate-600'>
-            {section2.hero_subtitle ||
-              'Add your address and directions so customers can find you quickly.'}
-          </p>
+          />
+          <InlineEditableText
+            as='p'
+            value={section2.hero_subtitle}
+            fallback='Add your address and directions so customers can find you quickly.'
+            path={['components', 'contact_page', 'section_2', 'hero_subtitle']}
+            vendorId={vendorId}
+            page='contact'
+            className='text-sm text-slate-600'
+          />
           <div className='space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600'>
             <div className='flex items-center gap-2'>
               <MapPin className='h-4 w-4 text-slate-500' />
-              <span>{section2.hero_title2 || 'Main store location'}</span>
+              <InlineEditableText
+                value={section2.hero_title2}
+                fallback='Main store location'
+                path={['components', 'contact_page', 'section_2', 'hero_title2']}
+                vendorId={vendorId}
+                page='contact'
+                className='text-sm text-slate-600'
+              />
             </div>
             <div className='flex items-center gap-2'>
               <Phone className='h-4 w-4 text-slate-500' />
-              <span>{section2.hero_subtitle2 || '+91 00000 00000'}</span>
+              <InlineEditableText
+                value={section2.hero_subtitle2}
+                fallback='+91 00000 00000'
+                path={[
+                  'components',
+                  'contact_page',
+                  'section_2',
+                  'hero_subtitle2',
+                ]}
+                vendorId={vendorId}
+                page='contact'
+                className='text-sm text-slate-600'
+              />
             </div>
           </div>
         </div>
@@ -193,12 +241,36 @@ export function ContactPreview({
                   {item.icon?.toString().slice(0, 2).toUpperCase() || 'IN'}
                 </div>
                 <div>
-                  <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
-                    {item.title || 'Info'}
-                  </p>
-                  <p className='text-sm text-slate-600'>
-                    {item.details || 'Add details in the contact form.'}
-                  </p>
+                  <InlineEditableText
+                    as='p'
+                    value={item.title}
+                    fallback='Info'
+                    path={[
+                      'components',
+                      'contact_page',
+                      'contactInfo',
+                      String(idx),
+                      'title',
+                    ]}
+                    vendorId={vendorId}
+                    page='contact'
+                    className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'
+                  />
+                  <InlineEditableText
+                    as='p'
+                    value={item.details}
+                    fallback='Add details in the contact form.'
+                    path={[
+                      'components',
+                      'contact_page',
+                      'contactInfo',
+                      String(idx),
+                      'details',
+                    ]}
+                    vendorId={vendorId}
+                    page='contact'
+                    className='text-sm text-slate-600'
+                  />
                 </div>
               </div>
             ))}
@@ -254,7 +326,19 @@ export function ContactPreview({
                 style={{ color: 'var(--template-accent)' }}
               >
                 <Mail className='h-4 w-4' />
-                {contact.contactForm?.submitButtonText || 'Send Message'}
+                <InlineEditableText
+                  value={contact.contactForm?.submitButtonText}
+                  fallback='Send Message'
+                  path={[
+                    'components',
+                    'contact_page',
+                    'contactForm',
+                    'submitButtonText',
+                  ]}
+                  vendorId={vendorId}
+                  page='contact'
+                  className='text-xs text-slate-500'
+                />
               </div>
             </div>
           </div>

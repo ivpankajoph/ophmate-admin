@@ -9,6 +9,8 @@ import {
   getTemplateAuth,
   templateApiFetch,
 } from '@/features/template-preview/utils/templateAuth'
+import { toast } from 'sonner'
+import { TemplatePageSkeleton } from '@/features/template-preview/components/TemplatePageSkeleton'
 
 type CategoryMap = Record<string, string>
 
@@ -180,14 +182,7 @@ function TemplateProductDetail() {
   }, [productId, headers, vendorId])
 
   if (loading) {
-    return (
-      <div className='flex min-h-screen items-center justify-center bg-slate-950 text-white'>
-        <div className='text-center'>
-          <div className='mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white'></div>
-          <p className='mt-4 text-sm text-white/70'>Loading product...</p>
-        </div>
-      </div>
-    )
+    return <TemplatePageSkeleton />
   }
 
   if (error || !product) {
@@ -285,11 +280,13 @@ function TemplateProductDetail() {
                   setMessage(null)
                   const auth = getTemplateAuth(String(vendorId))
                   if (!auth) {
+                    toast.error('Please login to add items to cart.')
                     window.location.href = `/template/${vendorId}/login?next=/template/${vendorId}/product/${productId}`
                     return
                   }
                   const variantId = product?.variants?.[0]?._id
                   if (!variantId) {
+                    toast.error('No variant available for this product.')
                     setMessage('No variant available.')
                     return
                   }
@@ -303,8 +300,10 @@ function TemplateProductDetail() {
                         quantity: 1,
                       }),
                     })
+                    toast.success('Added to cart.')
                     setMessage('Added to cart.')
                   } catch (err: any) {
+                    toast.error(err?.message || 'Unable to add to cart.')
                     setMessage(err?.message || 'Unable to add to cart.')
                   } finally {
                     setAdding(false)

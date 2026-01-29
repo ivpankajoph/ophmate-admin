@@ -19,10 +19,11 @@ import type { AnalyticsSummary } from "@/features/analytics-hub/lib/types";
 import { getQueryFn } from "@/features/analytics-hub/lib/query";
 
 export default function EcommerceAnalytics() {
-  const { vendorId } = useAnalyticsContext();
+  const { vendorId, source } = useAnalyticsContext();
+  const sourceParam = source === "all" ? undefined : source;
   const queryFn = getQueryFn<AnalyticsSummary>();
   const { data, isLoading } = useQuery<AnalyticsSummary>({
-    queryKey: [buildApiUrl("/analytics/dashboard/summary", { vendorId })],
+    queryKey: [buildApiUrl("/analytics/dashboard/summary", { vendorId, source: sourceParam })],
     queryFn,
   });
   const cardClassName =

@@ -3,6 +3,7 @@ import { PreviewChrome } from '@/features/template-preview/components/PreviewChr
 import { AboutPreview } from '@/features/template-preview/components/AboutPreview'
 import { useTemplatePreviewData } from '@/features/template-preview/hooks/useTemplatePreviewData'
 import { useLiveTemplatePreview } from '@/features/template-preview/hooks/useLiveTemplatePreview'
+import { TemplatePageSkeleton } from '@/features/template-preview/components/TemplatePageSkeleton'
 
 export const Route = createFileRoute('/template/$vendorId/about')({
   component: TemplateAboutPreviewRoute,
@@ -27,14 +28,7 @@ function TemplateAboutPreviewRoute() {
   )
 
   if (loading) {
-    return (
-      <div className='flex min-h-screen items-center justify-center bg-slate-950 text-white'>
-        <div className='text-center'>
-          <div className='mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white'></div>
-          <p className='mt-4 text-sm text-white/70'>Loading preview...</p>
-        </div>
-      </div>
-    )
+    return <TemplatePageSkeleton />
   }
 
   if (error) {

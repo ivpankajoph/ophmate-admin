@@ -13,6 +13,10 @@ interface TemplatePreviewPanelProps {
   subtitle: string
   src?: string
   fullPreviewUrl?: string
+  baseSrc?: string
+  previewQuery?: string
+  defaultPath?: string
+  pageOptions?: Array<{ label: string; path: string }>
   onSync?: () => Promise<void> | void
   isSyncing?: boolean
   syncDisabled?: boolean
@@ -21,6 +25,7 @@ interface TemplatePreviewPanelProps {
   previewData?: unknown
   sectionOrder?: string[]
   onSelectSection?: (sectionId: string, componentId?: string) => void
+  onInlineEdit?: (path: string[], value: unknown) => void
 }
 
 export function TemplatePreviewPanel({
@@ -28,6 +33,10 @@ export function TemplatePreviewPanel({
   subtitle,
   src,
   fullPreviewUrl,
+  baseSrc,
+  previewQuery,
+  defaultPath = '',
+  pageOptions,
   onSync,
   isSyncing,
   syncDisabled,
@@ -36,10 +45,12 @@ export function TemplatePreviewPanel({
   previewData,
   sectionOrder,
   onSelectSection,
+  onInlineEdit,
 }: TemplatePreviewPanelProps) {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
   const [frameKey, setFrameKey] = useState(0)
   const [iframeHeight, setIframeHeight] = useState<number | null>(null)
+  const [previewPath, setPreviewPath] = useState(defaultPath || '')
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const handleRefresh = () => setFrameKey((prev) => prev + 1)
@@ -88,15 +99,22 @@ export function TemplatePreviewPanel({
   }, [previewData, sectionOrder, vendorId, page])
 
   useEffect(() => {
-    if (!src) return
+    setPreviewPath(defaultPath || '')
+  }, [defaultPath])
+
+  useEffect(() => {
+    const currentSrc = baseSrc
+      ? `${baseSrc}${previewPath}${previewQuery || ''}`
+      : src
+    if (!currentSrc) return
     const timeout = window.setTimeout(() => {
       updateIframeHeight()
     }, 300)
     return () => window.clearTimeout(timeout)
-  }, [frameKey, device, previewData, sectionOrder, src])
+  }, [frameKey, device, previewData, sectionOrder, src, baseSrc, previewPath, previewQuery])
 
   useEffect(() => {
-    if (!onSelectSection) return
+    if (!onSelectSection && !onInlineEdit) return
 
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return
@@ -106,17 +124,34 @@ export function TemplatePreviewPanel({
         page?: string
         sectionId?: string
         componentId?: string
+        path?: string[]
+        value?: unknown
       }
-      if (data?.type !== 'template-editor-select') return
       if (vendorId && data.vendorId && data.vendorId !== vendorId) return
       if (data.page && page && data.page !== page) return
-      if (!data.sectionId) return
-      onSelectSection(data.sectionId, data.componentId)
+
+      if (data?.type === 'template-editor-select') {
+        if (!onSelectSection || !data.sectionId) return
+        onSelectSection(data.sectionId, data.componentId)
+        return
+      }
+
+      if (data?.type === 'template-inline-update') {
+        if (!onInlineEdit || !Array.isArray(data.path)) return
+        onInlineEdit(data.path, data.value)
+      }
     }
 
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [onSelectSection, vendorId, page])
+  }, [onSelectSection, onInlineEdit, vendorId, page])
+
+  const computedSrc = baseSrc
+    ? `${baseSrc}${previewPath}${previewQuery || ''}`
+    : src
+  const computedFullPreviewUrl = baseSrc
+    ? `${baseSrc}${previewPath}${previewQuery || ''}`
+    : fullPreviewUrl
 
   return (
     <div className='rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-[0_30px_60px_-45px_rgba(15,23,42,0.4)] backdrop-blur'>
@@ -127,6 +162,19 @@ export function TemplatePreviewPanel({
             <p className='text-xs text-slate-500'>{subtitle}</p>
           </div>
           <div className='flex items-center gap-2'>
+            {pageOptions && pageOptions.length > 0 ? (
+              <select
+                className='h-9 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600'
+                value={previewPath}
+                onChange={(event) => setPreviewPath(event.target.value)}
+              >
+                {pageOptions.map((option) => (
+                  <option key={option.path} value={option.path}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <Button
               type='button'
               variant='outline'
@@ -167,9 +215,9 @@ export function TemplatePreviewPanel({
             <RefreshCcw className='h-4 w-4' />
             {isSyncing ? 'Syncing...' : 'Sync + Refresh'}
           </Button>
-          {fullPreviewUrl ? (
+          {computedFullPreviewUrl ? (
             <a
-              href={fullPreviewUrl}
+              href={computedFullPreviewUrl}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -185,7 +233,7 @@ export function TemplatePreviewPanel({
         </div>
 
         <div className='rounded-2xl border border-slate-200 bg-slate-50 p-2'>
-          {src ? (
+          {computedSrc ? (
             <div
               className={cn(
                 'overflow-hidden rounded-xl bg-white shadow-inner',
@@ -197,7 +245,7 @@ export function TemplatePreviewPanel({
               <iframe
                 key={frameKey}
                 title='Template preview'
-                src={src}
+                src={computedSrc}
                 className={cn(
                   'w-full border-0',
                   device === 'mobile' ? 'rounded-[32px]' : ''

@@ -21,6 +21,7 @@ import { TemplatePreviewPanel } from '../components/TemplatePreviewPanel'
 import { TemplateSectionOrder } from '../components/TemplateSectionOrder'
 import { ImageInput } from '../components/form/ImageInput'
 import { ThemeSettingsSection } from '../components/form/ThemeSettingsSection'
+import { updateFieldImmutable } from '../components/hooks/utils'
 import { initialData, type TemplateData } from '../data'
 
 function VendorTemplateContact() {
@@ -322,15 +323,11 @@ function VendorTemplateContact() {
   }
 
   const updateField = (path: string[], value: any) => {
-    setData((prev: any) => {
-      const clone = JSON.parse(JSON.stringify(prev))
-      let current: any = clone
-      for (let i = 0; i < path.length - 1; i++) {
-        current = current[path[i]]
-      }
-      current[path[path.length - 1]] = value
-      return clone
-    })
+    setData((prev: any) => updateFieldImmutable(prev, path, value))
+  }
+
+  const handleInlineEdit = (path: string[], value: unknown) => {
+    updateField(path, value)
   }
 
   const handleImageChange = async (path: string[], file: File | null) => {
@@ -372,8 +369,7 @@ function VendorTemplateContact() {
     }
   }
 
-  const previewUrl = vendor_id ? `/template/${vendor_id}/contact` : undefined
-  const fullPreviewUrl = vendor_id
+  const previewBaseUrl = vendor_id
     ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
     : undefined
 
@@ -662,8 +658,20 @@ function VendorTemplateContact() {
           <TemplatePreviewPanel
             title='Live Contact Preview'
             subtitle='Sync to refresh the right-side preview'
-            src={previewUrl}
-            fullPreviewUrl={fullPreviewUrl}
+            baseSrc={previewBaseUrl}
+            previewQuery=''
+            defaultPath='/contact'
+            pageOptions={[
+              { label: 'Home', path: '' },
+              { label: 'About', path: '/about' },
+              { label: 'Contact', path: '/contact' },
+              { label: 'Cart', path: '/cart' },
+              { label: 'Orders', path: '/orders' },
+              { label: 'Profile', path: '/profile' },
+              { label: 'Logout', path: '/login' },
+              { label: 'Category', path: '/category' },
+              { label: 'Login', path: '/login' },
+            ]}
             onSync={handleSave}
             syncDisabled={uploadingPaths.size > 0}
             vendorId={vendor_id}
@@ -671,6 +679,7 @@ function VendorTemplateContact() {
             previewData={data}
             sectionOrder={sectionOrder}
             onSelectSection={(sectionId) => setSelectedSection(sectionId)}
+            onInlineEdit={handleInlineEdit}
           />
         }
       >

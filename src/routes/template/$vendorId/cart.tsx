@@ -9,8 +9,10 @@ import {
 
 type CartItem = {
   _id: string
+  product_id?: string
   product_name: string
   image_url?: string
+  variant_attributes?: Record<string, string>
   quantity: number
   unit_price: number
   total_price: number
@@ -36,6 +38,12 @@ function TemplateCart() {
   const [cart, setCart] = useState<Cart | null>(null)
   const [loading, setLoading] = useState(true)
   const [message,] = useState<string | null>(null)
+  const formatAttrs = (attrs?: Record<string, string>) => {
+    if (!attrs) return ''
+    return Object.values(attrs)
+      .filter((value) => value)
+      .join(' / ')
+  }
 
   const loadCart = async () => {
     try {
@@ -119,8 +127,9 @@ function TemplateCart() {
           )}
 
           {loading ? (
-            <div className='rounded-lg bg-white p-6 text-center text-gray-500'>
-              Loading cart...
+            <div className='grid gap-4'>
+              <div className='h-24 rounded-2xl bg-slate-200/60 animate-pulse' />
+              <div className='h-24 rounded-2xl bg-slate-200/60 animate-pulse' />
             </div>
           ) : (
             <div className='grid gap-8 lg:grid-cols-[2fr_1fr]'>
@@ -131,7 +140,14 @@ function TemplateCart() {
                       key={item._id}
                       className='flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'
                     >
-                      <div className='flex items-center gap-4'>
+                      <a
+                        href={
+                          item.product_id
+                            ? `/template/${vendorId}/product/${item.product_id}`
+                            : '#'
+                        }
+                        className='flex items-center gap-4'
+                      >
                         <img
                           src={
                             item.image_url ||
@@ -140,25 +156,53 @@ function TemplateCart() {
                           alt={item.product_name}
                           className='h-16 w-16 rounded-xl object-cover'
                         />
-                        <div>
+                        <div className='space-y-1'>
                           <p className='text-sm font-semibold text-slate-900'>
                             {item.product_name}
+                          </p>
+                          <p className='text-xs text-slate-500'>
+                            {formatAttrs(item.variant_attributes) ||
+                              'Default variant'}
                           </p>
                           <p className='text-xs text-slate-500'>
                             ₹{item.unit_price.toFixed(2)}
                           </p>
                         </div>
-                      </div>
+                      </a>
                       <div className='flex items-center gap-3'>
-                        <input
-                          type='number'
-                          min='1'
-                          value={item.quantity}
-                          onChange={(event) =>
-                            updateQuantity(item._id, Number(event.target.value))
-                          }
-                          className='h-9 w-16 rounded-lg border border-slate-200 text-center text-sm'
-                        />
+                        <div className='flex items-center rounded-lg border border-slate-200 bg-white'>
+                          <button
+                            type='button'
+                            onClick={() =>
+                              updateQuantity(
+                                item._id,
+                                Math.max(1, item.quantity - 1)
+                              )
+                            }
+                            className='h-9 w-9 text-sm font-semibold text-slate-600 hover:bg-slate-50'
+                          >
+                            -
+                          </button>
+                          <input
+                            type='number'
+                            min='1'
+                            value={item.quantity}
+                            onChange={(event) =>
+                              updateQuantity(
+                                item._id,
+                                Number(event.target.value)
+                              )
+                            }
+                            className='h-9 w-12 border-x border-slate-200 text-center text-sm'
+                          />
+                          <button
+                            type='button'
+                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                            className='h-9 w-9 text-sm font-semibold text-slate-600 hover:bg-slate-50'
+                          >
+                            +
+                          </button>
+                        </div>
                         <span className='text-sm font-semibold text-slate-900'>
                           ₹{item.total_price.toFixed(2)}
                         </span>
@@ -207,3 +251,5 @@ function TemplateCart() {
     </PreviewChrome>
   )
 }
+
+

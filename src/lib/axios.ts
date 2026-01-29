@@ -2,7 +2,10 @@ import axios, { AxiosInstance } from "axios";
 import { store } from "../store"; // import your Redux store
 import { VITE_PUBLIC_API_URL } from "@/config";
 
-const BASE_URL = VITE_PUBLIC_API_URL;
+const BASE_URL =
+  VITE_PUBLIC_API_URL && VITE_PUBLIC_API_URL.endsWith("/v1")
+    ? VITE_PUBLIC_API_URL
+    : `${VITE_PUBLIC_API_URL}/v1`;
 
 
 

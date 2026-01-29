@@ -10,6 +10,7 @@ import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
 import { useEffect, useState } from 'react'
+import api from '@/lib/axios'
 import axios from 'axios'
 import { VITE_PUBLIC_API_URL } from '@/config'
 import { useSelector } from 'react-redux'
@@ -21,6 +22,7 @@ export function Users() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const token = useSelector((state: any) => state.auth?.token)
+  const role = useSelector((state: any) => state.auth?.user?.role)
   const [data, setData] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,13 +33,18 @@ export function Users() {
       setLoading(true)
       setError(null)
       try {
-        const res = await axios.get(`${VITE_PUBLIC_API_URL}/v1/users/getall`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const res =
+          role === 'vendor'
+            ? await api.get('/customers')
+            : await axios.get(`${VITE_PUBLIC_API_URL}/v1/users/getall`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              })
 
-        const users = res.data?.users ?? []
+        const users = role === 'vendor'
+          ? (res.data?.customers ?? [])
+          : (res.data?.users ?? [])
         const mapped: User[] = users.map((user: any) => {
           const name = String(user?.name || '').trim()
           const nameParts = name.split(/\s+/).filter(Boolean)
@@ -46,7 +53,7 @@ export function Users() {
           const email = String(user?.email || '')
           const username = email ? email.split('@')[0] : firstName || 'user'
           const status = user?.is_active ? 'active' : 'inactive'
-          const role = user?.role || 'customer'
+          const roleValue = user?.source === 'template' ? 'template_customer' : (user?.role || 'customer')
 
           return {
             id: String(user?._id || user?.id || ''),
@@ -56,7 +63,7 @@ export function Users() {
             email,
             phoneNumber: String(user?.phone || ''),
             status,
-            role,
+            role: roleValue,
             createdAt: user?.createdAt || new Date().toISOString(),
             updatedAt: user?.updatedAt || new Date().toISOString(),
           }
@@ -72,7 +79,7 @@ export function Users() {
     }
 
     fetchUsers()
-  }, [token])
+  }, [token, role])
 
   return (
     <UsersProvider>
@@ -88,9 +95,13 @@ export function Users() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>User List</h2>
+            <h2 className='text-2xl font-bold tracking-tight'>
+              {role === 'vendor' ? 'Customer List' : 'User List'}
+            </h2>
             <p className='text-muted-foreground'>
-              Manage your users and their roles here.
+              {role === 'vendor'
+                ? 'Customers who bought your products.'
+                : 'Manage your users and their roles here.'}
             </p>
             {loading && (
               <p className='text-sm text-muted-foreground'>Loading users...</p>

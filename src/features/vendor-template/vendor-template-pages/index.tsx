@@ -16,6 +16,7 @@ import { TemplatePreviewPanel } from '../components/TemplatePreviewPanel'
 import { TemplateSectionOrder } from '../components/TemplateSectionOrder'
 import { ThemeSettingsSection } from '../components/form/ThemeSettingsSection'
 import { ImageInput } from '../components/form/ImageInput'
+import { updateFieldImmutable } from '../components/hooks/utils'
 import { uploadImage } from '../helper/fileupload'
 import { BASE_URL } from '@/store/slices/vendor/productSlice'
 import { VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND } from '@/config'
@@ -259,14 +260,10 @@ export default function VendorTemplatePages() {
   const selectedPage =
     (pages.find((page) => page.id === selectedPageId) as any) || pages[0]
 
-  const previewUrl =
-    vendor_id && selectedPage?.slug
-      ? `/template/${vendor_id}/page/${selectedPage.slug}`
-      : undefined
-  const fullPreviewUrl =
-    vendor_id && selectedPage?.slug
-      ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}/page/${selectedPage.slug}`
-      : undefined
+  const previewBaseUrl = vendor_id
+    ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
+    : undefined
+  const previewPath = selectedPage?.slug ? `/page/${selectedPage.slug}` : ''
 
   const sectionOrder = useMemo(() => {
     const sections = (selectedPage?.sections as any[]) || []
@@ -456,15 +453,11 @@ export default function VendorTemplatePages() {
   }
 
   const updateField = (path: string[], value: any) => {
-    setData((prev) => {
-      const clone = structuredClone(prev)
-      let current: any = clone
-      for (let i = 0; i < path.length - 1; i++) {
-        current = current[path[i]]
-      }
-      current[path[path.length - 1]] = value
-      return clone
-    })
+    setData((prev) => updateFieldImmutable(prev, path, value))
+  }
+
+  const handleInlineEdit = (path: string[], value: unknown) => {
+    updateField(path, value)
   }
 
   const sectionItems = useMemo(() => {
@@ -515,8 +508,20 @@ export default function VendorTemplatePages() {
           <TemplatePreviewPanel
             title='Live Page Preview'
             subtitle='Custom pages render in the storefront'
-            src={previewUrl}
-            fullPreviewUrl={fullPreviewUrl}
+            baseSrc={previewBaseUrl}
+            previewQuery=''
+            defaultPath={previewPath}
+            pageOptions={[
+              { label: 'Home', path: '' },
+              { label: 'About', path: '/about' },
+              { label: 'Contact', path: '/contact' },
+              { label: 'Cart', path: '/cart' },
+              { label: 'Orders', path: '/orders' },
+              { label: 'Profile', path: '/profile' },
+              { label: 'Logout', path: '/login' },
+              { label: 'Category', path: '/category' },
+              { label: 'Login', path: '/login' },
+            ]}
             onSync={handleSave}
             isSyncing={isSaving}
             syncDisabled={uploadingPaths.size > 0}
@@ -524,6 +529,7 @@ export default function VendorTemplatePages() {
             page='home'
             previewData={data}
             sectionOrder={sectionOrder}
+            onInlineEdit={handleInlineEdit}
           />
         }
       >

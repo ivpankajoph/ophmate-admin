@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ChevronLeft } from 'lucide-react'
 import { PreviewChrome } from '@/features/template-preview/components/PreviewChrome'
 import { useTemplatePreviewData } from '@/features/template-preview/hooks/useTemplatePreviewData'
+import { TemplatePageSkeleton } from '@/features/template-preview/components/TemplatePageSkeleton'
 
 interface Product {
   _id?: string
@@ -95,14 +96,7 @@ function TemplateSubcategoryRoute() {
   }, [products, resolvedSubcategoryId])
 
   if (loading) {
-    return (
-      <div className='flex min-h-screen items-center justify-center bg-slate-950 text-white'>
-        <div className='text-center'>
-          <div className='mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-white'></div>
-          <p className='mt-4 text-sm text-white/70'>Loading subcategory...</p>
-        </div>
-      </div>
-    )
+    return <TemplatePageSkeleton />
   }
 
   if (error) {

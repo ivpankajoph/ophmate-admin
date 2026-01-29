@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bell,
   CheckCircle,
@@ -11,6 +11,7 @@ import {
   Search,
   BarChart3,
 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,153 +25,23 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import api from '@/lib/axios'
 
 interface Notification {
-  id: string
+  _id: string
   title: string
   description: string
   type: 'info' | 'warning' | 'error' | 'success'
-  source: 'system' | 'analytics' | 'email' | 'team' | 'integration'
-  timestamp: string
+  source: 'system' | 'analytics' | 'email' | 'team' | 'integration' | 'user' | 'vendor' | 'order' | 'product' | 'wallet'
+  createdAt: string
   read: boolean
   important: boolean
-  action?: {
-    label: string
-    url: string
-  }
+  action_url?: string
   metadata?: Record<string, string | number>
 }
 
 export function Notifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'New User Spike Detected',
-      description:
-        'Your website experienced a 142% increase in new users over the last 24 hours.',
-      type: 'warning',
-      source: 'analytics',
-      timestamp: '2 hours ago',
-      read: false,
-      important: true,
-      action: {
-        label: 'View Report',
-        url: '/analytics/audience',
-      },
-      metadata: { users: 1248, increase: '142%' },
-    },
-    {
-      id: '2',
-      title: 'Email Campaign Sent Successfully',
-      description: 'Your weekly newsletter was delivered to 8,423 subscribers.',
-      type: 'success',
-      source: 'email',
-      timestamp: '4 hours ago',
-      read: true,
-      important: false,
-      action: {
-        label: 'View Stats',
-        url: '/email/campaigns/week-47',
-      },
-      metadata: { recipients: 8423, openRate: '28.7%' },
-    },
-    {
-      id: '3',
-      title: 'Payment Processing Issue',
-      description:
-        'One of your payment gateways failed to process 3 transactions.',
-      type: 'error',
-      source: 'system',
-      timestamp: '6 hours ago',
-      read: false,
-      important: true,
-      action: {
-        label: 'Fix Now',
-        url: '/settings/payments',
-      },
-      metadata: { failed: 3, amount: '$487.50' },
-    },
-    {
-      id: '4',
-      title: 'Team Member Commented',
-      description:
-        'Sarah from the design team added a comment on your dashboard layout.',
-      type: 'info',
-      source: 'team',
-      timestamp: '1 day ago',
-      read: false,
-      important: false,
-      action: {
-        label: 'View Comment',
-        url: '/team/dashboard-feedback',
-      },
-      metadata: { user: 'Sarah', project: 'Dashboard Redesign' },
-    },
-    {
-      id: '5',
-      title: 'New Integration Connected',
-      description:
-        'Google Analytics has been successfully connected to your account.',
-      type: 'success',
-      source: 'integration',
-      timestamp: '1 day ago',
-      read: true,
-      important: false,
-      action: {
-        label: 'Explore Data',
-        url: '/analytics',
-      },
-      metadata: { integration: 'Google Analytics', status: 'Connected' },
-    },
-    {
-      id: '6',
-      title: 'Server Maintenance Scheduled',
-      description:
-        'Your server will undergo maintenance on November 25th at 2:00 AM UTC.',
-      type: 'warning',
-      source: 'system',
-      timestamp: '2 days ago',
-      read: false,
-      important: true,
-      action: {
-        label: 'View Details',
-        url: '/settings/maintenance',
-      },
-      metadata: { date: 'Nov 25, 2:00 AM UTC', duration: '2 hours' },
-    },
-    {
-      id: '7',
-      title: 'New Feature Available',
-      description:
-        'The advanced segmentation feature is now available in your plan.',
-      type: 'info',
-      source: 'system',
-      timestamp: '3 days ago',
-      read: true,
-      important: false,
-      action: {
-        label: 'Learn More',
-        url: '/features/segmentation',
-      },
-      metadata: { feature: 'Advanced Segmentation', plan: 'Pro' },
-    },
-    {
-      id: '8',
-      title: 'Your Report is Ready',
-      description:
-        'The monthly traffic report for your e-commerce store is now available.',
-      type: 'success',
-      source: 'system',
-      timestamp: '3 days ago',
-      read: false,
-      important: false,
-      action: {
-        label: 'Download Report',
-        url: '/reports/monthly-ecommerce',
-      },
-      metadata: { report: 'Monthly E-commerce Report', format: 'PDF' },
-    },
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   const [selectedTab, setSelectedTab] = useState<
     'all' | 'unread' | 'important'
@@ -181,20 +52,50 @@ export function Notifications() {
     []
   )
 
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const res = await api.get('/notifications?limit=100')
+        setNotifications(res.data?.notifications || [])
+      } catch (error) {
+        console.error('Failed to fetch notifications', error)
+      }
+    }
+    loadNotifications()
+    const interval = setInterval(loadNotifications, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const formatTimeAgo = (dateString: string) => {
+    const diff = Date.now() - new Date(dateString).getTime()
+    const seconds = Math.floor(diff / 1000)
+    if (seconds < 60) return 'Just now'
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `${minutes}m ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h ago`
+    const days = Math.floor(hours / 24)
+    return `${days}d ago`
+  }
+
   // Filter notifications based on tab and search
-  const filteredNotifications = notifications
-    .filter((notification) => {
-      if (selectedTab === 'unread') return !notification.read
-      if (selectedTab === 'important') return notification.important
-      return true
-    })
-    .filter(
-      (notification) =>
-        notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        notification.description
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-    )
+  const filteredNotifications = useMemo(
+    () =>
+      notifications
+        .filter((notification) => {
+          if (selectedTab === 'unread') return !notification.read
+          if (selectedTab === 'important') return notification.important
+          return true
+        })
+        .filter(
+          (notification) =>
+            notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            notification.description
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())
+        ),
+    [notifications, selectedTab, searchTerm]
+  )
 
   // Handle notification selection
   const toggleNotification = (id: string) => {
@@ -208,32 +109,49 @@ export function Notifications() {
     if (selectAll) {
       setSelectedNotifications([])
     } else {
-      setSelectedNotifications(filteredNotifications.map((n) => n.id))
+      setSelectedNotifications(filteredNotifications.map((n) => n._id))
     }
     setSelectAll(!selectAll)
   }
 
   // Mark as read
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
+  const markAsRead = async (id: string) => {
+    try {
+      await api.patch(`/notifications/${id}/read`)
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+      )
+    } catch (error) {
+      console.error('Failed to mark notification read', error)
+    }
   }
 
   // Mark all as read
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    setSelectedNotifications([])
-    setSelectAll(false)
+  const markAllAsRead = async () => {
+    try {
+      await api.patch('/notifications/read-all')
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+      setSelectedNotifications([])
+      setSelectAll(false)
+    } catch (error) {
+      console.error('Failed to mark all read', error)
+    }
   }
 
   // Delete selected
-  const deleteSelected = () => {
-    setNotifications((prev) =>
-      prev.filter((n) => !selectedNotifications.includes(n.id))
-    )
-    setSelectedNotifications([])
-    setSelectAll(false)
+  const deleteSelected = async () => {
+    try {
+      await Promise.all(
+        selectedNotifications.map((id) => api.delete(`/notifications/${id}`))
+      )
+      setNotifications((prev) =>
+        prev.filter((n) => !selectedNotifications.includes(n._id))
+      )
+      setSelectedNotifications([])
+      setSelectAll(false)
+    } catch (error) {
+      console.error('Failed to delete notifications', error)
+    }
   }
 
   // Get notification type icon and color
@@ -264,6 +182,11 @@ export function Notifications() {
       email: <Mail className='h-4 w-4' />,
       team: <Users className='h-4 w-4' />,
       integration: <ExternalLink className='h-4 w-4' />,
+      user: <Users className='h-4 w-4' />,
+      vendor: <Users className='h-4 w-4' />,
+      order: <Bell className='h-4 w-4' />,
+      product: <Bell className='h-4 w-4' />,
+      wallet: <Bell className='h-4 w-4' />,
     }
     return icons[source as keyof typeof icons]
   }
@@ -346,22 +269,22 @@ export function Notifications() {
           <>
             {filteredNotifications.map((notification) => (
               <Card
-                key={notification.id}
-                className={`transition-all duration-200 hover:shadow-md ${
-                  !notification.read ? 'border-primary border-l-4' : ''
-                } ${selectedNotifications.includes(notification.id) ? 'bg-muted' : ''}`}
-              >
-                <CardContent className='p-6'>
-                  <div className='flex items-start gap-4'>
+              key={notification._id}
+              className={`transition-all duration-200 hover:shadow-md ${
+                !notification.read ? 'border-primary border-l-4' : ''
+              } ${selectedNotifications.includes(notification._id) ? 'bg-muted' : ''}`}
+            >
+              <CardContent className='p-6'>
+                <div className='flex items-start gap-4'>
                     {/* Checkbox */}
                     <div className='pt-1'>
                       <Checkbox
-                        id={`notification-${notification.id}`}
+                        id={`notification-${notification._id}`}
                         checked={selectedNotifications.includes(
-                          notification.id
+                          notification._id
                         )}
                         onCheckedChange={() =>
-                          toggleNotification(notification.id)
+                          toggleNotification(notification._id)
                         }
                       />
                     </div>
@@ -419,17 +342,19 @@ export function Notifications() {
                             )}
 
                             {/* Action button */}
-                            {notification.action && (
+                            {notification.action_url ? (
                               <Button
                                 variant='link'
                                 size='sm'
                                 className='text-primary hover:text-primary/80 h-auto p-0'
-                                onClick={() => markAsRead(notification.id)}
+                                asChild
                               >
-                                {notification.action.label}
-                                <ExternalLink className='ml-1 h-3 w-3' />
+                                <Link to={notification.action_url}>
+                                  View
+                                  <ExternalLink className='ml-1 h-3 w-3' />
+                                </Link>
                               </Button>
-                            )}
+                            ) : null}
                           </div>
                         </div>
 
@@ -449,7 +374,7 @@ export function Notifications() {
                       <div className='mt-3 flex items-center justify-between'>
                         <div className='text-muted-foreground flex items-center gap-2 text-xs'>
                           <Clock className='h-3 w-3' />
-                          {notification.timestamp}
+                          {formatTimeAgo(notification.createdAt)}
                           {!notification.read && (
                             <span className='bg-primary h-2 w-2 animate-pulse rounded-full'></span>
                           )}
@@ -459,7 +384,7 @@ export function Notifications() {
                           <Button
                             variant='ghost'
                             size='sm'
-                            onClick={() => markAsRead(notification.id)}
+                            onClick={() => markAsRead(notification._id)}
                             className='h-6 px-2 text-xs'
                           >
                             Mark as read

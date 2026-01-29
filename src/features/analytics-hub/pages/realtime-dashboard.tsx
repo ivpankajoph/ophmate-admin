@@ -10,12 +10,13 @@ import type { RealtimeAnalytics, AnalyticsSummary } from "@/features/analytics-h
 import { getQueryFn } from "@/features/analytics-hub/lib/query";
 
 export default function RealtimeDashboard() {
-  const { vendorId } = useAnalyticsContext();
+  const { vendorId, source } = useAnalyticsContext();
   const summaryQueryFn = getQueryFn<AnalyticsSummary>();
   const realtimeQueryFn = getQueryFn<RealtimeAnalytics>();
+  const sourceParam = source === "all" ? undefined : source;
   
   const { data: summaryData, isLoading: summaryLoading } = useQuery<AnalyticsSummary>({
-    queryKey: [buildApiUrl("/analytics/dashboard/summary", { vendorId })],
+    queryKey: [buildApiUrl("/analytics/dashboard/summary", { vendorId, source: sourceParam })],
     queryFn: summaryQueryFn,
     refetchInterval: 30000,
   });
@@ -26,7 +27,7 @@ export default function RealtimeDashboard() {
     isError: realtimeError,
     refetch,
   } = useQuery<RealtimeAnalytics>({
-    queryKey: [buildApiUrl("/analytics/dashboard/realtime", { vendorId })],
+    queryKey: [buildApiUrl("/analytics/dashboard/realtime", { vendorId, source: sourceParam })],
     queryFn: realtimeQueryFn,
     refetchInterval: 5000,
   });

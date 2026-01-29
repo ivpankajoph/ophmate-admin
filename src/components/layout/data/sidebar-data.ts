@@ -3,6 +3,7 @@ import {
   HelpCircle,
   Users,
   ShieldCheck,
+  ShoppingCart,
 } from 'lucide-react'
 
 export const ROLES = {
@@ -41,6 +42,30 @@ export const sidebarData: any = {
           roles: [ROLES.ADMIN],
         },
         {
+          title: 'Orders',
+          url: '/order',
+          icon: ShoppingCart,
+          roles: [ROLES.ADMIN, ROLES.VENDOR],
+        },
+        {
+          title: 'Wallet',
+          url: '/wallet',
+          icon: LayoutDashboard,
+          roles: [ROLES.ADMIN, ROLES.VENDOR],
+        },
+        {
+          title: 'Template Wallet',
+          url: '/template-wallet',
+          icon: LayoutDashboard,
+          roles: [ROLES.ADMIN, ROLES.VENDOR],
+        },
+        {
+          title: 'Order - Template Data',
+          url: '/template-orders',
+          icon: ShoppingCart,
+          roles: [ROLES.ADMIN, ROLES.VENDOR],
+        },
+        {
           title: 'Storefront Analytics',
           url: '/analytics',
           icon: LayoutDashboard,
@@ -73,6 +98,11 @@ export const sidebarData: any = {
               title: 'Sub Category',
               url: '/subcategory',
               roles: [ROLES.ADMIN,ROLES.VENDOR],
+            },
+            {
+              title: 'Commission Rules',
+              url: '/commission',
+              roles: [ROLES.ADMIN],
             },
           ],
         },

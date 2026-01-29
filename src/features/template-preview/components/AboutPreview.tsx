@@ -1,5 +1,6 @@
 import { type TemplateData } from '@/features/vendor-template/data'
 import { JSX } from 'react'
+import { InlineEditableText } from './InlineEditableText'
 
 interface AboutPreviewProps {
   template: TemplateData
@@ -35,6 +36,13 @@ export function AboutPreview({
     <div
       className='group cursor-pointer rounded-3xl transition hover:ring-2 hover:ring-slate-900/15'
       onClickCapture={(event) => {
+        if (
+          (event.target as HTMLElement | null)?.closest?.(
+            '[data-inline-edit="true"]'
+          )
+        ) {
+          return
+        }
         event.preventDefault()
         event.stopPropagation()
         emitSelect(sectionId)
@@ -78,29 +86,42 @@ export function AboutPreview({
           <p className='text-xs font-semibold uppercase tracking-[0.32em] text-white/70'>
             About Us
           </p>
-          <h1
+          <InlineEditableText
+            as='h1'
+            value={about.hero?.title}
+            fallback='We craft products with purpose.'
+            path={['components', 'about_page', 'hero', 'title']}
+            vendorId={vendorId}
+            page='about'
+            colorPath={['components', 'about_page', 'hero_style', 'titleColor']}
+            sizePath={['components', 'about_page', 'hero_style', 'titleSize']}
+            color={heroStyle.titleColor}
+            fontSize={heroStyle.titleSize}
             className='text-3xl font-semibold sm:text-5xl'
-            style={{
-              color: heroStyle.titleColor || undefined,
-              fontSize: heroStyle.titleSize
-                ? `${heroStyle.titleSize}px`
-                : undefined,
-            }}
-          >
-            {about.hero?.title || 'We craft products with purpose.'}
-          </h1>
-          <p
+          />
+          <InlineEditableText
+            as='p'
+            value={about.hero?.subtitle}
+            fallback='Share the story behind your brand and highlight what makes you different.'
+            path={['components', 'about_page', 'hero', 'subtitle']}
+            vendorId={vendorId}
+            page='about'
+            colorPath={[
+              'components',
+              'about_page',
+              'hero_style',
+              'subtitleColor',
+            ]}
+            sizePath={[
+              'components',
+              'about_page',
+              'hero_style',
+              'subtitleSize',
+            ]}
+            color={heroStyle.subtitleColor}
+            fontSize={heroStyle.subtitleSize}
             className='max-w-2xl text-base text-white/80'
-            style={{
-              color: heroStyle.subtitleColor || undefined,
-              fontSize: heroStyle.subtitleSize
-                ? `${heroStyle.subtitleSize}px`
-                : undefined,
-            }}
-          >
-            {about.hero?.subtitle ||
-              'Share the story behind your brand and highlight what makes you different.'}
-          </p>
+          />
         </div>
       </section>
       )
@@ -113,12 +134,15 @@ export function AboutPreview({
           <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
             Our Story
           </p>
-          <h2
+          <InlineEditableText
+            as='h2'
+            value={about.story?.heading}
+            fallback='Designed for modern marketplaces.'
+            path={['components', 'about_page', 'story', 'heading']}
+            vendorId={vendorId}
+            page='about'
             className='text-2xl font-semibold text-slate-900'
-            style={{ color: 'var(--template-accent)' }}
-          >
-            {about.story?.heading || 'Designed for modern marketplaces.'}
-          </h2>
+          />
           <div className='space-y-3 text-sm text-slate-600'>
             {(about.story?.paragraphs?.length
               ? about.story.paragraphs
@@ -127,7 +151,16 @@ export function AboutPreview({
                   'Share the milestone that inspired your storefront.',
                 ]
             ).map((paragraph, idx) => (
-              <p key={idx}>{paragraph}</p>
+              <InlineEditableText
+                key={idx}
+                as='p'
+                value={paragraph}
+                fallback='Add your brand journey here to build trust with shoppers.'
+                path={['components', 'about_page', 'story', 'paragraphs', String(idx)]}
+                vendorId={vendorId}
+                page='about'
+                className='text-sm text-slate-600'
+              />
             ))}
           </div>
         </div>
@@ -175,13 +208,30 @@ export function AboutPreview({
                 >
                   {value.icon || 'Value'}
                 </div>
-                <h4 className='text-lg font-semibold text-slate-900'>
-                  {value.title || 'Customer-first'}
-                </h4>
-                <p className='mt-2 text-sm text-slate-600'>
-                  {value.description ||
-                    'Explain what drives this value for your brand.'}
-                </p>
+                <InlineEditableText
+                  as='h4'
+                  value={value.title}
+                  fallback='Customer-first'
+                  path={['components', 'about_page', 'values', String(idx), 'title']}
+                  vendorId={vendorId}
+                  page='about'
+                  className='text-lg font-semibold text-slate-900'
+                />
+                <InlineEditableText
+                  as='p'
+                  value={value.description}
+                  fallback='Explain what drives this value for your brand.'
+                  path={[
+                    'components',
+                    'about_page',
+                    'values',
+                    String(idx),
+                    'description',
+                  ]}
+                  vendorId={vendorId}
+                  page='about'
+                  className='mt-2 text-sm text-slate-600'
+                />
               </div>
             )
           )}
@@ -223,12 +273,24 @@ export function AboutPreview({
                   </div>
                 )}
               </div>
-              <h4 className='text-lg font-semibold text-slate-900'>
-                {member.name || 'Team Member'}
-              </h4>
-              <p className='text-sm text-slate-500'>
-                {member.role || 'Role'}
-              </p>
+              <InlineEditableText
+                as='h4'
+                value={member.name}
+                fallback='Team Member'
+                path={['components', 'about_page', 'team', String(idx), 'name']}
+                vendorId={vendorId}
+                page='about'
+                className='text-lg font-semibold text-slate-900'
+              />
+              <InlineEditableText
+                as='p'
+                value={member.role}
+                fallback='Role'
+                path={['components', 'about_page', 'team', String(idx), 'role']}
+                vendorId={vendorId}
+                page='about'
+                className='text-sm text-slate-500'
+              />
             </div>
           ))}
         </div>
@@ -241,15 +303,24 @@ export function AboutPreview({
       <section className='grid gap-4 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm sm:grid-cols-3'>
         {(about.stats?.length ? about.stats : [{ value: '', label: '' }, { value: '', label: '' }, { value: '', label: '' }]).map((stat, idx) => (
           <div key={`${stat.label || 'stat'}-${idx}`} className='text-center'>
-            <p
+            <InlineEditableText
+              as='p'
+              value={stat.value}
+              fallback='25+'
+              path={['components', 'about_page', 'stats', String(idx), 'value']}
+              vendorId={vendorId}
+              page='about'
               className='text-3xl font-semibold text-slate-900'
-              style={{ color: 'var(--template-accent)' }}
-            >
-              {stat.value || '25+'}
-            </p>
-            <p className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'>
-              {stat.label || 'Projects'}
-            </p>
+            />
+            <InlineEditableText
+              as='p'
+              value={stat.label}
+              fallback='Projects'
+              path={['components', 'about_page', 'stats', String(idx), 'label']}
+              vendorId={vendorId}
+              page='about'
+              className='text-xs font-semibold uppercase tracking-[0.3em] text-slate-400'
+            />
           </div>
         ))}
       </section>

@@ -25,6 +25,7 @@ import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_aut
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedAnalyticsRouteRouteImport } from './routes/_authenticated/analytics/route'
 import { Route as TemplateVendorIdIndexRouteImport } from './routes/template/$vendorId/index'
+import { Route as AuthenticatedWalletIndexRouteImport } from './routes/_authenticated/wallet/index'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedVendorTemplateIndexRouteImport } from './routes/_authenticated/vendor-template/index'
 import { Route as AuthenticatedVendorTemplatePagesIndexRouteImport } from './routes/_authenticated/vendor-template-pages/index'
@@ -34,12 +35,15 @@ import { Route as AuthenticatedVendorTemplateAboutIndexRouteImport } from './rou
 import { Route as AuthenticatedVendorAnalyticsIndexRouteImport } from './routes/_authenticated/vendor-analytics/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedUploadProductsIndexRouteImport } from './routes/_authenticated/upload-products/index'
+import { Route as AuthenticatedTemplateWalletIndexRouteImport } from './routes/_authenticated/template-wallet/index'
+import { Route as AuthenticatedTemplateOrdersIndexRouteImport } from './routes/_authenticated/template-orders/index'
 import { Route as AuthenticatedSubcategoryIndexRouteImport } from './routes/_authenticated/subcategory/index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products/index'
 import { Route as AuthenticatedOrderIndexRouteImport } from './routes/_authenticated/order/index'
 import { Route as AuthenticatedInventoryManagementIndexRouteImport } from './routes/_authenticated/inventory-management/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
+import { Route as AuthenticatedCommissionIndexRouteImport } from './routes/_authenticated/commission/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedCategoryIndexRouteImport } from './routes/_authenticated/category/index'
 import { Route as AuthenticatedBannersIndexRouteImport } from './routes/_authenticated/banners/index'
@@ -147,6 +151,12 @@ const TemplateVendorIdIndexRoute = TemplateVendorIdIndexRouteImport.update({
   path: '/template/$vendorId/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWalletIndexRoute =
+  AuthenticatedWalletIndexRouteImport.update({
+    id: '/wallet/',
+    path: '/wallet/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVendorIndexRoute =
   AuthenticatedVendorIndexRouteImport.update({
     id: '/vendor/',
@@ -200,6 +210,18 @@ const AuthenticatedUploadProductsIndexRoute =
     path: '/upload-products/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTemplateWalletIndexRoute =
+  AuthenticatedTemplateWalletIndexRouteImport.update({
+    id: '/template-wallet/',
+    path: '/template-wallet/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTemplateOrdersIndexRoute =
+  AuthenticatedTemplateOrdersIndexRouteImport.update({
+    id: '/template-orders/',
+    path: '/template-orders/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSubcategoryIndexRoute =
   AuthenticatedSubcategoryIndexRouteImport.update({
     id: '/subcategory/',
@@ -233,6 +255,12 @@ const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
     id: '/help-center/',
     path: '/help-center/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCommissionIndexRoute =
+  AuthenticatedCommissionIndexRouteImport.update({
+    id: '/commission/',
+    path: '/commission/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexRouteImport.update({
@@ -429,12 +457,15 @@ export interface FileRoutesByFullPath {
   '/banners': typeof AuthenticatedBannersIndexRoute
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
+  '/commission': typeof AuthenticatedCommissionIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory-management': typeof AuthenticatedInventoryManagementIndexRoute
   '/order': typeof AuthenticatedOrderIndexRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
+  '/template-orders': typeof AuthenticatedTemplateOrdersIndexRoute
+  '/template-wallet': typeof AuthenticatedTemplateWalletIndexRoute
   '/upload-products': typeof AuthenticatedUploadProductsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/vendor-analytics': typeof AuthenticatedVendorAnalyticsIndexRoute
@@ -444,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/vendor-template-pages': typeof AuthenticatedVendorTemplatePagesIndexRoute
   '/vendor-template': typeof AuthenticatedVendorTemplateIndexRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
+  '/wallet': typeof AuthenticatedWalletIndexRoute
   '/template/$vendorId': typeof TemplateVendorIdIndexRoute
   '/template/$vendorId/category/$categoryId': typeof TemplateVendorIdCategoryCategoryIdRoute
   '/template/$vendorId/page/$pageSlug': typeof TemplateVendorIdPagePageSlugRoute
@@ -486,12 +518,15 @@ export interface FileRoutesByTo {
   '/banners': typeof AuthenticatedBannersIndexRoute
   '/category': typeof AuthenticatedCategoryIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
+  '/commission': typeof AuthenticatedCommissionIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory-management': typeof AuthenticatedInventoryManagementIndexRoute
   '/order': typeof AuthenticatedOrderIndexRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/subcategory': typeof AuthenticatedSubcategoryIndexRoute
+  '/template-orders': typeof AuthenticatedTemplateOrdersIndexRoute
+  '/template-wallet': typeof AuthenticatedTemplateWalletIndexRoute
   '/upload-products': typeof AuthenticatedUploadProductsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/vendor-analytics': typeof AuthenticatedVendorAnalyticsIndexRoute
@@ -501,6 +536,7 @@ export interface FileRoutesByTo {
   '/vendor-template-pages': typeof AuthenticatedVendorTemplatePagesIndexRoute
   '/vendor-template': typeof AuthenticatedVendorTemplateIndexRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
+  '/wallet': typeof AuthenticatedWalletIndexRoute
   '/template/$vendorId': typeof TemplateVendorIdIndexRoute
   '/template/$vendorId/category/$categoryId': typeof TemplateVendorIdCategoryCategoryIdRoute
   '/template/$vendorId/page/$pageSlug': typeof TemplateVendorIdPagePageSlugRoute
@@ -548,12 +584,15 @@ export interface FileRoutesById {
   '/_authenticated/banners/': typeof AuthenticatedBannersIndexRoute
   '/_authenticated/category/': typeof AuthenticatedCategoryIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
+  '/_authenticated/commission/': typeof AuthenticatedCommissionIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/inventory-management/': typeof AuthenticatedInventoryManagementIndexRoute
   '/_authenticated/order/': typeof AuthenticatedOrderIndexRoute
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/subcategory/': typeof AuthenticatedSubcategoryIndexRoute
+  '/_authenticated/template-orders/': typeof AuthenticatedTemplateOrdersIndexRoute
+  '/_authenticated/template-wallet/': typeof AuthenticatedTemplateWalletIndexRoute
   '/_authenticated/upload-products/': typeof AuthenticatedUploadProductsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/vendor-analytics/': typeof AuthenticatedVendorAnalyticsIndexRoute
@@ -563,6 +602,7 @@ export interface FileRoutesById {
   '/_authenticated/vendor-template-pages/': typeof AuthenticatedVendorTemplatePagesIndexRoute
   '/_authenticated/vendor-template/': typeof AuthenticatedVendorTemplateIndexRoute
   '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
+  '/_authenticated/wallet/': typeof AuthenticatedWalletIndexRoute
   '/template/$vendorId/': typeof TemplateVendorIdIndexRoute
   '/template/$vendorId/category/$categoryId': typeof TemplateVendorIdCategoryCategoryIdRoute
   '/template/$vendorId/page/$pageSlug': typeof TemplateVendorIdPagePageSlugRoute
@@ -608,12 +648,15 @@ export interface FileRouteTypes {
     | '/banners'
     | '/category'
     | '/chats'
+    | '/commission'
     | '/help-center'
     | '/inventory-management'
     | '/order'
     | '/products'
     | '/profile'
     | '/subcategory'
+    | '/template-orders'
+    | '/template-wallet'
     | '/upload-products'
     | '/users'
     | '/vendor-analytics'
@@ -623,6 +666,7 @@ export interface FileRouteTypes {
     | '/vendor-template-pages'
     | '/vendor-template'
     | '/vendor'
+    | '/wallet'
     | '/template/$vendorId'
     | '/template/$vendorId/category/$categoryId'
     | '/template/$vendorId/page/$pageSlug'
@@ -665,12 +709,15 @@ export interface FileRouteTypes {
     | '/banners'
     | '/category'
     | '/chats'
+    | '/commission'
     | '/help-center'
     | '/inventory-management'
     | '/order'
     | '/products'
     | '/profile'
     | '/subcategory'
+    | '/template-orders'
+    | '/template-wallet'
     | '/upload-products'
     | '/users'
     | '/vendor-analytics'
@@ -680,6 +727,7 @@ export interface FileRouteTypes {
     | '/vendor-template-pages'
     | '/vendor-template'
     | '/vendor'
+    | '/wallet'
     | '/template/$vendorId'
     | '/template/$vendorId/category/$categoryId'
     | '/template/$vendorId/page/$pageSlug'
@@ -726,12 +774,15 @@ export interface FileRouteTypes {
     | '/_authenticated/banners/'
     | '/_authenticated/category/'
     | '/_authenticated/chats/'
+    | '/_authenticated/commission/'
     | '/_authenticated/help-center/'
     | '/_authenticated/inventory-management/'
     | '/_authenticated/order/'
     | '/_authenticated/products/'
     | '/_authenticated/profile/'
     | '/_authenticated/subcategory/'
+    | '/_authenticated/template-orders/'
+    | '/_authenticated/template-wallet/'
     | '/_authenticated/upload-products/'
     | '/_authenticated/users/'
     | '/_authenticated/vendor-analytics/'
@@ -741,6 +792,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendor-template-pages/'
     | '/_authenticated/vendor-template/'
     | '/_authenticated/vendor/'
+    | '/_authenticated/wallet/'
     | '/template/$vendorId/'
     | '/template/$vendorId/category/$categoryId'
     | '/template/$vendorId/page/$pageSlug'
@@ -892,6 +944,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplateVendorIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/wallet/': {
+      id: '/_authenticated/wallet/'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AuthenticatedWalletIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vendor/': {
       id: '/_authenticated/vendor/'
       path: '/vendor'
@@ -955,6 +1014,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUploadProductsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/template-wallet/': {
+      id: '/_authenticated/template-wallet/'
+      path: '/template-wallet'
+      fullPath: '/template-wallet'
+      preLoaderRoute: typeof AuthenticatedTemplateWalletIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/template-orders/': {
+      id: '/_authenticated/template-orders/'
+      path: '/template-orders'
+      fullPath: '/template-orders'
+      preLoaderRoute: typeof AuthenticatedTemplateOrdersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/subcategory/': {
       id: '/_authenticated/subcategory/'
       path: '/subcategory'
@@ -995,6 +1068,13 @@ declare module '@tanstack/react-router' {
       path: '/help-center'
       fullPath: '/help-center'
       preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/commission/': {
+      id: '/_authenticated/commission/'
+      path: '/commission'
+      fullPath: '/commission'
+      preLoaderRoute: typeof AuthenticatedCommissionIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chats/': {
@@ -1227,12 +1307,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBannersIndexRoute: typeof AuthenticatedBannersIndexRoute
   AuthenticatedCategoryIndexRoute: typeof AuthenticatedCategoryIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
+  AuthenticatedCommissionIndexRoute: typeof AuthenticatedCommissionIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInventoryManagementIndexRoute: typeof AuthenticatedInventoryManagementIndexRoute
   AuthenticatedOrderIndexRoute: typeof AuthenticatedOrderIndexRoute
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
   AuthenticatedSubcategoryIndexRoute: typeof AuthenticatedSubcategoryIndexRoute
+  AuthenticatedTemplateOrdersIndexRoute: typeof AuthenticatedTemplateOrdersIndexRoute
+  AuthenticatedTemplateWalletIndexRoute: typeof AuthenticatedTemplateWalletIndexRoute
   AuthenticatedUploadProductsIndexRoute: typeof AuthenticatedUploadProductsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedVendorAnalyticsIndexRoute: typeof AuthenticatedVendorAnalyticsIndexRoute
@@ -1242,6 +1325,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedVendorTemplatePagesIndexRoute: typeof AuthenticatedVendorTemplatePagesIndexRoute
   AuthenticatedVendorTemplateIndexRoute: typeof AuthenticatedVendorTemplateIndexRoute
   AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
+  AuthenticatedWalletIndexRoute: typeof AuthenticatedWalletIndexRoute
   AuthenticatedCategoryCreateCategoryIndexRoute: typeof AuthenticatedCategoryCreateCategoryIndexRoute
   AuthenticatedProductsAdminProductsIndexRoute: typeof AuthenticatedProductsAdminProductsIndexRoute
   AuthenticatedProductsCreateProductsIndexRoute: typeof AuthenticatedProductsCreateProductsIndexRoute
@@ -1255,6 +1339,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBannersIndexRoute: AuthenticatedBannersIndexRoute,
   AuthenticatedCategoryIndexRoute: AuthenticatedCategoryIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
+  AuthenticatedCommissionIndexRoute: AuthenticatedCommissionIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInventoryManagementIndexRoute:
     AuthenticatedInventoryManagementIndexRoute,
@@ -1262,6 +1347,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   AuthenticatedSubcategoryIndexRoute: AuthenticatedSubcategoryIndexRoute,
+  AuthenticatedTemplateOrdersIndexRoute: AuthenticatedTemplateOrdersIndexRoute,
+  AuthenticatedTemplateWalletIndexRoute: AuthenticatedTemplateWalletIndexRoute,
   AuthenticatedUploadProductsIndexRoute: AuthenticatedUploadProductsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedVendorAnalyticsIndexRoute:
@@ -1276,6 +1363,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedVendorTemplatePagesIndexRoute,
   AuthenticatedVendorTemplateIndexRoute: AuthenticatedVendorTemplateIndexRoute,
   AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
+  AuthenticatedWalletIndexRoute: AuthenticatedWalletIndexRoute,
   AuthenticatedCategoryCreateCategoryIndexRoute:
     AuthenticatedCategoryCreateCategoryIndexRoute,
   AuthenticatedProductsAdminProductsIndexRoute:

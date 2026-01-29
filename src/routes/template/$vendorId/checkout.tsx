@@ -23,7 +23,10 @@ type Address = {
 type Cart = {
   items: Array<{
     _id: string
+    product_id?: string
     product_name: string
+    image_url?: string
+    variant_attributes?: Record<string, string>
     quantity: number
     total_price: number
   }>
@@ -47,6 +50,12 @@ function TemplateCheckout() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
+  const formatAttrs = (attrs?: Record<string, string>) => {
+    if (!attrs) return ''
+    return Object.values(attrs)
+      .filter((value) => value)
+      .join(' / ')
+  }
 
   const [form, setForm] = useState({
     label: 'Home',
@@ -186,8 +195,9 @@ function TemplateCheckout() {
             )}
 
             {loading ? (
-              <div className='rounded-lg bg-white p-6 text-center text-gray-500'>
-                Loading checkout...
+              <div className='space-y-4'>
+                <div className='h-40 rounded-2xl bg-slate-200/60 animate-pulse' />
+                <div className='h-72 rounded-2xl bg-slate-200/60 animate-pulse' />
               </div>
             ) : (
               <>
@@ -325,12 +335,38 @@ function TemplateCheckout() {
             </h2>
             <div className='mt-4 space-y-3 text-sm text-slate-600'>
               {cart?.items?.map((item) => (
-                <div key={item._id} className='flex justify-between'>
-                  <span>
-                    {item.product_name} x{item.quantity}
+                <a
+                  key={item._id}
+                  href={
+                    item.product_id
+                      ? `/template/${vendorId}/product/${item.product_id}`
+                      : '#'
+                  }
+                  className='flex items-start justify-between gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-slate-300'
+                >
+                  <div className='flex items-start gap-3'>
+                    <img
+                      src={
+                        item.image_url ||
+                        'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=200&q=80'
+                      }
+                      alt={item.product_name}
+                      className='h-12 w-12 rounded-lg object-cover'
+                    />
+                    <div className='min-w-0'>
+                      <p className='text-sm font-semibold text-slate-900'>
+                        {item.product_name}
+                      </p>
+                      <p className='text-xs text-slate-500'>
+                        {formatAttrs(item.variant_attributes) || 'Default variant'}
+                      </p>
+                      <p className='text-xs text-slate-500'>Qty: {item.quantity}</p>
+                    </div>
+                  </div>
+                  <span className='text-sm font-semibold text-slate-900'>
+                    ₹{item.total_price.toFixed(2)}
                   </span>
-                  <span>₹{item.total_price.toFixed(2)}</span>
-                </div>
+                </a>
               ))}
               <div className='flex justify-between border-t pt-3 font-semibold text-slate-900'>
                 <span>Total</span>
@@ -350,3 +386,4 @@ function TemplateCheckout() {
     </PreviewChrome>
   )
 }
+

@@ -19,6 +19,7 @@ import { TemplatePreviewPanel } from '../components/TemplatePreviewPanel'
 import { TemplateSectionOrder } from '../components/TemplateSectionOrder'
 import { ArrayField } from '../components/form/ArrayField'
 import { ThemeSettingsSection } from '../components/form/ThemeSettingsSection'
+import { updateFieldImmutable } from '../components/hooks/utils'
 import { initialData as importedInitialData, type TemplateData } from '../data'
 
 const selectVendorId = (state: any): string | undefined => state?.auth?.user?.id
@@ -234,16 +235,11 @@ function VendorTemplateOther() {
   }, [vendor_id, token])
 
   const updateField = (path: string[], value: unknown) => {
-    setData((prev) => {
-      const clone: any = structuredClone(prev)
-      let current: any = clone
-      for (let i = 0; i < path.length - 1; i++) {
-        if (current[path[i]] === undefined) current[path[i]] = {}
-        current = current[path[i]]
-      }
-      current[path[path.length - 1]] = value
-      return clone
-    })
+    setData((prev) => updateFieldImmutable(prev, path, value))
+  }
+
+  const handleInlineEdit = (path: string[], value: unknown) => {
+    updateField(path, value)
   }
 
   const handleSave = async () => {
@@ -287,8 +283,7 @@ function VendorTemplateOther() {
     }
   }
 
-  const previewUrl = vendor_id ? `/template/${vendor_id}` : undefined
-  const fullPreviewUrl = vendor_id
+  const previewBaseUrl = vendor_id
     ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
     : undefined
 
@@ -455,8 +450,20 @@ function VendorTemplateOther() {
           <TemplatePreviewPanel
             title='Live Template Preview'
             subtitle='Sync to refresh the right-side preview'
-            src={previewUrl}
-            fullPreviewUrl={fullPreviewUrl}
+            baseSrc={previewBaseUrl}
+            previewQuery=''
+            defaultPath=''
+            pageOptions={[
+              { label: 'Home', path: '' },
+              { label: 'About', path: '/about' },
+              { label: 'Contact', path: '/contact' },
+              { label: 'Cart', path: '/cart' },
+              { label: 'Orders', path: '/orders' },
+              { label: 'Profile', path: '/profile' },
+              { label: 'Logout', path: '/login' },
+              { label: 'Category', path: '/category' },
+              { label: 'Login', path: '/login' },
+            ]}
             onSync={handleSave}
             isSyncing={isSaving}
             syncDisabled={!vendor_id}
@@ -464,6 +471,7 @@ function VendorTemplateOther() {
             page='full'
             previewData={data}
             sectionOrder={sectionOrder}
+            onInlineEdit={handleInlineEdit}
           />
         }
       >

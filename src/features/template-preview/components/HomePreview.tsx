@@ -1,6 +1,12 @@
 import { ArrowUpRight } from 'lucide-react'
 import { type TemplateData } from '@/features/vendor-template/data'
-import { JSX, useMemo } from 'react'
+import { JSX, useMemo, useState } from 'react'
+import { InlineEditableText } from './InlineEditableText'
+import {
+  getTemplateAuth,
+  templateApiFetch,
+} from '@/features/template-preview/utils/templateAuth'
+import { toast } from 'sonner'
 
 interface Product {
   _id?: string
@@ -14,7 +20,7 @@ interface Product {
   } | string
   productCategoryName?: string
   defaultImages?: Array<{ url: string }>
-  variants?: Array<{ finalPrice?: number }>
+  variants?: Array<{ _id?: string; finalPrice?: number; stockQuantity?: number }>
 }
 
 interface HomePreviewProps {
@@ -87,6 +93,7 @@ export function HomePreview({
   const bannerColor = theme?.bannerColor || '#0f172a'
   const heroStyle = hero.hero_style || {}
   const productStyle = hero.products_style || {}
+  const [addingId, setAddingId] = useState<string | null>(null)
 
   const categoryEntries = useMemo(() => {
     const map = new Map<string, { label: string; id?: string }>()
@@ -118,6 +125,13 @@ export function HomePreview({
     <div
       className='group cursor-pointer rounded-3xl transition hover:ring-2 hover:ring-slate-900/15'
       onClickCapture={(event) => {
+        if (
+          (event.target as HTMLElement | null)?.closest?.(
+            '[data-inline-edit="true"]'
+          )
+        ) {
+          return
+        }
         if (
           sectionId === 'products' &&
           (event.target as HTMLElement | null)?.closest?.('a[href]')
@@ -161,83 +175,77 @@ export function HomePreview({
         />
         <div className='relative z-10 grid gap-6 px-6 py-12 sm:px-10 lg:grid-cols-[1.2fr_0.8fr]'>
           <div className='space-y-4'>
-            <p
+            <InlineEditableText
+              as='p'
+              value={hero.hero_kicker}
+              fallback='Featured Collection'
+              path={['components', 'home_page', 'hero_kicker']}
+              vendorId={vendorId}
+              page='home'
+              colorPath={['components', 'home_page', 'hero_style', 'badgeColor']}
+              sizePath={['components', 'home_page', 'hero_style', 'badgeSize']}
+              color={heroStyle.badgeColor}
+              fontSize={heroStyle.badgeSize}
               className='text-xs font-semibold uppercase tracking-[0.34em] text-white/70'
-              onClickCapture={(event) => {
-                event.preventDefault()
-                event.stopPropagation()
-                emitSelect('hero', 'hero.kicker')
-              }}
-              style={{
-                color: heroStyle.badgeColor || undefined,
-                fontSize: heroStyle.badgeSize
-                  ? `${heroStyle.badgeSize}px`
-                  : undefined,
-              }}
-            >
-              {hero.hero_kicker || 'Featured Collection'}
-            </p>
-            <h1
+            />
+            <InlineEditableText
+              as='h1'
+              value={hero.header_text}
+              fallback='Build a storefront that feels alive.'
+              path={['components', 'home_page', 'header_text']}
+              vendorId={vendorId}
+              page='home'
+              colorPath={['components', 'home_page', 'hero_style', 'titleColor']}
+              sizePath={['components', 'home_page', 'hero_style', 'titleSize']}
+              color={heroStyle.titleColor}
+              fontSize={heroStyle.titleSize}
               className='text-3xl font-semibold leading-tight sm:text-5xl'
-              onClickCapture={(event) => {
-                event.preventDefault()
-                event.stopPropagation()
-                emitSelect('hero', 'hero.title')
-              }}
-              style={{
-                color: heroStyle.titleColor || undefined,
-                fontSize: heroStyle.titleSize
-                  ? `${heroStyle.titleSize}px`
-                  : undefined,
-              }}
-            >
-              {hero.header_text || 'Build a storefront that feels alive.'}
-            </h1>
-            <p
+            />
+            <InlineEditableText
+              as='p'
+              value={hero.header_text_small}
+              fallback='Showcase your products with cinematic layouts and a story-first approach.'
+              path={['components', 'home_page', 'header_text_small']}
+              vendorId={vendorId}
+              page='home'
+              colorPath={['components', 'home_page', 'hero_style', 'subtitleColor']}
+              sizePath={['components', 'home_page', 'hero_style', 'subtitleSize']}
+              color={heroStyle.subtitleColor}
+              fontSize={heroStyle.subtitleSize}
               className='max-w-xl text-base text-white/80'
-              onClickCapture={(event) => {
-                event.preventDefault()
-                event.stopPropagation()
-                emitSelect('hero', 'hero.subtitle')
-              }}
-              style={{
-                color: heroStyle.subtitleColor || undefined,
-                fontSize: heroStyle.subtitleSize
-                  ? `${heroStyle.subtitleSize}px`
-                  : undefined,
-              }}
-            >
-              {hero.header_text_small ||
-                'Showcase your products with cinematic layouts and a story-first approach.'}
-            </p>
+            />
             <div className='flex flex-wrap gap-3'>
               <div
                 className='inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-white'
-                onClickCapture={(event) => {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  emitSelect('hero', 'hero.primaryButton')
-                }}
                 style={{
                   backgroundColor: heroStyle.primaryButtonColor || accent,
                 }}
               >
-                {hero.button_header || 'Explore Products'}
+                <InlineEditableText
+                  value={hero.button_header}
+                  fallback='Explore Products'
+                  path={['components', 'home_page', 'button_header']}
+                  vendorId={vendorId}
+                  page='home'
+                  className='text-sm font-semibold text-white'
+                />
                 <ArrowUpRight className='h-4 w-4' />
               </div>
               <div
                 className='inline-flex items-center gap-2 rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white/80'
-                onClickCapture={(event) => {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  emitSelect('hero', 'hero.secondaryButton')
-                }}
                 style={{
                   borderColor: heroStyle.secondaryButtonColor || undefined,
                   color: heroStyle.badgeColor || undefined,
                 }}
               >
-                {hero.button_secondary || hero.badge_text || 'New arrivals weekly'}
+                <InlineEditableText
+                  value={hero.button_secondary || hero.badge_text}
+                  fallback='New arrivals weekly'
+                  path={['components', 'home_page', 'button_secondary']}
+                  vendorId={vendorId}
+                  page='home'
+                  className='text-sm font-semibold text-white/80'
+                />
               </div>
             </div>
           </div>
@@ -269,16 +277,24 @@ export function HomePreview({
           <p className='text-xs font-semibold uppercase tracking-[0.32em] text-slate-400'>
             Brand Story
           </p>
-          <h2
+          <InlineEditableText
+            as='h2'
+            value={desc.large_text}
+            fallback='A storefront built for modern shoppers.'
+            path={['components', 'home_page', 'description', 'large_text']}
+            vendorId={vendorId}
+            page='home'
             className='text-2xl font-semibold text-slate-900 sm:text-3xl'
-            style={{ color: 'var(--template-accent)' }}
-          >
-            {desc.large_text || 'A storefront built for modern shoppers.'}
-          </h2>
-          <p className='text-sm text-slate-600 sm:text-base'>
-            {desc.summary ||
-              'Curate hero products, share your story, and inspire visitors to explore your catalog.'}
-          </p>
+          />
+          <InlineEditableText
+            as='p'
+            value={desc.summary}
+            fallback='Curate hero products, share your story, and inspire visitors to explore your catalog.'
+            path={['components', 'home_page', 'description', 'summary']}
+            vendorId={vendorId}
+            page='home'
+            className='text-sm text-slate-600 sm:text-base'
+          />
         </div>
         <div className='grid gap-4 sm:grid-cols-2'>
           <div className='rounded-2xl border border-slate-200 bg-slate-50 p-4'>
@@ -286,23 +302,72 @@ export function HomePreview({
               Success
             </p>
             <p className='mt-2 text-3xl font-semibold text-slate-900'>
-              {desc.percent.percent_in_number || '92'}
+              <InlineEditableText
+                value={desc.percent.percent_in_number}
+                fallback='92'
+                path={[
+                  'components',
+                  'home_page',
+                  'description',
+                  'percent',
+                  'percent_in_number',
+                ]}
+                vendorId={vendorId}
+                page='home'
+                className='text-3xl font-semibold text-slate-900'
+              />
               <span className='text-lg text-slate-500'>%</span>
             </p>
-            <p className='text-sm text-slate-500'>
-              {desc.percent.percent_text || 'Satisfied buyers'}
-            </p>
+            <InlineEditableText
+              as='p'
+              value={desc.percent.percent_text}
+              fallback='Satisfied buyers'
+              path={[
+                'components',
+                'home_page',
+                'description',
+                'percent',
+                'percent_text',
+              ]}
+              vendorId={vendorId}
+              page='home'
+              className='text-sm text-slate-500'
+            />
           </div>
           <div className='rounded-2xl border border-slate-200 bg-slate-50 p-4'>
             <p className='text-xs uppercase tracking-[0.3em] text-slate-400'>
               Sold
             </p>
-            <p className='mt-2 text-3xl font-semibold text-slate-900'>
-              {desc.sold.sold_number || '12k'}
-            </p>
-            <p className='text-sm text-slate-500'>
-              {desc.sold.sold_text || 'Products shipped'}
-            </p>
+            <InlineEditableText
+              as='p'
+              value={desc.sold.sold_number}
+              fallback='12k'
+              path={[
+                'components',
+                'home_page',
+                'description',
+                'sold',
+                'sold_number',
+              ]}
+              vendorId={vendorId}
+              page='home'
+              className='mt-2 text-3xl font-semibold text-slate-900'
+            />
+            <InlineEditableText
+              as='p'
+              value={desc.sold.sold_text}
+              fallback='Products shipped'
+              path={[
+                'components',
+                'home_page',
+                'description',
+                'sold',
+                'sold_text',
+              ]}
+              vendorId={vendorId}
+              page='home'
+              className='text-sm text-slate-500'
+            />
           </div>
         </div>
       </section>
@@ -314,43 +379,42 @@ export function HomePreview({
       <section className='space-y-4'>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between'>
           <div>
-          <p
+          <InlineEditableText
+            as='p'
+            value={hero.products_kicker}
+            fallback='Catalog'
+            path={['components', 'home_page', 'products_kicker']}
+            vendorId={vendorId}
+            page='home'
+            colorPath={['components', 'home_page', 'products_style', 'kickerColor']}
+            sizePath={['components', 'home_page', 'products_style', 'kickerSize']}
+            color={productStyle.kickerColor}
+            fontSize={productStyle.kickerSize}
             className='text-xs font-semibold uppercase tracking-[0.32em] text-slate-400'
-            onClickCapture={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              emitSelect('products', 'products.kicker')
-            }}
-            style={{
-              color: productStyle.kickerColor || undefined,
-              fontSize: productStyle.kickerSize
-                ? `${productStyle.kickerSize}px`
-                : undefined,
-            }}
-          >
-              {hero.products_kicker || 'Catalog'}
-            </p>
-            <h3
+          />
+            <InlineEditableText
+              as='h3'
+              value={hero.products_heading}
+              fallback='Products in this template'
+              path={['components', 'home_page', 'products_heading']}
+              vendorId={vendorId}
+              page='home'
+              colorPath={['components', 'home_page', 'products_style', 'titleColor']}
+              sizePath={['components', 'home_page', 'products_style', 'titleSize']}
+              color={productStyle.titleColor}
+              fontSize={productStyle.titleSize}
               className='text-2xl font-semibold text-slate-900'
-              onClickCapture={(event) => {
-                event.preventDefault()
-                event.stopPropagation()
-                emitSelect('products', 'products.heading')
-              }}
-              style={{
-                color: productStyle.titleColor || 'var(--template-accent)',
-                fontSize: productStyle.titleSize
-                  ? `${productStyle.titleSize}px`
-                  : undefined,
-              }}
-            >
-              {hero.products_heading || 'Products in this template'}
-            </h3>
+            />
           </div>
-          <p className='text-sm text-slate-500'>
-            {hero.products_subtitle ||
-              `${products.length} products available`}
-          </p>
+          <InlineEditableText
+            as='p'
+            value={hero.products_subtitle}
+            fallback={`${products.length} products available`}
+            path={['components', 'home_page', 'products_subtitle']}
+            vendorId={vendorId}
+            page='home'
+            className='text-sm text-slate-500'
+          />
         </div>
         <div className='flex flex-wrap gap-2'>
           <a
@@ -422,12 +486,53 @@ export function HomePreview({
                   >
                     Rs. {getMinPrice(product.variants).toLocaleString()}
                   </span>
-                  <span
-                    className='text-xs'
-                    style={{ color: 'var(--template-accent)' }}
+                  <button
+                    type='button'
+                    className='rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition disabled:cursor-not-allowed disabled:opacity-60'
+                    style={{ borderColor: accent, color: accent }}
+                    disabled={
+                      addingId === product._id ||
+                      (product.variants?.[0]?.stockQuantity ?? 1) <= 0
+                    }
+                    onClick={async (event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      if (!product._id) return
+                      const auth = getTemplateAuth(String(vendorId))
+                      if (!auth) {
+                        toast.error('Please login to add items to cart.')
+                        window.location.href = `/template/${vendorId}/login?next=/template/${vendorId}`
+                        return
+                      }
+                      const variantId = product.variants?.[0]?._id
+                      if (!variantId) {
+                        toast.error('No variant available for this product.')
+                        return
+                      }
+                      setAddingId(product._id)
+                      try {
+                        await templateApiFetch(String(vendorId), '/cart', {
+                          method: 'POST',
+                          body: JSON.stringify({
+                            product_id: product._id,
+                            variant_id: variantId,
+                            quantity: 1,
+                          }),
+                        })
+                        toast.success('Added to cart.')
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Unable to add to cart.')
+                      } finally {
+                        setAddingId(null)
+                      }
+                    }}
                   >
-                    View
-                  </span>
+                    {(product.variants?.[0]?.stockQuantity ?? 1) <= 0
+                      ? 'Out'
+                      : addingId === product._id
+                        ? 'Adding'
+                        : 'Add'}
+                  </button>
                 </div>
               </div>
             </a>

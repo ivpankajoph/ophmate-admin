@@ -13,6 +13,7 @@ import { BasicInfoSection } from './components/form/BasicInfoSection'
 import { DeploymentModal } from './components/form/DeploymentModal'
 import { DescriptionSection } from './components/form/DescriptionSection'
 import { HeroSection } from './components/form/HeroSection'
+import { TemplateVariantSelector } from './components/form/TemplateVariantSelector'
 
 import { ThemeSettingsSection } from './components/form/ThemeSettingsSection'
 import { useTemplateForm } from './components/hooks/useTemplateForm'
@@ -30,6 +31,12 @@ export default function TemplateForm() {
     handleSubmit,
     vendor_id,
     uploadingPaths,
+    templateCatalog,
+    selectedTemplateKey,
+    activeTemplateKey,
+    setSelectedTemplateKey,
+    applyTemplateVariant,
+    isUpdatingTemplate,
   
     isSubmitting,
     open,
@@ -40,6 +47,10 @@ export default function TemplateForm() {
     handleCancel,
     loadedSectionOrder,
   } = useTemplateForm()
+
+  const handleInlineEdit = (path: string[], value: unknown) => {
+    updateField(path, value)
+  }
 
   const [domainOpen, setDomainOpen] = useState(false)
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
@@ -78,10 +89,12 @@ export default function TemplateForm() {
     }
   }, [selectedSection])
 
-  const previewUrl = vendor_id ? `/template/${vendor_id}` : undefined
-  const fullPreviewUrl = vendor_id
+  const previewBaseUrl = vendor_id
     ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
     : undefined
+  const previewQuery = selectedTemplateKey
+    ? `?preview=${selectedTemplateKey}`
+    : ''
 
   const handleSubmitWithOrder = () => handleSubmit(sectionOrder)
 
@@ -304,7 +317,7 @@ export default function TemplateForm() {
           </Header>
       <Toaster position='top-right' />
 
-      <TemplatePageLayout
+    <TemplatePageLayout
         title='Website Builder'
         description='Craft your storefront hero, brand story, and key metrics. Drag sections to reorder and sync to preview how products appear on your live template.'
         activeKey='home'
@@ -330,8 +343,12 @@ export default function TemplateForm() {
             >
               <Wand2 className='h-4 w-4' /> Connect Domain
             </Button>
-            {previewUrl ? (
-              <a href={previewUrl} target='_blank' rel='noopener noreferrer'>
+            {previewBaseUrl ? (
+              <a
+                href={`${previewBaseUrl}${previewQuery}`}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
                 <Button
                   variant='outline'
                   className='rounded-full border-slate-300'
@@ -346,8 +363,20 @@ export default function TemplateForm() {
           <TemplatePreviewPanel
             title='Live Website Preview'
             subtitle='Sync to refresh the right-side preview'
-            src={previewUrl}
-            fullPreviewUrl={fullPreviewUrl}
+            baseSrc={previewBaseUrl}
+            previewQuery={previewQuery}
+            defaultPath=''
+            pageOptions={[
+              { label: 'Home', path: '' },
+              { label: 'About', path: '/about' },
+              { label: 'Contact', path: '/contact' },
+              { label: 'Cart', path: '/cart' },
+              { label: 'Orders', path: '/orders' },
+              { label: 'Profile', path: '/profile' },
+              { label: 'Logout', path: '/login' },
+              { label: 'Category', path: '/category' },
+              { label: 'Login', path: '/login' },
+            ]}
             onSync={handleSubmitWithOrder}
             isSyncing={isSubmitting}
             syncDisabled={uploadingPaths.size > 0}
@@ -356,6 +385,7 @@ export default function TemplateForm() {
             previewData={data}
             sectionOrder={sectionOrder}
             onSelectSection={handleSelectSection}
+            onInlineEdit={handleInlineEdit}
           />
         }
       >
@@ -367,6 +397,20 @@ export default function TemplateForm() {
           items={sections}
           order={sectionOrder}
           setOrder={setSectionOrder}
+        />
+
+        <TemplateVariantSelector
+          templates={templateCatalog}
+          selectedKey={selectedTemplateKey}
+          activeKey={activeTemplateKey}
+          previewBaseUrl={
+            vendor_id
+              ? `${VITE_PUBLIC_API_URL_TEMPLATE_FRONTEND}/template/${vendor_id}`
+              : undefined
+          }
+          onSelect={setSelectedTemplateKey}
+          onApply={applyTemplateVariant}
+          isApplying={isUpdatingTemplate}
         />
 
         {sectionOrder.map((sectionId) => (

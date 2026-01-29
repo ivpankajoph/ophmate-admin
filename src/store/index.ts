@@ -4,7 +4,7 @@ import storage from "redux-persist/lib/storage";
 import rootReducer from "./rootReducer";
 import { PersistConfig } from "redux-persist";
 
-type RootState = ReturnType<typeof rootReducer>;
+export type RootState = ReturnType<typeof rootReducer>;
 
 const persistConfig: PersistConfig<RootState> = {
   key: "root",

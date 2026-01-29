@@ -9,8 +9,21 @@ import { initialData } from '../../data'
 import { updateFieldImmutable } from './utils'
 import { uploadImage } from '../../helper/fileupload'
 
+type TemplateCatalogItem = {
+  key: string
+  name: string
+  description?: string
+  previewImage?: string
+}
+
 export function useTemplateForm() {
   const [data, setData] = useState(initialData)
+  const [templateCatalog, setTemplateCatalog] = useState<TemplateCatalogItem[]>(
+    []
+  )
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState('classic')
+  const [activeTemplateKey, setActiveTemplateKey] = useState('classic')
+  const [isUpdatingTemplate, setIsUpdatingTemplate] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState('idle')
   const [uploadingPaths, setUploadingPaths] = useState(new Set())
@@ -117,6 +130,13 @@ export function useTemplateForm() {
                 )?.section_order
               )
             )
+            const templateKey =
+              (payload as Record<string, unknown>).template_key ||
+              (payload as Record<string, unknown>).templateKey
+            if (typeof templateKey === 'string') {
+              setSelectedTemplateKey(templateKey)
+              setActiveTemplateKey(templateKey)
+            }
             setData(mergeTemplate(payload as Record<string, unknown>))
             if (order.length) setLoadedSectionOrder(order)
             return
@@ -129,6 +149,20 @@ export function useTemplateForm() {
 
     load()
   }, [vendor_id])
+
+  useEffect(() => {
+    const loadCatalog = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/v1/templates/catalog`)
+        const items = Array.isArray(res.data?.data) ? res.data.data : []
+        setTemplateCatalog(items)
+      } catch {
+        setTemplateCatalog([])
+      }
+    }
+
+    loadCatalog()
+  }, [])
 
   // Update any nested value
   const updateField = (path: string[], value: any) => {
@@ -188,6 +222,37 @@ export function useTemplateForm() {
       toast.error('Save failed')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const applyTemplateVariant = async () => {
+    if (!vendor_id) return
+    setIsUpdatingTemplate(true)
+
+    try {
+      const res = await axios.put(
+        `${BASE_URL}/v1/templates/template`,
+        {
+          vendor_id,
+          template_key: selectedTemplateKey,
+        },
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      )
+      const updatedKey =
+        res.data?.data?.template_key || res.data?.data?.templateKey
+      if (typeof updatedKey === 'string') {
+        setSelectedTemplateKey(updatedKey)
+        setActiveTemplateKey(updatedKey)
+      } else {
+        setActiveTemplateKey(selectedTemplateKey)
+      }
+      toast.success('Template updated!')
+    } catch {
+      toast.error('Template update failed')
+    } finally {
+      setIsUpdatingTemplate(false)
     }
   }
 
@@ -262,6 +327,12 @@ export function useTemplateForm() {
     updateField,
     handleImageChange,
     handleSubmit,
+    templateCatalog,
+    selectedTemplateKey,
+    activeTemplateKey,
+    setSelectedTemplateKey,
+    applyTemplateVariant,
+    isUpdatingTemplate,
     uploadingPaths,
     submitStatus,
     isSubmitting,

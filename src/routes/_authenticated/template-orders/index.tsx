@@ -1,12 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
+import { createFileRoute } from '@tanstack/react-router'
+import { useSelector } from 'react-redux'
 import api from '@/lib/axios'
+import type { RootState } from '@/store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/store'
 
 type OrderSummary = {
   totalOrders: number
@@ -25,7 +25,7 @@ type OrderItem = {
   unit_price?: number
 }
 
-type Order = {
+type TemplateOrder = {
   _id: string
   order_number?: string
   status?: string
@@ -33,11 +33,10 @@ type Order = {
   subtotal?: number
   shipping_fee?: number
   discount?: number
-  vendor_subtotal?: number
-  vendor_item_count?: number
   payment_method?: string
   payment_status?: string
   createdAt?: string
+  vendor_id?: { _id?: string; name?: string; email?: string; phone?: string; businessName?: string; storeName?: string }
   user_id?: { name?: string; email?: string; phone?: string }
   shipping_address?: {
     full_name?: string
@@ -52,12 +51,12 @@ type Order = {
   items: OrderItem[]
 }
 
-export const Route = createFileRoute('/_authenticated/order/')({
-  component: OrdersPage,
+export const Route = createFileRoute('/_authenticated/template-orders/')({
+  component: TemplateOrdersReport,
 })
 
-function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([])
+function TemplateOrdersReport() {
+  const [orders, setOrders] = useState<TemplateOrder[]>([])
   const [summary, setSummary] = useState<OrderSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -73,7 +72,7 @@ function OrdersPage() {
     try {
       setLoading(true)
       setError('')
-      const res = await api.get('/orders', {
+      const res = await api.get('/template-orders', {
         params: {
           page,
           limit: 20,
@@ -89,7 +88,7 @@ function OrdersPage() {
         setSelectedId(data.orders[0]._id)
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load orders')
+      setError(err?.response?.data?.message || 'Failed to load template orders')
     } finally {
       setLoading(false)
     }
@@ -118,6 +117,13 @@ function OrdersPage() {
   const formatMoney = (value?: number) =>
     `₹${Number(value || 0).toLocaleString()}`
 
+  const formatAttrs = (attrs?: Record<string, string>) => {
+    if (!attrs) return ''
+    return Object.values(attrs)
+      .filter((value) => value)
+      .join(' / ')
+  }
+
   const statusBadge = (value?: string) => {
     const key = value || 'pending'
     const map: Record<string, string> = {
@@ -136,36 +142,38 @@ function OrdersPage() {
   }
 
   const totalOrders = summary?.totalOrders || total || orders.length
-  const totalRevenue =
-    summary?.totalRevenue ||
-    orders.reduce(
-      (acc, o) => acc + (isVendor ? o.vendor_subtotal || 0 : o.total || 0),
-      0,
-    )
+  const totalRevenue = summary?.totalRevenue || orders.reduce((acc, o) => acc + (o.total || 0), 0)
+  const statusFallback = orders.reduce<Record<string, number>>((acc, order) => {
+    const key = (order.status || 'unknown').toLowerCase()
+    acc[key] = (acc[key] || 0) + 1
+    return acc
+  }, {})
+  const pendingCount = summary?.statusCounts?.pending ?? statusFallback.pending ?? 0
+  const deliveredCount = summary?.statusCounts?.delivered ?? statusFallback.delivered ?? 0
   const pageCount = Math.max(Math.ceil(total / 20), 1)
 
   return (
     <div className='space-y-6'>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h1 className='text-2xl font-semibold text-slate-900'>Orders</h1>
-          <p className='text-sm text-muted-foreground'>Review order history and track order details</p>
+          <h1 className='text-2xl font-semibold text-slate-900'>Order - Template Data</h1>
+          <p className='text-sm text-muted-foreground'>
+            {isVendor ? 'Your storefront order history' : 'All storefront orders across vendors'}
+          </p>
         </div>
         <div className='flex flex-wrap items-center gap-2'>
-          <div className='relative'>
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setPage(1)
-                  fetchOrders()
-                }
-              }}
-              placeholder='Search order number or customer'
-              className='w-64'
-            />
-          </div>
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setPage(1)
+                fetchOrders()
+              }
+            }}
+            placeholder='Search order number or customer'
+            className='w-64'
+          />
           <select
             value={status}
             onChange={(e) => {
@@ -206,7 +214,7 @@ function OrdersPage() {
             <CardTitle className='text-sm text-muted-foreground'>Pending</CardTitle>
           </CardHeader>
           <CardContent className='text-2xl font-semibold'>
-            {summary?.statusCounts?.pending || 0}
+            {pendingCount}
           </CardContent>
         </Card>
         <Card>
@@ -214,7 +222,7 @@ function OrdersPage() {
             <CardTitle className='text-sm text-muted-foreground'>Delivered</CardTitle>
           </CardHeader>
           <CardContent className='text-2xl font-semibold'>
-            {summary?.statusCounts?.delivered || 0}
+            {deliveredCount}
           </CardContent>
         </Card>
       </div>
@@ -246,12 +254,17 @@ function OrdersPage() {
                     {statusBadge(order.status)}
                   </div>
                   <div className='mt-2 text-xs text-muted-foreground'>
-                    {order.user_id?.name || order.shipping_address?.full_name || 'Customer'} •{' '}
-                    {order.user_id?.email || order.shipping_address?.phone || 'N/A'}
+                    {(order.user_id?.name || order.shipping_address?.full_name || 'Customer')}
+                    {order.user_id?.email ? ` • ${order.user_id.email}` : ''}
                   </div>
+                  {!isVendor && order.vendor_id && (
+                    <div className='mt-2 text-xs text-slate-500'>
+                      Vendor: {order.vendor_id?.name || order.vendor_id?.businessName || order.vendor_id?.storeName || order.vendor_id?._id}
+                    </div>
+                  )}
                   <div className='mt-2 flex items-center justify-between text-sm font-semibold'>
                     <span>{order.items?.length || 0} items</span>
-                    <span>{formatMoney(isVendor ? order.vendor_subtotal : order.total)}</span>
+                    <span>{formatMoney(order.total)}</span>
                   </div>
                 </button>
               ))}
@@ -316,7 +329,7 @@ function OrdersPage() {
                         if (!selectedOrder?._id) return
                         try {
                           setLoading(true)
-                          await api.put(`/orders/${selectedOrder._id}/status`, {
+                          await api.put(`/template-orders/${selectedOrder._id}/status`, {
                             status: 'delivered',
                           })
                           await fetchOrders()
@@ -335,7 +348,7 @@ function OrdersPage() {
                         if (!selectedOrder?._id) return
                         try {
                           setLoading(true)
-                          await api.put(`/orders/${selectedOrder._id}/status`, {
+                          await api.put(`/template-orders/${selectedOrder._id}/status`, {
                             status: 'failed',
                           })
                           await fetchOrders()
@@ -347,6 +360,17 @@ function OrdersPage() {
                       Mark failed
                     </Button>
                   </div>
+                  {!isVendor && selectedOrder.vendor_id && (
+                    <div>
+                      <p className='text-xs text-muted-foreground'>Vendor</p>
+                      <p className='font-semibold'>
+                        {selectedOrder.vendor_id?.name ||
+                          selectedOrder.vendor_id?.businessName ||
+                          selectedOrder.vendor_id?.storeName ||
+                          selectedOrder.vendor_id?._id}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <Separator />
@@ -354,31 +378,41 @@ function OrdersPage() {
                 <div className='space-y-3'>
                   <p className='text-sm font-semibold'>Items</p>
                   <div className='max-h-[360px] space-y-3 overflow-y-auto pr-2'>
-                    {selectedOrder.items.map((item) => (
-                      <div key={item.product_id || item._id} className='flex gap-3 rounded-lg border p-3'>
-                        <div className='h-14 w-14 overflow-hidden rounded-md bg-slate-100'>
-                          <img
-                            src={item.image_url || '/placeholder.png'}
-                            alt={item.product_name || 'Product'}
-                            className='h-full w-full object-cover'
-                          />
-                        </div>
-                        <div className='flex flex-1 items-start justify-between gap-3'>
-                          <div className='min-w-0'>
-                            <p className='text-sm font-semibold text-slate-900 line-clamp-2'>
-                              {item.product_name}
-                            </p>
-                            <p className='text-xs text-muted-foreground'>
-                              {Object.values(item.variant_attributes || {}).join(' / ')}
-                            </p>
-                            <p className='text-xs text-muted-foreground'>Qty: {item.quantity}</p>
+                    {selectedOrder.items.map((item) => {
+                      const vendorId = selectedOrder.vendor_id?._id || ''
+                      const productHref = item.product_id && vendorId
+                        ? `/template/${vendorId}/product/${item.product_id}`
+                        : '#'
+                      return (
+                        <a
+                          key={item.product_id || item._id}
+                          href={productHref}
+                          className='flex gap-3 rounded-lg border p-3 transition hover:border-slate-300'
+                        >
+                          <div className='h-14 w-14 overflow-hidden rounded-md bg-slate-100'>
+                            <img
+                              src={item.image_url || '/placeholder.png'}
+                              alt={item.product_name || 'Product'}
+                              className='h-full w-full object-cover'
+                            />
                           </div>
-                          <div className='text-sm font-semibold whitespace-nowrap'>
-                            {formatMoney(item.total_price)}
+                          <div className='flex flex-1 items-start justify-between gap-3'>
+                            <div className='min-w-0'>
+                              <p className='text-sm font-semibold text-slate-900 line-clamp-2'>
+                                {item.product_name}
+                              </p>
+                              <p className='text-xs text-muted-foreground'>
+                                {formatAttrs(item.variant_attributes) || 'Default variant'}
+                              </p>
+                              <p className='text-xs text-muted-foreground'>Qty: {item.quantity}</p>
+                            </div>
+                            <div className='text-sm font-semibold whitespace-nowrap'>
+                              {formatMoney(item.total_price)}
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+                        </a>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -387,7 +421,9 @@ function OrdersPage() {
                 <div className='grid gap-4 md:grid-cols-2'>
                   <div className='space-y-2 rounded-lg border p-3'>
                     <p className='text-sm font-semibold'>Customer</p>
-                    <p className='text-sm'>{selectedOrder.user_id?.name || selectedOrder.shipping_address?.full_name}</p>
+                    <p className='text-sm'>
+                      {selectedOrder.user_id?.name || selectedOrder.shipping_address?.full_name}
+                    </p>
                     <p className='text-xs text-muted-foreground'>{selectedOrder.user_id?.email}</p>
                     <p className='text-xs text-muted-foreground'>{selectedOrder.shipping_address?.phone}</p>
                   </div>
@@ -413,33 +449,21 @@ function OrdersPage() {
 
                 <div className='grid gap-2 text-sm'>
                   <div className='flex justify-between'>
-                    <span className='text-muted-foreground'>Items total</span>
-                    <span className='font-semibold'>
-                      {formatMoney(isVendor ? selectedOrder.vendor_subtotal : selectedOrder.subtotal)}
-                    </span>
+                    <span className='text-muted-foreground'>Subtotal</span>
+                    <span className='font-semibold'>{formatMoney(selectedOrder.subtotal)}</span>
                   </div>
-                  {!isVendor && (
-                    <>
-                      <div className='flex justify-between'>
-                        <span className='text-muted-foreground'>Shipping</span>
-                        <span className='font-semibold'>{formatMoney(selectedOrder.shipping_fee)}</span>
-                      </div>
-                      <div className='flex justify-between'>
-                        <span className='text-muted-foreground'>Discount</span>
-                        <span className='font-semibold'>-{formatMoney(selectedOrder.discount)}</span>
-                      </div>
-                    </>
-                  )}
+                  <div className='flex justify-between'>
+                    <span className='text-muted-foreground'>Shipping</span>
+                    <span className='font-semibold'>{formatMoney(selectedOrder.shipping_fee)}</span>
+                  </div>
+                  <div className='flex justify-between'>
+                    <span className='text-muted-foreground'>Discount</span>
+                    <span className='font-semibold'>-{formatMoney(selectedOrder.discount)}</span>
+                  </div>
                   <div className='flex justify-between text-base font-semibold'>
-                    <span>{isVendor ? 'Your total' : 'Total'}</span>
-                    <span>{formatMoney(isVendor ? selectedOrder.vendor_subtotal : selectedOrder.total)}</span>
+                    <span>Total</span>
+                    <span>{formatMoney(selectedOrder.total)}</span>
                   </div>
-                  {isVendor && (
-                    <div className='flex justify-between text-xs text-muted-foreground'>
-                      <span>Customer paid</span>
-                      <span>{formatMoney(selectedOrder.total)}</span>
-                    </div>
-                  )}
                 </div>
               </>
             )}

@@ -173,12 +173,19 @@ export function useTemplatePreviewData(
     const loadProducts = async () => {
       try {
         const res = await axios.get(
-          `${BASE_URL}/v1/products/vendor/${vendorId}`,
-          { headers }
+          `${BASE_URL}/v1/products/vendor-public/${vendorId}`
         )
         return Array.isArray(res.data?.products) ? res.data.products : []
       } catch {
-        return []
+        try {
+          const res = await axios.get(
+            `${BASE_URL}/v1/products/vendor/${vendorId}`,
+            { headers }
+          )
+          return Array.isArray(res.data?.products) ? res.data.products : []
+        } catch {
+          return []
+        }
       }
     }
 

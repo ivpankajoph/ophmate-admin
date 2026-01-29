@@ -9,11 +9,16 @@ const InventoryDashboard = () => {
     name: string;
     subcategories?: { _id: string; name: string }[];
   };
+  type SubCategory = { _id: string; name: string };
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
+  const [activeSubcategories, setActiveSubcategories] = useState<SubCategory[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [subCategorySearch, setSubCategorySearch] = useState('');
+  const [productSearch, setProductSearch] = useState('');
   const [categoryPage, setCategoryPage] = useState(1);
   const [categoryTotalPages, setCategoryTotalPages] = useState(1);
 
@@ -136,17 +141,72 @@ const InventoryDashboard = () => {
     return variants.reduce((sum, v) => sum + (v.stockQuantity || 0), 0);
   };
 
+  const fetchProductsBySubCategory = async (subCategoryId: string, page = 1) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(
+        `${API_BASE}/v1/products/sub-categories/${subCategoryId}?page=${page}&limit=${limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setProducts(data.products || []);
+        setSelectedSubCategory(subCategoryId);
+        setProductsTotalPages(data?.pagination?.totalPages || 1);
+      }
+    } catch (err) {
+      setError('Failed to load products');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCategoryPageChange = (nextPage: number) => {
     setCategoryPage(nextPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleProductsPageChange = (nextPage: number) => {
+    if (selectedSubCategory) {
+      setProductsPage(nextPage);
+      fetchProductsBySubCategory(selectedSubCategory, nextPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (!selectedCategory) return;
     setProductsPage(nextPage);
     fetchProductsByCategory(selectedCategory, nextPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (!selectedCategory) return;
+    const current = categories.find((cat) => cat._id === selectedCategory);
+    const subs = current?.subcategories || [];
+    setActiveSubcategories(subs);
+    if (!selectedSubCategory && subs.length > 0) {
+      setProductsPage(1);
+      fetchProductsBySubCategory(subs[0]._id, 1);
+    }
+  }, [categories, selectedCategory]);
+
+  const visibleSubcategories = subCategorySearch.trim()
+    ? activeSubcategories.filter((sub) =>
+        sub.name.toLowerCase().includes(subCategorySearch.toLowerCase())
+      )
+    : activeSubcategories;
+
+  const visibleProducts = productSearch.trim()
+    ? products.filter((product) =>
+        product.productName.toLowerCase().includes(productSearch.toLowerCase())
+      )
+    : products;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -163,12 +223,12 @@ const InventoryDashboard = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_260px_1fr] xl:grid-cols-[260px_280px_1fr]">
           {/* Categories Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border p-4">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">Categories</h2>
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-white rounded-xl shadow-sm border p-4 lg:sticky lg:top-24 lg:h-[calc(100vh-180px)] flex flex-col">
+              <h2 className="text-lg font-semibold mb-3 text-gray-900">Categories</h2>
 
               {/* Search Input */}
               <div className="relative mb-4">
@@ -183,16 +243,23 @@ const InventoryDashboard = () => {
               </div>
 
               {loading && !selectedCategory ? (
-                <div className="text-center py-8 text-gray-500">Loading...</div>
+                <div className="flex-1 text-center py-8 text-gray-500">Loading...</div>
               ) : (
-                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                <div className="flex-1 space-y-2 overflow-y-auto pr-1">
                   {filteredCategories.length > 0 ? (
                     filteredCategories.map((cat) => (
                       <button
                         key={cat._id}
                         onClick={() => {
                           setProductsPage(1);
-                          fetchProductsByCategory(cat._id, 1);
+                          setSelectedCategory(cat._id);
+                          const subs = cat.subcategories || [];
+                          setActiveSubcategories(subs);
+                          if (subs.length > 0) {
+                            fetchProductsBySubCategory(subs[0]._id, 1);
+                          } else {
+                            fetchProductsByCategory(cat._id, 1);
+                          }
                         }}
                         className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                           selectedCategory === cat._id
@@ -215,17 +282,62 @@ const InventoryDashboard = () => {
                   )}
                 </div>
               )}
-              <Pagination
-                page={categoryPage}
-                totalPages={categoryTotalPages}
-                onPageChange={handleCategoryPageChange}
-                isLoading={loading}
-              />
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <Pagination
+                  page={categoryPage}
+                  totalPages={categoryTotalPages}
+                  onPageChange={handleCategoryPageChange}
+                  isLoading={loading}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Subcategories */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-white rounded-xl shadow-sm border p-4 lg:sticky lg:top-24 lg:h-[calc(100vh-180px)] flex flex-col">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Subcategories</h3>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search subcategories..."
+                  value={subCategorySearch}
+                  onChange={(e) => setSubCategorySearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                  disabled={!selectedCategory}
+                />
+              </div>
+
+              {!selectedCategory ? (
+                <div className="text-sm text-gray-500">Select a category first.</div>
+              ) : visibleSubcategories.length > 0 ? (
+                <div className="flex-1 space-y-2 overflow-y-auto pr-1">
+                  {visibleSubcategories.map((sub) => (
+                    <button
+                      key={sub._id}
+                      onClick={() => {
+                        setProductsPage(1);
+                        fetchProductsBySubCategory(sub._id, 1);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
+                        selectedSubCategory === sub._id
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      {sub.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500">No subcategories available.</div>
+              )}
             </div>
           </div>
 
           {/* Products & Variants */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-1">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex items-center gap-2 text-red-700">
                 <AlertCircle className="w-5 h-5" />
@@ -233,24 +345,51 @@ const InventoryDashboard = () => {
               </div>
             )}
 
+            <div className="bg-white rounded-xl shadow-sm border p-4 mb-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Products</h2>
+                  <p className="text-xs text-gray-500">
+                    {selectedCategory ? 'Filtered by category/subcategory' : 'Select a category'}
+                  </p>
+                </div>
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    disabled={!selectedCategory}
+                  />
+                </div>
+              </div>
+            </div>
+
             {!selectedCategory ? (
-              <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+              <div className="bg-white rounded-xl shadow-sm border p-10 text-center">
                 <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">Select a category to view products</p>
               </div>
+            ) : activeSubcategories.length > 0 && !selectedSubCategory ? (
+              <div className="bg-white rounded-xl shadow-sm border p-10 text-center">
+                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Select a subcategory to view products</p>
+              </div>
             ) : loading ? (
-              <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+              <div className="bg-white rounded-xl shadow-sm border p-10 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="text-gray-500 mt-4">Loading products...</p>
               </div>
-            ) : products.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+            ) : visibleProducts.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border p-10 text-center">
                 <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">No products found in this category</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {products.map((product) => {
+                {visibleProducts.map((product) => {
                   const isExpanded = expandedProducts.has(product._id);
                   const totalStock = getTotalStock(product.variants || []);
                   const stockStatus = getStockStatus(totalStock);
@@ -258,7 +397,7 @@ const InventoryDashboard = () => {
                   return (
                     <div
                       key={product._id}
-                      className="bg-white rounded-lg shadow-sm border overflow-hidden"
+                      className="bg-white rounded-xl shadow-sm border overflow-hidden"
                     >
                       {/* Product Header */}
                       <div

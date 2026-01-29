@@ -18,6 +18,11 @@ export const roles = [
     icon: User,
   },
   {
+    label: 'Template Customer',
+    value: 'template_customer',
+    icon: Users,
+  },
+  {
     label: 'Superadmin',
     value: 'superadmin',
     icon: Shield,

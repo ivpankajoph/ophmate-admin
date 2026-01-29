@@ -55,8 +55,6 @@ const ProductCreateForm: React.FC = () => {
   const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({})
   const [currentStep, setCurrentStep] = useState(1)
   const [metaKeywordInput, setMetaKeywordInput] = useState('')
-
-  // ✅ For dynamic variant attributes & keywords
   const [tempAttributeKey, setTempAttributeKey] = useState('')
   const [tempAttributeValue, setTempAttributeValue] = useState('')
   const [variantMetaKeywordInput, setVariantMetaKeywordInput] = useState('')
@@ -195,7 +193,6 @@ const ProductCreateForm: React.FC = () => {
     }
   }
 
-  // --- Image Handlers ---
   const handleDefaultImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -627,13 +624,13 @@ const ProductCreateForm: React.FC = () => {
       <div className='mx-auto max-w-3xl'>
         <div className='rounded-xl bg-white p-8 shadow-lg'>
           <h1 className='mb-8 text-3xl font-bold text-gray-900'>
-            Create New Product
+            Create New Product 
           </h1>
 
           <Link to='/upload-products'>
             <Button variant='outline' className='mb-12 bg-white'>
               Upload Excel or Download Template
-            </Button>
+            </Button> 
           </Link>
 
           {/* Progress Bar */}
